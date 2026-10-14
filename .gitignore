@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Secrets and local config
+.env
+.env.*
+!.env.example
+.mcp.local.json
+
+# Local state and indexes
+.cairn/inbox.md
+.cairn/local/
+*.sqlite
+*.db
+
+# Eval run output (keep the golden set, ignore results)
+eval/runs/
+
+# Local models and caches
+.cache/
+*.gguf
+
+# OS and editors
+.DS_Store
+.idea/
+.vscode/
