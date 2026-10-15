@@ -13,7 +13,7 @@ disable-model-invocation: false
 
 Step 2 of the core flow. Runs while a Thread is in `stage: Framing` (set by `shape-thread`) — the stage where the PM is talking to others to find what needs thinking about. Produces a `verdict_ref`: a critique that finds the real edge cases and risks, with each one mapped to a future acceptance criterion or explicitly deferred with a reason. `spec-generator` reads this verdict next, and `compile-check`'s C11 checks that every edge case it lists is accounted for.
 
-When every edge case is mapped or deferred and the PM accepts the verdict, set `stage: Validating`: the Thread moves on to getting everyone on board (sign-offs, UX mocks, an API spec). This skill never sets `status: Specified` — that follows a passing `compile-check`, applied by the PM.
+When every edge case is mapped or deferred and the PM accepts the verdict, set `stage: Validating`: the Thread moves on to getting everyone on board (reviews, UX mocks, an API spec). This skill never sets `status: Specified` — that follows a passing `compile-check`, applied by the PM.
 
 ## Required inputs
 
@@ -47,7 +47,7 @@ edge_cases:
 
 Plus the verdict body: the edge cases found, each tagged with its origin.
 
-If the verdict shows who needs to sign off, or which supporting artifacts (UX mocks, an API spec) Validating will need, propose them as lines in the Thread's `## Open items`.
+If the verdict shows who should review the draft, or which supporting artifacts (UX mocks, an API spec) Validating will need, propose them as lines in the Thread's `## Open items`.
 
 ## What you must not do
 

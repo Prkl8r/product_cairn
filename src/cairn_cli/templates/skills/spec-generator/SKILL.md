@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict, the sign-offs, and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add the new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
+Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add the new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
 
 ## Required inputs
 
@@ -50,6 +50,8 @@ criteria: [...]
 ```
 
 If drafting for a Bundle, criteria carry the normal `trace` entries back to each originating Thread's signals — never a bundle-level trace.
+
+After drafting, add a review reminder to the Thread's `## Open items` if one isn't there: who should read the draft before handoff — the sponsor (`validated_by`) and the owner of each system in `touches`, by name where the overview gives one. Nobody has to sign off; this is a reminder, never a gate.
 
 ## What you must not do
 

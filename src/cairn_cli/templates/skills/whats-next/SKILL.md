@@ -48,10 +48,10 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Exploring, Active | — | brief drafted, no decision | `shape-thread` wasn't finished — resume it; the PM still owes a proceed/hold/drop call |
 | Framing, Active | normal | no `verdict_ref` | `assess-thread` — and this is the stage to talk it through with others |
 | Framing, Active | normal | `verdict_ref` present, edge cases unmapped | finish `assess-thread`; it moves the Thread to Validating |
-| Validating, Active | normal | sign-offs or supporting artifacts still open | get everyone on board: list the open sign-offs and artifacts from `## Open items` |
+| Validating, Active | normal | supporting artifacts or reviews still open | get everyone on board: list the open artifacts and review reminders from `## Open items`. Reviews never block |
 | Validating, Active | normal | no Spec in `outbound_refs` | `spec-generator` |
 | Validating, Active | normal | Spec drafted, not compiled | `compile-check` |
-| Validating, Active | any | compiled clean | tell the PM it's ready to hand off: they set `status: Specified` when it goes to engineering |
+| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say it's ready to hand off: they set `status: Specified` when it goes to engineering |
 | any, Active | fast | no Review Brief yet | `fast-track` |
 | any, Active | fast | Review Brief exists, `brief_ack` unset | `ack-brief` |
 | any, Active | fast | `brief_ack` set, not compiled | `compile-check` |

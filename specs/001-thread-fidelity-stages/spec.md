@@ -27,9 +27,13 @@ Stage names are activities: they say what's happening now. Each stage's gate is 
 |---|---|---|---|
 | **Exploring** | The PM, alone, fleshing out an idea. | Entry check met (feedback: recurring theme; requirement/mandate/idea: named sponsor). Problem-and-impact brief written. PM decides to proceed. | `shape-thread` |
 | **Framing** | The PM is talking to others to find what needs thinking about. The jury critique runs here. | Jury verdict recorded; every edge case mapped to a future criterion or deferred with a reason. | `assess-thread` |
-| **Validating** | Getting everyone on board. Supporting artifacts get made: UX mocks, an API spec, and so on. | Required sign-offs recorded in `approvals`; supporting artifacts linked in `outbound_refs`; a Spec compiles clean. | `spec-generator` → `compile-check` |
+| **Validating** | Getting everyone on board. Supporting artifacts get made: UX mocks, an API spec, and so on. | A Spec compiles clean. No sign-off is required (see Reviews). | `spec-generator` → `compile-check` |
 
 Leaving Validating is the handoff: the Spec goes to engineering and the Thread's status becomes Specified. There is no "Specifying" stage; putting the Spec together is the act of leaving Validating.
+
+### Reviews
+
+Nobody has to sign off. In Validating, Cairn reminds the PM who should review the Spec draft before handoff: the signal's sponsor (`validated_by`) and the owner of each system in `touches`. The reminder goes in the Thread's `## Open items`, where the PM checks it off. It never blocks a stage or the handoff. An org rule with `enforcement: block` still blocks, as before.
 
 Names, not numbers, go in Thread files: names carry meaning and survive a stage being added. The order is defined once in code (`STAGES` in `ledger.py`).
 
@@ -53,14 +57,13 @@ status: Active | Parked | Rejected | Specified
 owner: <name>
 inbound_refs: ["idea:TODO-11"]          # the signal(s) it came from
 outbound_refs: ["spec:SPEC-001", "mock:<url>", "api:<path>"]   # what it produced
-approvals: []                           # each: who, role, date (Validating)
 light_stages: [Framing, Validating]     # fast track only
 ```
 
 ### Flows
 
 - **Normal**: `shape-thread` (Exploring → Framing), `assess-thread` (Framing → Validating), `spec-generator` + `compile-check` (Validating → status Specified).
-- **Fast track**: `fast-track` goes from Exploring to a drafted Spec in one pass. Framing and Validating are backfilled in light form and listed in `light_stages`; the Review Brief records what was skipped, including any sign-offs and supporting artifacts.
+- **Fast track**: `fast-track` goes from Exploring to a drafted Spec in one pass. Framing and Validating are backfilled in light form and listed in `light_stages`; the Review Brief records what was skipped, including any reviews and supporting artifacts.
 - **Kickback**: status goes from Specified back to Active; stage stays Validating. `record-kickback` → `revise-spec` updates the same Spec at a new revision.
 - **Park / reject / resume**: change `status` only. Resume sets status back to Active at the same stage.
 
@@ -86,7 +89,9 @@ Not changed: the long-form design docs under `docs/`, which still use the old na
 
 ## Open questions
 
-1. **Required sign-offs.** Who has to sign off before leaving Validating? Candidate: required roles listed in `charter.yaml`, checked against `approvals`. Today the gate only asks that any sign-off the PM marked blocking is recorded (compile-check C03).
-2. **Supporting artifacts.** Linked only, or sometimes committed to the repo? Today: linked in `outbound_refs` with a kind prefix (`mock:`, `api:`).
-3. **After handoff.** Built, launched and enablement are now properties of the Spec, not the Thread. The Spec's own lifecycle is not defined yet.
-4. **Fast track and sign-off.** Should fast track require the sign-offs, or only list them as skipped?
+1. **Supporting artifacts.** Linked only, or sometimes committed to the repo? Today: linked in `outbound_refs` with a kind prefix (`mock:`, `api:`). Direction: let them be exported with the Spec as an **addendum**, so engineering gets one package. Not decided: whether the addendum copies the artifacts or only lists links, and which formats it supports.
+2. **After handoff.** Built, launched and enablement are now properties of the Spec, not the Thread. The Spec's own lifecycle is not defined yet.
+
+## Decided
+
+- **No sign-offs** (2026-10-15). Validating reminds the PM to have the draft reviewed; it never requires approval. This also settles fast track: it lists the reviews as not yet done in the Review Brief.

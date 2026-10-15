@@ -31,7 +31,7 @@ If any of these are missing and the user hasn't pointed you at them, ask for the
 2. Backfill the skipped stages in light form:
    - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal.
    - **Framing:** a single-pass critique (not a full jury debate) listing the top edge cases and risks, each mapped to a criterion or deferred with a reason.
-   - **Validating:** no sign-offs are collected and no supporting artifacts (mocks, API spec) are made. List which ones the normal track would have needed, as skipped.
+   - **Validating:** no supporting artifacts (mocks, API spec) are made and nobody has reviewed the draft yet. List the artifacts the normal track would have needed as skipped, and add a review reminder (sponsor, owners of systems in `touches`) to `## Open items`.
 
    Then set the Thread to `stage: Validating`, add `light_stages: [Framing, Validating]`, and add the Spec to its `outbound_refs`. Leave `status: Active`.
 3. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry pointing to a real file. Quote the source where you can — never quote the raw/git-ignored copy.
@@ -95,7 +95,7 @@ Place this at the top of the Thread file (and mirror the structured version into
 - **Verify first:** the 3 to 5 items most likely to be wrong or most costly if wrong.
 - **Assumptions:** every assumption you made, each tagged with its origin — `signal`, `overview`, `library`, or `inferred`.
 - **Open questions:** anything you could not resolve, each with a status.
-- **Skipped:** which stages were bypassed (Framing, Validating), what was drafted in their place, and which sign-offs and supporting artifacts were not gathered.
+- **Skipped:** which stages were bypassed (Framing, Validating), what was drafted in their place, which supporting artifacts weren't made, and who should review the draft.
 - **Caution flag (optional):** state plainly if this looks risky for a fast track, then proceed anyway.
 
 Do not set `brief_ack` yourself — that is the PM's single checkpoint. Tell the PM the Brief is ready for review and stop.
