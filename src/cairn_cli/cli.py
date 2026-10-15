@@ -101,6 +101,11 @@ def init(
     status = _copy_if_absent(templates / "charter.yaml", charter_dst, force=False)
     report.append(("charter.yaml", status))
 
+    # 3b. checklist.md (user-owned, never overwritten)
+    checklist_dst = target / "checklist.md"
+    status = _copy_if_absent(templates / "checklist.md", checklist_dst, force=False)
+    report.append(("checklist.md", status))
+
     # 4. .cairn/package.lock (records the installed version)
     cairn_dir = target / ".cairn"
     cairn_dir.mkdir(parents=True, exist_ok=True)

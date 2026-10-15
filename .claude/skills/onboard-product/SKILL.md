@@ -20,7 +20,10 @@ Nothing else in Cairn can run meaningfully without this. `shape-thread`, `fast-t
 
 ## Which path
 
-If `charter.yaml` already exists, this is not a fresh onboarding — stop and ask what the PM actually wants (add one system's overview, revise the charter) rather than redrafting everything. If no `charter.yaml` exists and no `--new` flag was given, ask whether there's existing material to import before assuming brownfield — don't default to greenfield just because nothing was specified.
+If `charter.yaml` exists, check whether it's actually filled in before treating this as a repeat onboarding. `cairn init` seeds every repo with a stub `charter.yaml` (every field `TBD`) — a stub is not a ratified charter, so treat it the same as a missing file, not as evidence onboarding already happened.
+
+- **No `charter.yaml`, or one that's still the unfilled stub:** this is a fresh onboarding. If no `--new` flag was given, ask whether there's existing material to import before assuming brownfield — don't default to greenfield just because nothing was specified.
+- **A `charter.yaml` with real values filled in:** this is not a fresh onboarding — stop and ask what the PM actually wants (add one system's overview, revise the charter) rather than redrafting everything.
 
 ## Path A: Brownfield (existing product)
 
