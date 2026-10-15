@@ -13,6 +13,8 @@ disable-model-invocation: false
 
 The navigator. Reads one Thread (named, or with no argument, the most recently modified Thread file) and answers "what do I do with this?" by matching its `state`, `track`, and any flags against the table below. It is a lookup, not a new gate — it never changes anything.
 
+If there's no Thread yet because nothing has been captured as a signal — a raw quote, directive, or bug report that hasn't been written to `signals/` — that's `intake-signal`'s job, not this skill's. This skill only navigates Threads that already exist.
+
 With no Thread id given, it also opens with a **project status snapshot** — this is the "I'm back on Monday, what's going on" view: how many Threads are in each state, which one was last touched and when, and any open checklist items waiting on the PM (per-Thread or project-wide — see Checklists below). The per-Thread next-step answer still follows, for the most recently touched Thread.
 
 ## Required inputs

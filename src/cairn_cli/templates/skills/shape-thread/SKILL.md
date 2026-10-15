@@ -59,6 +59,8 @@ revisit_date: <date>       # hold only
 
 Plus the problem-and-impact brief as body text, labeled agent-drafted.
 
+If drafting surfaces a real action the PM needs to take outside the tool (e.g. "meet with the Architect to validate touches," "get UX to weigh in before Feasibility"), propose it as a line in the Thread's `## Open items` section (create the section if it doesn't exist yet) rather than mentioning it only in chat. Checking items off is the PM's job, not yours — see `whats-next`'s Checklists section for how this surfaces later.
+
 ## What you must not do
 
 - Do not run the jury critique — hand off to `assess-thread` (which defaults to `jury-duty`).

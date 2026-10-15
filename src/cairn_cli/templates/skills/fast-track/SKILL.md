@@ -97,6 +97,8 @@ Place this at the top of the Thread file (and mirror the structured version into
 
 Do not set `brief_ack` yourself — that is the PM's single checkpoint. Tell the PM the Brief is ready for review and stop.
 
+If a **Verify first** item needs an outside action rather than just a read-through (a meeting, a confirmation from someone else), also add it to the Thread's `## Open items` section — the Review Brief itself only lives until `brief_ack`, but `## Open items` persists and keeps surfacing in `whats-next` until the PM checks it off.
+
 ## What you must not do
 
 - Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `compile-check`'s job, not yours, and only the PM/compiler decides state transitions.
