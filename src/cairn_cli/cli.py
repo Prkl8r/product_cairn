@@ -99,6 +99,9 @@ def init(
     status_hook: bool = typer.Option(
         False, "--status-hook", help="Add a git pre-commit hook that refreshes STATUS.md/STATUS.json on every commit. Safe to run on an existing install."
     ),
+    skills_only: bool = typer.Option(
+        False, "--skills-only", help="Install or refresh .claude/skills/ only: no skeleton, charter, lock file, or .gitignore changes."
+    ),
 ):
     """Install Cairn's skills and skeleton into a product repo."""
     if here and project_name:
@@ -121,6 +124,11 @@ def init(
         dst = target / ".claude" / "skills" / skill_dir.name
         status = _copy_if_absent(skill_dir, dst, force)
         report.append((f".claude/skills/{skill_dir.name}/", status))
+
+    if skills_only:
+        for path, status in report:
+            typer.echo(f"  {status:>11}  {path}")
+        return
 
     # 2. Skeleton directories (user-owned content, we just make sure the folder exists)
     for name in SKELETON_DIRS:

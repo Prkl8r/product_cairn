@@ -151,8 +151,17 @@ The core spine above is complete. Still missing, named today only as placeholder
   - `jury-duty` — the Advocate/Skeptic/Judge critique, as its own standalone skill (today it's only described inside `assess-thread`/`fast-track`).
   - `readiness-check` — the on-demand "is this ready for engineering?" qualitative review.
   - `record-approval` — recording/drafting an approval ask.
-  - `bundle-threads` — one Thread producing many Specs.
-  - `park-or-reject` — moving a Thread to Parked/Rejected from any state, not only from Shape.
-  - `intake-signal` / `theme-extractor` — structured intake for non-feedback signals, and deterministic clustering for feedback ones.
+  - `theme-extractor` — deterministic clustering for feedback signals, with the LLM only naming the clusters.
+
+## Developing Cairn itself
+
+`src/cairn_cli/templates/skills/` is the only committed copy of the skills, and it's what `cairn init` installs. This repo's own `.claude/skills/` is git-ignored and installed from the templates, the same way a user's is. `--skills-only` skips the product skeleton, which this repo doesn't need:
+
+```bash
+pip install -e .
+cairn init --here --force --skills-only   # refresh .claude/skills/ after editing a template
+```
+
+Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills/`, or the next `--force` will overwrite your change.
 
 See the docs above for the full design behind all of this, including the compile-check rule table (C01–C22) and the install/update/packaging model.
