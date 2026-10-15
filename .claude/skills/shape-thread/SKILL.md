@@ -25,6 +25,8 @@ Before drafting, locate and read:
 
 If any of these are missing and the user hasn't pointed you at them, ask for the paths rather than guessing.
 
+Before drafting, run `cairn find "<a few key words from the signal>"` (a single cheap call, returning ids, states and one-line snippets) to check for earlier Threads on the same ask. If an earlier Thread was `Rejected` or `Parked`, tell the PM what reason was recorded so the idea isn't argued again from scratch. If one is already in flight, ask whether to link to it instead of starting a new one. Open a matched file only if a snippet isn't enough. To list everything tied to one id, use `cairn find <id>`.
+
 ## Rules
 
 1. **Check the Signal→Shape entry gate before drafting.** Feedback signals need a recurring-theme threshold met (`themes`); requirement/mandate/idea signals need a named sponsor who validated it (`validated_by`). If the gate isn't met, say exactly what's missing and ask the PM how they want to proceed — gates are guardrails, not a prison, so the PM can override, but never silently.

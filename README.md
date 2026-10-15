@@ -63,6 +63,26 @@ cairn init --here                       # or: cairn init <new-project-name>
 
 This copies the `.claude/skills/` into the target repo, creates the `signals/`, `threads/`, `specs/`, `architecture/`, `library/` skeleton, writes a `charter.yaml` template, and pins the installed version in `.cairn/package.lock`. It's idempotent — rerunning `cairn init` never overwrites `charter.yaml` or anything you've already written; pass `--force` to refresh the skill files themselves after an update. Run `cairn doctor` any time to check the install is complete.
 
+Two read-only commands show what's been asked and what's shipped. Neither keeps an index; both rescan the files each run:
+
+```bash
+cairn ledger              # every signal (and whether a Thread picked it up), Threads by state, Specs sent to engineering
+cairn find "roster csv"   # keyword search across signals, threads, specs, library/, architecture/ (--kind to narrow)
+cairn find ZD-88421       # an exact id shows its full lineage: signals -> thread -> specs -> referenced docs
+```
+
+Add `--json` to either command for compact output that scripts, CI, or another agent can read without opening the repo's files. The skills use the same commands to keep their token use down.
+
+For people who don't have Cairn installed, `cairn snapshot` writes `STATUS.md` (a readable table) and `STATUS.json` at the repo root. Commit them, and anyone with read access can check status. To keep them current on every commit, add the pre-commit hook. This works on a new or an existing install, and it leaves any hook you already have in place:
+
+```bash
+cairn init --here --status-hook
+```
+
+The hook does nothing on machines where `cairn` isn't installed, so it won't block a teammate's commits.
+
+`--json` and `snapshot` leave out anything marked `data_class: restricted`, including the ids of restricted signals, unless you pass `--include-restricted`. Plain terminal output shows everything and tags restricted items. Every output lists broken references (a Thread or Spec pointing at a signal, Thread, or library file that doesn't exist), and `cairn doctor` warns about them.
+
 **1. Onboard the product, once.** Nothing else works without a ratified `charter.yaml` and at least an L1 overview for the systems a Thread will touch:
 
 ```

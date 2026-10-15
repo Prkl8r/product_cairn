@@ -25,7 +25,7 @@ With no Thread id given, it also opens with a **project status snapshot** — th
 
 ## Project status snapshot (no Thread id given)
 
-1. Read every file under `threads/`. Group by `state`, and report the count in each (e.g. "3 in Feasibility, 1 in Contract, 2 Parked").
+1. Run `cairn ledger --json` rather than opening every file under `threads/` — it returns each Thread's state, linked signals, and which Specs went to engineering in one compact call. Group Threads by `state` and report the count in each (e.g. "3 in Feasibility, 1 in Contract, 2 Parked"). Also mention signals with no Thread yet. Only open a Thread file itself when you need its `## Open items`. If `cairn` isn't installed, fall back to reading the files.
 2. Name the most recently modified Thread (by file mtime) and how long ago, and flag any Thread untouched for an unusually long time if one stands out — don't manufacture urgency where there isn't any.
 3. Across all Threads, list any unchecked `## Open items` (see Checklists below) grouped by Thread — this is what's still waiting on the PM, not the agent.
 4. If `checklist.md` exists at the product root, list its unchecked top-level items too.

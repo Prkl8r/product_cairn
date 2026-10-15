@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import datetime as _dt
+import json
 import shutil
+import stat
+import subprocess
 from importlib import resources
 from pathlib import Path
 from typing import Optional
@@ -10,6 +13,7 @@ import typer
 import yaml
 
 from . import __version__
+from . import ledger as _ledger
 
 app = typer.Typer(
     name="cairn",
@@ -52,6 +56,35 @@ def _copy_if_absent(src: Path, dst: Path, force: bool) -> str:
     return status
 
 
+STATUS_HOOK_MARKER = "# cairn: refresh STATUS.md/STATUS.json"
+STATUS_HOOK = f"""{STATUS_HOOK_MARKER}
+if command -v cairn >/dev/null 2>&1; then
+  cairn snapshot >/dev/null && git add STATUS.md STATUS.json
+fi
+"""
+
+
+def _install_status_hook(target: Path) -> tuple[str, str]:
+    """Add the snapshot step to pre-commit, keeping any hook already there. Honors core.hooksPath."""
+    try:
+        hooks = subprocess.run(["git", "rev-parse", "--git-path", "hooks"], cwd=target,
+                               capture_output=True, text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return ("pre-commit hook", "not a git repo")
+    hook = (target / hooks / "pre-commit").resolve()
+    label = f"{hook.relative_to(target) if hook.is_relative_to(target) else hook}"
+    existing = hook.read_text() if hook.exists() else ""
+    if STATUS_HOOK_MARKER in existing:
+        return (label, "skipped")
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    if existing:
+        hook.write_text(existing.rstrip("\n") + "\n\n" + STATUS_HOOK)
+    else:
+        hook.write_text("#!/bin/sh\n" + STATUS_HOOK)
+    hook.chmod(hook.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    return (label, "updated" if existing else "created")
+
+
 @app.command()
 def init(
     project_name: Optional[str] = typer.Argument(
@@ -62,6 +95,9 @@ def init(
     ),
     force: bool = typer.Option(
         False, "--force", help="Overwrite package-owned files that already exist (skills, templates). Never touches charter.yaml, signals/, threads/, or specs/ content."
+    ),
+    status_hook: bool = typer.Option(
+        False, "--status-hook", help="Add a git pre-commit hook that refreshes STATUS.md/STATUS.json on every commit. Safe to run on an existing install."
     ),
 ):
     """Install Cairn's skills and skeleton into a product repo."""
@@ -120,6 +156,10 @@ def init(
     lock_path.write_text(yaml.safe_dump(lock_data, sort_keys=False))
     report.append((".cairn/package.lock", "created" if not lock_path.exists() else "updated"))
 
+    # 4b. Optional pre-commit hook that keeps STATUS.md/STATUS.json current
+    if status_hook:
+        report.append(_install_status_hook(target))
+
     # 5. .gitignore entries (append, don't duplicate, don't clobber the rest of the file)
     gitignore = target / ".gitignore"
     existing = gitignore.read_text().splitlines() if gitignore.exists() else []
@@ -135,8 +175,8 @@ def init(
 
     typer.secho(f"Cairn {__version__} installed into {target}", fg=typer.colors.GREEN)
     for path, status in report:
-        color = {"created": typer.colors.GREEN, "updated": typer.colors.GREEN,
-                 "skipped": typer.colors.YELLOW, "overwritten": typer.colors.CYAN}[status]
+        color = {"created": typer.colors.GREEN, "updated": typer.colors.GREEN, "skipped": typer.colors.YELLOW,
+                 "overwritten": typer.colors.CYAN, "not a git repo": typer.colors.RED}[status]
         typer.secho(f"  {status:>11}  {path}", fg=color)
 
     typer.echo()
@@ -193,9 +233,108 @@ def doctor(
             typer.secho(f"  MISSING {name}/", fg=typer.colors.RED)
             ok = False
 
+    for d in _ledger.load(target).values():
+        if d.broken:
+            typer.secho(f"  WARN    {d.id} references missing files: {', '.join(d.broken)}", fg=typer.colors.YELLOW)
+
     if not ok:
         raise typer.Exit(1)
     typer.secho("Cairn install looks healthy.", fg=typer.colors.GREEN)
+
+
+PATH_OPT = typer.Option(Path("."), "--path", help="Product repo. Defaults to the current directory.")
+JSON_OPT = typer.Option(False, "--json", help="Machine-readable output for scripts and other tools. Hides restricted items.")
+RESTRICTED_OPT = typer.Option(False, "--include-restricted", help="Include data_class: restricted items in --json/snapshot output.")
+
+
+@app.command()
+def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: bool = RESTRICTED_OPT):
+    """What has been asked of the product, and what has gone to engineering."""
+    root = path.resolve()
+    docs = _ledger.load(root)
+    if as_json:
+        typer.echo(json.dumps(_ledger.snapshot(_ledger.visible(docs, include_restricted), root), default=str))
+        return
+
+    signals = [d for d in docs.values() if d.kind == "signal"]
+    threads = [d for d in docs.values() if d.kind == "thread"]
+    specs = [d for d in docs.values() if d.kind == "spec"]
+    sent = _ledger.sent(docs)
+    lock = lambda d: " [restricted]" if d.restricted else ""
+
+    typer.secho(f"Asked — {len(signals)} signals", bold=True)
+    for s in signals:
+        typer.echo(f"  {s.id:<16} {str(s.meta.get('type', '?')):<12} {_ledger.thread_state(s, docs):<14} "
+                   f"{s.updated}  {_ledger.snippet(s, 50)}{lock(s)}")
+
+    typer.secho(f"\nThreads — {len(threads)}", bold=True)
+    for t in threads:
+        sig = ", ".join(sorted(l for l in t.links if docs[l].kind == "signal")) or "-"
+        typer.echo(f"  {t.id:<16} {str(t.meta.get('state', '?')):<12} {t.updated}  signals: {sig}{lock(t)}")
+
+    typer.secho("\nSent to engineering", bold=True)
+    for s in sent:
+        t = next(docs[l] for l in s.links if docs[l].kind == "thread")
+        line = f"  {s.id:<16} rev {s.meta.get('revision', 1):<3} {t.id} ({t.meta.get('state')}) {s.updated}"
+        if t.meta.get("kickback_reason"):
+            line += f"  last kickback: {t.meta.get('kickback_category') or 'pm'}"
+        typer.echo(line)
+    if not sent:
+        typer.echo("  nothing yet")
+    if len(specs) > len(sent):
+        typer.echo(f"  ({len(specs) - len(sent)} spec(s) drafted, not yet in Contract)")
+
+    refs = [d for d in docs.values() if d.kind in _ledger.REFERENCE_KINDS]
+    if refs:
+        typer.secho(f"\nReference — {len(refs)} library/architecture docs (cairn find --kind library|architecture)", bold=True)
+
+    broken = [d for d in docs.values() if d.broken]
+    if broken:
+        typer.secho("\nBroken references — these point at files that don't exist", bold=True, fg=typer.colors.RED)
+        for d in broken:
+            typer.secho(f"  {d.id:<16} {', '.join(d.broken)}", fg=typer.colors.RED)
+
+
+@app.command()
+def find(
+    query: str = typer.Argument(..., help="Words to search for, or an exact id to show everything linked to it."),
+    kind: Optional[str] = typer.Option(None, "--kind", help="Limit to signal, thread, spec, library, or architecture."),
+    path: Path = PATH_OPT,
+    as_json: bool = JSON_OPT,
+    include_restricted: bool = RESTRICTED_OPT,
+):
+    """Search signals, threads, specs, and reference docs. An exact id shows everything linked to it."""
+    root = path.resolve()
+    docs = _ledger.load(root)
+    if as_json:
+        docs = _ledger.visible(docs, include_restricted)
+    exact = query in docs
+    found = _ledger.lineage(docs, query) if exact else [d for _, d in _ledger.search(docs, query, kind)]
+    if as_json:
+        typer.echo(json.dumps({"query": query, "lineage": exact,
+                               "results": [_ledger.as_dict(d, docs, root) for d in found]}, default=str))
+        if not found:
+            raise typer.Exit(1)
+        return
+    if not found:
+        typer.echo("No matches.")
+        raise typer.Exit(1)
+    for d in found:
+        tail = d.path.relative_to(root) if exact else _ledger.snippet(d, 60)
+        typer.echo(f"{d.kind:<12} {d.id:<24} {_ledger.thread_state(d, docs):<12} {d.updated}  {tail}")
+
+
+@app.command()
+def snapshot(path: Path = PATH_OPT, include_restricted: bool = RESTRICTED_OPT):
+    """Write STATUS.json and STATUS.md at the repo root, so anyone can check status without installing Cairn."""
+    root = path.resolve()
+    docs = _ledger.visible(_ledger.load(root), include_restricted)
+    snap = _ledger.snapshot(docs, root)
+    (root / "STATUS.json").write_text(json.dumps(snap, indent=1, default=str) + "\n")
+    (root / "STATUS.md").write_text(_ledger.status_markdown(snap))
+    typer.echo(f"Wrote STATUS.json and STATUS.md ({len(snap['threads'])} threads, {len(snap['signals'])} signals).")
+    if snap["broken_refs"]:
+        typer.secho(f"  {len(snap['broken_refs'])} file(s) have broken references — see STATUS.md", fg=typer.colors.YELLOW)
 
 
 @app.command()
