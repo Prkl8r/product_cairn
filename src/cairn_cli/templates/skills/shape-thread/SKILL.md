@@ -1,17 +1,17 @@
 ---
 name: "shape-thread"
-description: "Move a Thread from Signal into Shape: confirm the entry gate, draft a problem-and-impact brief, and get the PM's proceed/hold/drop decision — carrying the Thread into Feasibility, Parked, or Rejected."
+description: "Take a Thread out of Exploring: confirm the entry gate, draft a problem-and-impact brief, and get the PM's proceed/hold/drop decision — moving the Thread to Framing, or setting its status to Parked or Rejected."
 argument-hint: "thread id or path to the signal file(s) to shape"
 metadata:
   product: cairn
-  source: "docs/spec-as-code-revision.md Part 1 section 4 (Thread Lifecycle, Shape decision)"
+  source: "specs/001-thread-fidelity-stages/spec.md (Exploring stage)"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 ## What this does
 
-Step 1 of Cairn's core flow (shape → assess → spec-generator → compile-check). Takes a Thread from `Signal` to `Feasibility` (or stops it at `Parked`/`Rejected`), by confirming the Signal→Shape entry gate is met, drafting a short problem-and-impact brief, and asking the PM to decide: proceed, hold, or drop.
+Step 1 of Cairn's core flow (shape → assess → spec-generator → compile-check). Takes a Thread from `stage: Exploring` to `stage: Framing` (or sets `status: Parked`/`Rejected`), by confirming the Exploring exit gate is met, drafting a short problem-and-impact brief, and asking the PM to decide: proceed, hold, or drop.
 
 You are acting on the PM's Thread. You draft and check gates; the PM decides.
 
@@ -20,22 +20,22 @@ You are acting on the PM's Thread. You draft and check gates; the PM decides.
 Before drafting, locate and read:
 1. `charter.yaml` — modality, UI presence, profile (`solo`/`team`), org rules.
 2. Every signal file referenced in the Thread's `inbound_refs` (committed, redacted versions only — never `signals/*/raw/`).
-3. The Thread file. If it doesn't exist yet, create it with minimal frontmatter (`thread_id`, `state: Signal`, `owner`, `inbound_refs`, `touches`), the same as `fast-track` does.
+3. The Thread file. If it doesn't exist yet, create it with minimal frontmatter (`thread_id`, `stage: Exploring`, `status: Active`, `owner`, `inbound_refs`, `touches`), the same as `fast-track` does.
 4. `architecture/<system>/overview.md` for every system in `touches`, to check existence (not full content yet — that's `assess-thread`/`spec-generator`'s job).
 
 If any of these are missing and the user hasn't pointed you at them, ask for the paths rather than guessing.
 
-Before drafting, run `cairn find "<a few key words from the signal>"` (a single cheap call, returning ids, states and one-line snippets) to check for earlier Threads on the same ask. If an earlier Thread was `Rejected` or `Parked`, tell the PM what reason was recorded so the idea isn't argued again from scratch. If one is already in flight, ask whether to link to it instead of starting a new one. Open a matched file only if a snippet isn't enough. To list everything tied to one id, use `cairn find <id>`.
+Before drafting, run `cairn find "<a few key words from the signal>"` (a single cheap call, returning ids, stages and one-line snippets) to check for earlier Threads on the same ask. If an earlier Thread was `Rejected` or `Parked`, tell the PM what reason was recorded so the idea isn't argued again from scratch. If one is already in flight, ask whether to link to it instead of starting a new one. Open a matched file only if a snippet isn't enough. To list everything tied to one id, use `cairn find <id>`.
 
 ## Rules
 
-1. **Check the Signal→Shape entry gate before drafting.** Feedback signals need a recurring-theme threshold met (`themes`); requirement/mandate/idea signals need a named sponsor who validated it (`validated_by`). If the gate isn't met, say exactly what's missing and ask the PM how they want to proceed — gates are guardrails, not a prison, so the PM can override, but never silently.
+1. **Check the Exploring exit gate before drafting.** Feedback signals need a recurring-theme threshold met (`themes`); requirement/mandate/idea signals need a named sponsor who validated it (`validated_by`). If the gate isn't met, say exactly what's missing and ask the PM how they want to proceed — gates are guardrails, not a prison, so the PM can override, but never silently.
 2. Draft a short problem-and-impact brief: what's broken, who's affected, why now — grounded only in the signal(s) and any existing overview content. Never invent data.
 3. Give a short case for and against proceeding (not a full jury debate — that's `assess-thread`/`jury-duty`'s job, not this skill's).
 4. Ask the PM to decide: **proceed**, **hold**, or **drop**. Never decide this yourself.
-5. **On proceed:** check every system in `touches` has an overview file with a named owner (mirrors `compile-check`'s C17). Missing coverage is an Error on the `team` profile, a Warn on `solo`. Record the decision, set `state: Feasibility`, and tell the PM this Thread is ready for `assess-thread`.
-6. **On hold:** set `state: Parked`, record `reason` and a `revisit_date`.
-7. **On drop:** set `state: Rejected`, record `reason`. This is searchable later so a dropped idea isn't re-argued from scratch.
+5. **On proceed:** check every system in `touches` has an overview file with a named owner (mirrors `compile-check`'s C17). Missing coverage is an Error on the `team` profile, a Warn on `solo`. Record the decision, set `stage: Framing`, and tell the PM this Thread is ready for `assess-thread` — Framing is when they bring others in.
+6. **On hold:** set `status: Parked` (stage stays Exploring), record `reason` and `pickup_when`, the same fields `park-or-reject` writes.
+7. **On drop:** set `status: Rejected` (stage stays Exploring), record `reason` and `reject_category`. This is searchable later so a dropped idea isn't re-argued from scratch.
 8. Mark everything you write as agent-drafted.
 
 ## Org rules
@@ -47,7 +47,8 @@ If `charter.yaml` lists `org_rules` matching this Thread (restricted data, compl
 Update the Thread file's frontmatter:
 
 ```yaml
-state: Feasibility   # or Parked / Rejected
+stage: Framing       # proceed; on hold/drop stage stays Exploring
+status: Active       # or Parked / Rejected
 signal_refs: [...]
 signal_types: [...]
 validated_by: <name>       # requirement | mandate | idea signals
@@ -56,16 +57,16 @@ touches: [...]
 overview_coverage: ok | "warn: <systems missing an overview>"
 shape_decision: proceed | hold | drop
 reason: "..."              # hold or drop
-revisit_date: <date>       # hold only
+pickup_when: "..."         # hold only
 ```
 
 Plus the problem-and-impact brief as body text, labeled agent-drafted.
 
-If drafting surfaces a real action the PM needs to take outside the tool (e.g. "meet with the Architect to validate touches," "get UX to weigh in before Feasibility"), propose it as a line in the Thread's `## Open items` section (create the section if it doesn't exist yet) rather than mentioning it only in chat. Checking items off is the PM's job, not yours — see `whats-next`'s Checklists section for how this surfaces later.
+If drafting surfaces a real action the PM needs to take outside the tool (e.g. "meet with the Architect to validate touches," "get UX to weigh in during Framing"), propose it as a line in the Thread's `## Open items` section (create the section if it doesn't exist yet) rather than mentioning it only in chat. Checking items off is the PM's job, not yours — see `whats-next`'s Checklists section for how this surfaces later.
 
 ## What you must not do
 
 - Do not run the jury critique — hand off to `assess-thread` (which defaults to `jury-duty`).
 - Do not draft the Spec.
-- Do not set `state: Contract` — that only happens via a passing `compile-check` report, applied by the PM/tracker.
+- Do not set `status: Specified` — that only happens after a passing `compile-check` report, applied by the PM.
 - Do not decide proceed/hold/drop yourself, and do not fabricate a sponsor validation or a theme threshold to force the gate open.

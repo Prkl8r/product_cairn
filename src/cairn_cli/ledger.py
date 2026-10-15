@@ -12,7 +12,18 @@ from pathlib import Path
 
 import yaml
 
-SENT_STATES = {"Contract", "Launched"}
+STAGES = ["Exploring", "Framing", "Validating"]  # fidelity order; a Thread's last stage hands off to a Spec
+STATUSES = ["Active", "Parked", "Rejected", "Specified"]
+# Threads written before stage/status existed carry a single `state`; read it as (stage, status).
+LEGACY_STATES = {
+    "Signal": ("Exploring", "Active"),
+    "Shape": ("Exploring", "Active"),
+    "Feasibility": ("Framing", "Active"),
+    "Contract": ("Validating", "Specified"),
+    "Launched": ("Validating", "Specified"),
+    "Parked": (None, "Parked"),
+    "Rejected": (None, "Rejected"),
+}
 REFERENCE_KINDS = {"library", "architecture"}
 
 
@@ -143,13 +154,29 @@ def visible(docs: dict[str, Doc], include_restricted: bool) -> dict[str, Doc]:
     return out
 
 
+def stage_status(meta: dict) -> tuple[str | None, str]:
+    """A Thread's (stage, status), falling back to the legacy single `state` field."""
+    stage, status = meta.get("stage"), meta.get("status")
+    if not stage and not status and meta.get("state"):
+        stage, status = LEGACY_STATES.get(str(meta["state"]), (str(meta["state"]), None))
+    return (str(stage) if stage else None), str(status or "Active")
+
+
+def thread_label(meta: dict) -> str:
+    """One word for tables: the stage while Active, else the status (with the stage it stopped at)."""
+    stage, status = stage_status(meta)
+    if status == "Active":
+        return stage or "?"
+    return f"{status} ({stage})" if stage and status in ("Parked", "Rejected") else status
+
+
 def thread_state(doc: Doc, docs: dict[str, Doc]) -> str:
     if doc.kind in REFERENCE_KINDS:
         return "-"
     if doc.kind == "thread":
-        return str(doc.meta.get("state", "?"))
+        return thread_label(doc.meta)
     threads = [docs[l] for l in doc.links if docs[l].kind == "thread"]
-    return ", ".join(sorted({str(t.meta.get("state", "?")) for t in threads})) or "no thread"
+    return ", ".join(sorted({thread_label(t.meta) for t in threads})) or "no thread"
 
 
 def search(docs: dict[str, Doc], query: str, kind: str | None = None, limit: int = 10) -> list[tuple[int, Doc]]:
@@ -193,6 +220,8 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
     out = {"id": doc.id, "kind": doc.kind, "path": doc.path.relative_to(root).as_posix(),
            "state": thread_state(doc, docs) if doc.kind in ("signal", "thread", "spec") else None,
            "updated": doc.updated, "links": sorted(doc.links)}
+    if doc.kind == "thread":
+        out["stage"], out["status"] = stage_status(doc.meta)
     if doc.broken:
         out["broken_refs"] = doc.broken
     for k in ("type", "revision", "kickback_category", "owner", "readiness",
@@ -204,7 +233,7 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
 
 def sent(docs: dict[str, Doc]) -> list[Doc]:
     return [s for s in docs.values() if s.kind == "spec" and any(
-        docs[l].kind == "thread" and docs[l].meta.get("state") in SENT_STATES for l in s.links)]
+        docs[l].kind == "thread" and stage_status(docs[l].meta)[1] == "Specified" for l in s.links)]
 
 
 def snapshot(docs: dict[str, Doc], root: Path) -> dict:
@@ -229,7 +258,7 @@ def status_markdown(snap: dict) -> str:
     loose = [s for s in snap["signals"] if s["state"] == "no thread"]
     lines.append(f"**{len(snap['signals'])} asks**, {len(loose)} not yet picked up. **Threads:** "
                  + (", ".join(f"{n} {k}" for k, n in sorted(states.items())) or "none") + ".")
-    lines += ["", "## Threads", "", "| Thread | State | Updated | Signals | Specs |", "|---|---|---|---|---|"]
+    lines += ["", "## Threads", "", "| Thread | Stage | Updated | Signals | Specs |", "|---|---|---|---|---|"]
     ids = {x["id"]: x for x in snap["signals"] + snap["specs"]}
     for t in snap["threads"]:
         sig = ", ".join(l for l in t["links"] if ids.get(l, {}).get("kind") == "signal") or "-"
@@ -238,7 +267,7 @@ def status_markdown(snap: dict) -> str:
     lines += ["", "## Sent to engineering", ""]
     sent_specs = [s for s in snap["specs"] if s["sent"]]
     lines += [f"- {s['id']} rev {s.get('revision', 1)} (updated {s['updated']})" for s in sent_specs] or ["- nothing yet"]
-    parked = [t for t in snap["threads"] if t["state"] == "Parked"]
+    parked = [t for t in snap["threads"] if t["status"] == "Parked"]
     if parked:
         lines += ["", "## Parked: waiting on", ""]
         lines += [f"- {t['id']}: {t.get('pickup_when', 'unknown')}" for t in parked]

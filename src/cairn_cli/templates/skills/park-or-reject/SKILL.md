@@ -1,25 +1,25 @@
 ---
 name: "park-or-reject"
-description: "Park a Thread (on hold, with what has to be true before it's picked up again) or reject it (with a reason and category), at any stage. Also resumes a Parked Thread. Only updates the Thread's status, never deletes anything."
+description: "Park a Thread (on hold, with what has to be true before it's picked up again) or reject it (with a reason and category), at any stage. Also resumes a Parked Thread. Only updates the Thread's status (its stage is kept), never deletes anything."
 argument-hint: "thread id, then park / reject / resume, plus the reason if you have it"
 metadata:
   product: cairn
-  source: "docs/spec-as-code-master-document.md section 3 (Progressive Gates: hold -> Parked, drop -> Rejected)"
+  source: "specs/001-thread-fidelity-stages/spec.md (Status)"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 ## What this does
 
-Takes a Thread off the active path at any stage, not only at the Shape decision (where `shape-thread` already offers hold/drop). It records a fact and a reason so nobody argues the same idea again from scratch later.
+Takes a Thread off the active path at any stage, not only at the end of Exploring (where `shape-thread` already offers hold/drop). It changes `status` only; `stage` stays where it was, so the Thread keeps the fidelity it reached. It records a fact and a reason so nobody argues the same idea again from scratch later.
 
 - **Park** means "not now". Record what has to happen or change before it's worth picking up.
 - **Reject** means "no". Record why, with a category.
-- **Resume** returns a Parked Thread to the state it was parked from.
+- **Resume** sets a Parked Thread back to `status: Active`, at the stage it was parked in.
 
 ## Required inputs
 
-1. The Thread file. Any state except `Rejected` can be parked or rejected. Only `Parked` can be resumed.
+1. The Thread file. Any status except `Rejected` can be parked or rejected. Only `Parked` can be resumed.
 2. Park or reject. If the PM's wording is unclear ("let's drop this for now"), ask which one they mean. "For now" usually means park.
 3. For **park**: what needs to happen or change first. Ask once, with examples so it's quick to answer: "when the payments API ships", "after Q1 planning", "if three more customers ask". A date is optional. A condition is more useful. If the PM doesn't know, record `pickup_when: unknown` and move on. Don't press.
 4. For **reject**: the reason in the PM's own words, and a category. Ask for the category if it isn't clear from what they said:
@@ -35,18 +35,17 @@ Takes a Thread off the active path at any stage, not only at the Shape decision 
 
 1. Never pick the reject category yourself when it's ambiguous. Categories feed reporting, so ask.
 2. Parking keeps everything: Specs, verdicts, open items. Resuming should feel like picking up where things left off.
-3. On **resume**, set `state` back to `parked_from`. Keep the park fields as history, and add a `resumed_on` date. If what the Thread was waiting on (`pickup_when`) clearly hasn't happened, say so once, then do what the PM asks.
-4. A Rejected Thread is reopened only when the PM explicitly asks. Set `state: Signal`, keep the reject fields, and add `reopened_on` and `reopen_reason`.
+3. On **resume**, set `status: Active`. Keep the park fields as history, and add a `resumed_on` date. If what the Thread was waiting on (`pickup_when`) clearly hasn't happened, say so once, then do what the PM asks.
+4. A Rejected Thread is reopened only when the PM explicitly asks. Set `status: Active` (stage unchanged), keep the reject fields, and add `reopened_on` and `reopen_reason`.
 5. For `duplicate` or `superseded`, offer to tie the Threads together with `bundle-threads`. Don't do it automatically.
-6. If a Spec from this Thread already went to engineering (the Thread is in `Contract`), say so before parking or rejecting. Engineering may need to be told, and that's the PM's call.
+6. If a Spec from this Thread already went to engineering (the Thread is `status: Specified`), say so before parking or rejecting. Engineering may need to be told, and that's the PM's call.
 
 ## Output
 
 Update the Thread file's frontmatter. Park:
 
 ```yaml
-state: Parked
-parked_from: Feasibility     # the state it was in, so resume knows where to return
+status: Parked               # stage is left as it was
 parked_on: <date>
 reason: "..."                # why not now
 pickup_when: "..."           # what has to happen or change first, or "unknown"
@@ -56,7 +55,7 @@ revisit_date: <date>         # optional
 Reject:
 
 ```yaml
-state: Rejected
+status: Rejected             # stage is left as it was
 rejected_on: <date>
 reason: "..."
 reject_category: duplicate | superseded | out_of_scope | low_value | not_feasible | no_sponsor | other

@@ -1,6 +1,6 @@
 ---
 name: "compile-check"
-description: "Check a drafted Spec by hand against Cairn's compile-step validator rules before it moves to Contract. No LLM judgment calls on correctness — only well-formedness and traceability."
+description: "Check a drafted Spec by hand against Cairn's compile-step validator rules before the Thread hands it off to engineering. No LLM judgment calls on correctness — only well-formedness and traceability."
 argument-hint: "path to the Spec file to check, e.g. specs/SPEC-001.md"
 metadata:
   product: cairn
@@ -30,7 +30,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | ID | Check | Severity |
 |---|---|---|
 | C01 | Frontmatter matches the Spec schema (all required keys present, correctly typed) | Error |
-| C02 | Parent Thread exists. Normal track: Thread is in state `Feasibility`. Fast track (`track: fast`): any state is fine | Error |
+| C02 | Parent Thread exists and lists this Spec in `outbound_refs`. Normal track: Thread is `stage: Validating`, `status: Active`. Fast track (`track: fast`): any stage is fine | Error |
 | C03 | Any approval the PM marked `blocking: true` on the Thread is recorded as granted | Error |
 | C04 | Every criterion has at least one `trace` entry (waived only if `legacy: true`, stamp `legacy_untraced`) | Error |
 | C05 | Every `trace.ref` resolves to an existing committed file and anchor — never a raw signal copy | Error |
@@ -39,7 +39,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C08 | `binary` criteria contain no vague terms (fast, intuitive, user-friendly, appropriate, robust, "should", etc.) | Error |
 | C09 | `threshold` criteria have metric, operator, numeric value, and unit, all present | Error |
 | C10 | Required sections are non-empty: `problem`, `out_of_scope`, `error_states`, `empty_states`, `enablement_deps` (or `n/a: <reason>`) | Error |
-| C11 | Every edge case from the Feasibility critique (full jury verdict, or fast-track single-pass critique) is mapped to a criterion or deferred with a reason | Error |
+| C11 | Every edge case from the Framing critique (full jury verdict, or fast-track single-pass critique) is mapped to a criterion or deferred with a reason | Error |
 | C12 | Numeric literals and identifiers (endpoints, field names, limits) in criteria appear in a traced source or the charter | Warn |
 | C13 | Validated signals attached to the Thread but cited by no criterion | Warn |
 | C14 | Criterion text overlaps heavily with an out-of-scope item | Warn |
@@ -61,4 +61,4 @@ Write `compile_report.md` next to the Spec (e.g. `specs/<spec-id>.compile_report
 - A one-line verdict: **Pass** (no Errors; Warnings may remain but must be listed), or **Fail** (lists exactly what to fix, nothing else implied).
 - Unacknowledged Warnings listed separately so the PM can add `ack: [C12:AC-003 "reason"]` style entries if they choose to proceed anyway.
 
-Do not change the Thread's `state` yourself. Report the verdict and let the PM (or, later, `mcp-local-tracker`) make the transition.
+Do not change the Thread's `stage` or `status` yourself. Report the verdict; on a Pass, the PM sets `status: Specified` when the Spec goes to engineering.

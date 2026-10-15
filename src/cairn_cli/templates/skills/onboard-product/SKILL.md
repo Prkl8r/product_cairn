@@ -49,7 +49,7 @@ Go get this yourself before asking the PM for it. Everything pulled here is stil
 1. If more than one tracker connector is available, or none is authenticated yet, ask the PM which one and complete that connector's authentication step first — don't guess which tracker is the right one.
 2. Pull the project/board list and ask the PM to confirm which project(s) map to this product, rather than assuming.
 3. Use open epics and issues to corroborate or propose candidate systems, and to find named owners/assignees as candidate overview `owner`s — but a tracker assignee is a *candidate* owner, not a ratified one.
-4. Pull in-flight (open, not closed) epics/issues as candidates for the legacy-ticket-import step (rule A6): convert each into a Thread at the matching state, tagged `legacy: true`, with the issue key in `inbound_refs`.
+4. Pull in-flight (open, not closed) epics/issues as candidates for the legacy-ticket-import step (rule A6): convert each into a Thread at the matching `stage` and `status`, tagged `legacy: true`, with the issue key in `inbound_refs`.
 5. Do not pull closed/historical issues into Threads — they stay in the tracker (rule A9 still applies: old tickets are internal artifacts, never feedback signals).
 6. If an issue body contains data that looks `restricted` (customer PII, credentials, compliance-flagged content), do not copy it verbatim into a committed overview or Thread — summarize and flag the classification instead, same as any other restricted signal.
 
@@ -59,7 +59,7 @@ Go get this yourself before asking the PM for it. Everything pulled here is stil
 3. Where a deterministic source exists (an OpenAPI file, a schema), generate the Interfaces section from it directly and summarize — don't draft interface content on top of a spec that already states it exactly.
 4. Every overview needs a named `owner` before it can move past L1. If the PM hasn't named one, leave the field blank and say so plainly — an unowned overview can never reach L2.
 5. Everything produced here starts at readiness **L1** (drafted or imported, not verified), no matter how authoritative the source material looked. Never set `verified: true` yourself; that is the named owner's call, made explicitly.
-6. If the PM wants open tickets/epics represented, convert each into a Thread at the state matching reality, tag it `legacy: true`, and put the ticket key in `inbound_refs`. Leave closed/historical tickets where they already live — do not backfill history into Threads.
+6. If the PM wants open tickets/epics represented, convert each into a Thread at the `stage` and `status` matching reality, tag it `legacy: true`, and put the ticket key in `inbound_refs`. Leave closed/historical tickets where they already live — do not backfill history into Threads.
 7. Write known debt and as-built quirks into each overview's "Known quirks" section without skipping it to save time — undocumented current behavior is the most common cause of brownfield kickbacks later.
 8. Scope to what's about to matter. Don't try to overview the whole codebase in one pass; recommend starting with the one slice (one API, one client, one system) that real work is about to touch, and get that slice to L2 before moving on. Name what got skipped and why, so it isn't mistaken for "already covered."
 9. Do not treat old tickets as feedback signals. They are internal artifacts, not customer signal, and belong in `touches`/history, not `inbound_refs` of type `feedback`.

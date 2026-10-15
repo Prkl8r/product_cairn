@@ -1,6 +1,6 @@
 ---
 name: "fast-track"
-description: "Take a Cairn Thread from Signal straight to a drafted Spec: backfill Shape and Feasibility in light form, draft the Spec, and write a Review Brief for the PM to check."
+description: "Take a Cairn Thread from Exploring straight to a drafted Spec: backfill Framing and Validating in light form, draft the Spec, and write a Review Brief for the PM to check."
 argument-hint: "thread id or path to the signal file(s) to run through fast track"
 metadata:
   product: cairn
@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 ## What this does
 
-Runs one Thread through Cairn's fast track: Signal straight to a Contract-level Spec draft, with the skipped stages (Shape, Feasibility) backfilled in lightweight form and a Review Brief the PM must read before acknowledging.
+Runs one Thread through Cairn's fast track: Exploring straight to a Spec draft, with the skipped stages (Framing, Validating) backfilled in lightweight form and a Review Brief the PM must read before acknowledging.
 
 You are acting on the PM's Thread. You own none of it — you draft, the PM decides.
 
@@ -21,7 +21,7 @@ Before drafting, locate and read:
 1. `charter.yaml` — product modality, UI presence, profile (`solo`/`team`), write authority, org rules.
 2. Every `architecture/<system>/overview.md` the work touches. If one doesn't exist, note it — do not invent its content.
 3. The signal file(s) under `signals/<type>/<signal-id>.md` (the committed, redacted version — never the raw copy under `signals/*/raw/`).
-4. The Thread file under `threads/<thread-id>.md`, if it exists. If it doesn't, create it with minimal frontmatter (`thread_id`, `state: Signal`, `owner`, `inbound_refs`, `touches`) plus the one-paragraph description, before proceeding.
+4. The Thread file under `threads/<thread-id>.md`, if it exists. If it doesn't, create it with minimal frontmatter (`thread_id`, `stage: Exploring`, `status: Active`, `owner`, `inbound_refs`, `touches`) plus the one-paragraph description, before proceeding.
 
 If any of these are missing and the user hasn't pointed you at them, ask for the paths rather than guessing.
 
@@ -29,8 +29,11 @@ If any of these are missing and the user hasn't pointed you at them, ask for the
 
 1. Before drafting, ask up to 3 questions — only ones whose answers would change the Spec. If none are needed, say so and proceed.
 2. Backfill the skipped stages in light form:
-   - **Shape:** a short problem-and-impact brief drafted from the signal.
-   - **Feasibility:** a single-pass critique (not a full jury debate) listing the top edge cases and risks, each mapped to a criterion or deferred with a reason.
+   - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal.
+   - **Framing:** a single-pass critique (not a full jury debate) listing the top edge cases and risks, each mapped to a criterion or deferred with a reason.
+   - **Validating:** no sign-offs are collected and no supporting artifacts (mocks, API spec) are made. List which ones the normal track would have needed, as skipped.
+
+   Then set the Thread to `stage: Validating`, add `light_stages: [Framing, Validating]`, and add the Spec to its `outbound_refs`. Leave `status: Active`.
 3. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry pointing to a real file. Quote the source where you can — never quote the raw/git-ignored copy.
 4. Group criteria into ordered slices. Each slice gets a one-line `verify` note.
 5. Never invent numbers, endpoints, field names, or limits. If a value has no source, ask the PM or list it as an open question — do not default it silently.
@@ -55,7 +58,7 @@ generated_by:
   skill: fast-track
   skill_version: 0.1.0
 track: fast
-skipped_gates: [Shape, Feasibility]
+skipped_gates: [Framing, Validating]
 sections:
   problem: "..."
   out_of_scope: ["..."]
@@ -92,7 +95,7 @@ Place this at the top of the Thread file (and mirror the structured version into
 - **Verify first:** the 3 to 5 items most likely to be wrong or most costly if wrong.
 - **Assumptions:** every assumption you made, each tagged with its origin — `signal`, `overview`, `library`, or `inferred`.
 - **Open questions:** anything you could not resolve, each with a status.
-- **Skipped:** which gates were bypassed (Shape, Feasibility) and what was drafted in their place.
+- **Skipped:** which stages were bypassed (Framing, Validating), what was drafted in their place, and which sign-offs and supporting artifacts were not gathered.
 - **Caution flag (optional):** state plainly if this looks risky for a fast track, then proceed anyway.
 
 Do not set `brief_ack` yourself — that is the PM's single checkpoint. Tell the PM the Brief is ready for review and stop.
@@ -101,6 +104,6 @@ If a **Verify first** item needs an outside action rather than just a read-throu
 
 ## What you must not do
 
-- Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `compile-check`'s job, not yours, and only the PM/compiler decides state transitions.
+- Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `compile-check`'s job, not yours, and only the PM sets `status: Specified`, after a passing `compile-check`.
 - Do not write to `signals/*/raw/`.
 - Do not fabricate trace targets to satisfy the "every criterion needs a trace" rule — an uncovered claim is an open question, not a reason to invent a source.

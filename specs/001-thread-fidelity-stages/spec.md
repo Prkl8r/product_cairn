@@ -1,0 +1,92 @@
+# Thread fidelity stages
+
+**Status**: Draft
+
+## Problem
+
+"Signal" named two things: the intake artifact under `signals/<type>/`, and the first state of a Thread. A PM reading "this Thread is in Signal" couldn't tell whether it was a Thread at all. The single `state` field also mixed two questions: how far the thinking has got (Shape, Feasibility, Contract) and whether the work is alive (Parked, Rejected, Launched).
+
+## The model
+
+```
+signal(s) ──► Exploring ──► Framing ──► Validating ──► Spec
+                 └────────── Thread ──────────┘   (outbound_refs)
+```
+
+- A **signal** is an artifact: an idea, quote, directive, bug report or proposal. It is never a stage.
+- A **Thread** is created when the PM decides one or more signals are worth pursuing. It links to them through `inbound_refs`. The signal files are not consumed, so one signal can feed several Threads.
+- A **Spec** is what the Thread hands off. Once it exists, the Spec is the artifact engineering works from, not the Thread. The Thread's `outbound_refs` point at its Spec(s); one Thread can produce more than one.
+
+A Thread has two independent fields: `stage` (its fidelity) and `status` (whether it's being worked on).
+
+### Stages
+
+Stage names are activities: they say what's happening now. Each stage's gate is what must be true to **leave** it.
+
+| Stage | What's happening | Exit gate | Skill |
+|---|---|---|---|
+| **Exploring** | The PM, alone, fleshing out an idea. | Entry check met (feedback: recurring theme; requirement/mandate/idea: named sponsor). Problem-and-impact brief written. PM decides to proceed. | `shape-thread` |
+| **Framing** | The PM is talking to others to find what needs thinking about. The jury critique runs here. | Jury verdict recorded; every edge case mapped to a future criterion or deferred with a reason. | `assess-thread` |
+| **Validating** | Getting everyone on board. Supporting artifacts get made: UX mocks, an API spec, and so on. | Required sign-offs recorded in `approvals`; supporting artifacts linked in `outbound_refs`; a Spec compiles clean. | `spec-generator` → `compile-check` |
+
+Leaving Validating is the handoff: the Spec goes to engineering and the Thread's status becomes Specified. There is no "Specifying" stage; putting the Spec together is the act of leaving Validating.
+
+Names, not numbers, go in Thread files: names carry meaning and survive a stage being added. The order is defined once in code (`STAGES` in `ledger.py`).
+
+### Status
+
+| Status | Meaning |
+|---|---|
+| **Active** | Being worked on. Default. |
+| **Parked** | On hold, with a reason and what has to happen first (`pickup_when`). Keeps its stage. |
+| **Rejected** | Dropped, with a reason and category. Keeps its stage. |
+| **Specified** | Handed off: a compiled Spec went to engineering. Stage stays Validating. |
+
+Only the PM sets `status: Specified`, after a passing `compile-check`.
+
+### Thread frontmatter
+
+```yaml
+thread_id: THRD-NNN
+stage: Exploring | Framing | Validating
+status: Active | Parked | Rejected | Specified
+owner: <name>
+inbound_refs: ["idea:TODO-11"]          # the signal(s) it came from
+outbound_refs: ["spec:SPEC-001", "mock:<url>", "api:<path>"]   # what it produced
+approvals: []                           # each: who, role, date (Validating)
+light_stages: [Framing, Validating]     # fast track only
+```
+
+### Flows
+
+- **Normal**: `shape-thread` (Exploring → Framing), `assess-thread` (Framing → Validating), `spec-generator` + `compile-check` (Validating → status Specified).
+- **Fast track**: `fast-track` goes from Exploring to a drafted Spec in one pass. Framing and Validating are backfilled in light form and listed in `light_stages`; the Review Brief records what was skipped, including any sign-offs and supporting artifacts.
+- **Kickback**: status goes from Specified back to Active; stage stays Validating. `record-kickback` → `revise-spec` updates the same Spec at a new revision.
+- **Park / reject / resume**: change `status` only. Resume sets status back to Active at the same stage.
+
+## Migration
+
+`cairn ledger` reads Threads that still carry the old `state` field, mapping them as below. New and edited Threads use `stage` + `status`.
+
+| Old `state` | `stage` | `status` |
+|---|---|---|
+| Signal, Shape | Exploring | Active |
+| Feasibility | Framing (Validating if a jury verdict exists) | Active |
+| Contract, Launched | Validating | Specified |
+| Parked, Rejected | `parked_from`, or inferred from what's present | Parked / Rejected |
+
+## Changed in this pass
+
+- `README.md`: concepts, lifecycle, gate table, getting-started step 3. Line 16 no longer says a Thread "begins when a signal is captured".
+- Skills: `shape-thread`, `assess-thread`, `spec-generator`, `compile-check`, `fast-track`, `record-kickback`, `revise-spec`, `park-or-reject`, `whats-next`, `bundle-threads`, `intake-signal`, `onboard-product`.
+- `src/cairn_cli/ledger.py` and `cli.py`: stage/status with legacy fallback.
+- `pilot/threads/THRD-001.md` and `pilot/specs/SPEC-001.md` (local only: `pilot/` is git-ignored).
+
+Not changed: the long-form design docs under `docs/`, which still use the old names.
+
+## Open questions
+
+1. **Required sign-offs.** Who has to sign off before leaving Validating? Candidate: required roles listed in `charter.yaml`, checked against `approvals`. Today the gate only asks that any sign-off the PM marked blocking is recorded (compile-check C03).
+2. **Supporting artifacts.** Linked only, or sometimes committed to the repo? Today: linked in `outbound_refs` with a kind prefix (`mock:`, `api:`).
+3. **After handoff.** Built, launched and enablement are now properties of the Spec, not the Thread. The Spec's own lifecycle is not defined yet.
+4. **Fast track and sign-off.** Should fast track require the sign-offs, or only list them as skipped?

@@ -17,7 +17,7 @@ from . import ledger as _ledger
 
 app = typer.Typer(
     name="cairn",
-    help="Cairn: install and check the Signal -> Thread -> Spec skill set in a product repo.",
+    help="Cairn: install and check the signal -> Thread -> Spec skill set in a product repo.",
     add_completion=False,
 )
 
@@ -278,19 +278,19 @@ def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: 
     typer.secho(f"\nThreads — {len(threads)}", bold=True)
     for t in threads:
         sig = ", ".join(sorted(l for l in t.links if docs[l].kind == "signal")) or "-"
-        typer.echo(f"  {t.id:<16} {str(t.meta.get('state', '?')):<12} {t.updated}  signals: {sig}{lock(t)}")
+        typer.echo(f"  {t.id:<16} {_ledger.thread_label(t.meta):<22} {t.updated}  signals: {sig}{lock(t)}")
 
     typer.secho("\nSent to engineering", bold=True)
     for s in sent:
         t = next(docs[l] for l in s.links if docs[l].kind == "thread")
-        line = f"  {s.id:<16} rev {s.meta.get('revision', 1):<3} {t.id} ({t.meta.get('state')}) {s.updated}"
+        line = f"  {s.id:<16} rev {s.meta.get('revision', 1):<3} {t.id} {s.updated}"
         if t.meta.get("kickback_reason"):
             line += f"  last kickback: {t.meta.get('kickback_category') or 'pm'}"
         typer.echo(line)
     if not sent:
         typer.echo("  nothing yet")
     if len(specs) > len(sent):
-        typer.echo(f"  ({len(specs) - len(sent)} spec(s) drafted, not yet in Contract)")
+        typer.echo(f"  ({len(specs) - len(sent)} spec(s) drafted, not yet handed off)")
 
     refs = [d for d in docs.values() if d.kind in _ledger.REFERENCE_KINDS]
     if refs:

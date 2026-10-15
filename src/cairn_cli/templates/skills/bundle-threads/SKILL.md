@@ -1,6 +1,6 @@
 ---
 name: "bundle-threads"
-description: "Tie related Threads together (same underlying problem, a duplicate, or work that should ship together) so they show up as one group in the ledger and in lookups. Only links Threads: it doesn't merge them or change their state. Also unbundles."
+description: "Tie related Threads together (same underlying problem, a duplicate, or work that should ship together) so they show up as one group in the ledger and in lookups. Only links Threads: it doesn't merge them or change their stage or status. Also unbundles."
 argument-hint: "two or more thread ids, an optional bundle name, or 'unbundle <thread id>'"
 metadata:
   product: cairn
@@ -13,7 +13,7 @@ disable-model-invocation: false
 
 Records that two or more Threads belong together. Every Thread in the group gets the same `bundle` name and lists the others in `bundled_with`, so `cairn find <id>` on any of them shows the whole group, its signals, and its Specs.
 
-It's only a link. Each Thread keeps its own state, owner, signals, and Spec.
+It's only a link. Each Thread keeps its own stage, status, owner, signals, and Spec.
 
 ## Required inputs
 
@@ -40,6 +40,6 @@ Then tell the PM in one line which Threads are now bundled, and under which name
 
 ## What you must not do
 
-- Do not change any Thread's `state`, signals, or Spec.
+- Do not change any Thread's `stage`, `status`, signals, or Spec.
 - Do not merge Thread files or move content between them.
 - Do not bundle Threads the PM didn't name.

@@ -4,7 +4,7 @@ description: "Redraft a Spec that was kicked back, in place — same spec_id, a 
 argument-hint: "spec id to revise"
 metadata:
   product: cairn
-  source: "docs/spec-as-code-revision.md Part 1 section 4 (Contract to Feasibility kickback) and Part 2 (Spec Frontmatter Contract)"
+  source: "specs/001-thread-fidelity-stages/spec.md (Kickback) and docs/spec-as-code-revision.md Part 2 (Spec Frontmatter Contract)"
 user-invocable: true
 disable-model-invocation: false
 ---
@@ -51,4 +51,4 @@ changelog:
 - Do not create a new `spec_id` or a new file — same Spec, new revision.
 - Do not touch slices/criteria the kickback reason doesn't mention.
 - Do not mark it compiled — send it back through `compile-check` before it goes to engineering again.
-- Do not set `state: Contract` yourself — that's `compile-check`'s pass, applied by the PM/tracker.
+- Do not set `status: Specified` yourself — that follows `compile-check`'s pass, applied by the PM.

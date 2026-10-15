@@ -1,6 +1,6 @@
 ---
 name: "assess-thread"
-description: "Run a Thread through its Feasibility-stage critique: default to the jury (Advocate/Skeptic/Judge), map every edge case to a criterion or a deferral, and record the verdict a Spec draft will depend on."
+description: "Run a Thread through its Framing-stage critique: default to the jury (Advocate/Skeptic/Judge), map every edge case to a criterion or a deferral, record the verdict a Spec draft will depend on, and move the Thread to Validating."
 argument-hint: "thread id to assess"
 metadata:
   product: cairn
@@ -11,16 +11,16 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 2 of the core flow. Runs while a Thread is in `state: Feasibility` (set by `shape-thread`). Produces a `verdict_ref`: a critique that finds the real edge cases and risks, with each one mapped to a future acceptance criterion or explicitly deferred with a reason. `spec-generator` reads this verdict next, and `compile-check`'s C11 checks that every edge case it lists is accounted for.
+Step 2 of the core flow. Runs while a Thread is in `stage: Framing` (set by `shape-thread`) — the stage where the PM is talking to others to find what needs thinking about. Produces a `verdict_ref`: a critique that finds the real edge cases and risks, with each one mapped to a future acceptance criterion or explicitly deferred with a reason. `spec-generator` reads this verdict next, and `compile-check`'s C11 checks that every edge case it lists is accounted for.
 
-This skill does not transition Thread state. Feasibility → Contract is only ever granted by a passing `compile-check` report, applied by the PM or tracker — never by this skill.
+When every edge case is mapped or deferred and the PM accepts the verdict, set `stage: Validating`: the Thread moves on to getting everyone on board (sign-offs, UX mocks, an API spec). This skill never sets `status: Specified` — that follows a passing `compile-check`, applied by the PM.
 
 ## Required inputs
 
-1. The Thread file — must already be `state: Feasibility`. If it isn't, stop and say so; point the PM at `shape-thread` or `fast-track` instead.
+1. The Thread file — must already be `stage: Framing`, `status: Active`. If it isn't, stop and say so; point the PM at `shape-thread` or `fast-track` instead.
 2. `charter.yaml`.
 3. Every signal file the Thread references, and every `architecture/<system>/overview.md` for systems in `touches`.
-4. The Shape-stage problem-and-impact brief already on the Thread.
+4. The problem-and-impact brief already on the Thread (from Exploring).
 
 ## Rules
 
@@ -35,6 +35,7 @@ This skill does not transition Thread state. Feasibility → Contract is only ev
 Append to the Thread file:
 
 ```yaml
+stage: Validating          # only once every edge case is mapped or deferred and the PM accepts
 verdict_ref: <path to the verdict, or inline if short>
 edge_cases:
   - text: "..."
@@ -46,8 +47,10 @@ edge_cases:
 
 Plus the verdict body: the edge cases found, each tagged with its origin.
 
+If the verdict shows who needs to sign off, or which supporting artifacts (UX mocks, an API spec) Validating will need, propose them as lines in the Thread's `## Open items`.
+
 ## What you must not do
 
-- Do not set `state: Contract`. That transition belongs to a passing `compile-check` report.
+- Do not set `status: Specified`. That follows a passing `compile-check` report.
 - Do not draft the Spec or its acceptance criteria — only name what a criterion will need to cover.
 - Do not run a single-pass critique when the Thread is on the normal track — that shortcut belongs to `fast-track` only. Full three-round jury, every time, here.

@@ -1,6 +1,6 @@
 ---
 name: "spec-generator"
-description: "Draft a Contract-level Spec from a Thread already in Feasibility, using its full jury verdict — the normal-track equivalent of what fast-track does in light form."
+description: "Draft the Spec a Thread hands off, from a Thread already in Validating, using its full jury verdict and linked supporting artifacts — the normal-track equivalent of what fast-track does in light form."
 argument-hint: "thread id to draft a Spec for"
 metadata:
   product: cairn
@@ -11,11 +11,11 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `state: Feasibility` with a recorded jury verdict (from `assess-thread`). This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
+Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict, the sign-offs, and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add the new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
 
 ## Required inputs
 
-1. The Thread file — must be `state: Feasibility` with a `verdict_ref` present (from `assess-thread`). If missing, stop and point the PM at `assess-thread` first.
+1. The Thread file — must be `stage: Validating`, `status: Active`, with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. If missing, stop and point the PM at `assess-thread` first.
 2. `charter.yaml`.
 3. Every signal file and `architecture/<system>/overview.md` the Thread references.
 4. If this Thread is part of a Bundle (`bundle_id` set), read every sibling Thread in `thread_ids` too — each needs its own slice(s) in the one Spec this produces.
@@ -24,11 +24,11 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 
 1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible.
 2. Group criteria into ordered slices; each slice gets a one-line `verify` note.
-3. Map every edge case from the Feasibility verdict to a criterion, or carry its deferral forward into `open_questions`.
+3. Map every edge case from the jury verdict to a criterion, or carry its deferral forward into `open_questions`.
 4. Never invent numbers, endpoints, field names, or limits. Ask the PM or list as an open question.
 5. Describe observable behavior, not implementation.
 6. Mark everything you write as agent-drafted.
-7. No open questions remain unresolved at Contract: each is `answered`, `deferred` (with reason and owner), or `out_of_scope`.
+7. No open questions remain unresolved at handoff: each is `answered`, `deferred` (with reason and owner), or `out_of_scope`.
 
 ## Output
 
@@ -54,6 +54,6 @@ If drafting for a Bundle, criteria carry the normal `trace` entries back to each
 ## What you must not do
 
 - Do not mark the Spec as compiled or ready — that's `compile-check`'s job.
-- Do not set `state: Contract` yourself.
+- Do not set `status: Specified` yourself.
 - Do not draft without a recorded jury verdict unless the Thread is explicitly `track: fast` (in which case use `fast-track`, not this skill).
 - Do not write to `signals/*/raw/`, and never fabricate a trace target.
