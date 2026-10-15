@@ -54,7 +54,10 @@ This skill only reads and reports these — it never checks an item off or adds 
 | any | fast | `brief_ack` set, not compiled | `compile-check` |
 | `Contract` | — | just kicked back by eng | `record-kickback`, then `revise-spec` |
 | `Contract` | — | compiled, nothing else pending | tell the PM it's ready for `Launched` (enablement + eng acceptance — outside this skillset) |
-| `Parked` / `Rejected` | — | — | nothing pending; mention the recorded reason so it isn't re-argued from scratch |
+| `Parked` | — | — | say what it's waiting on (`pickup_when`). If that has happened, or the PM wants it back, `park-or-reject` resumes it |
+| `Rejected` | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
+| any | — | PM wants to stop or pause it | `park-or-reject` |
+| any | — | looks related to another Thread, or PM says "these go together" | `bundle-threads` |
 | any | — | PM asked for something off the core flow | name the matching optional skill (`jury-duty`, `bundle-threads`, `record-approval`, `readiness-check`, `theme-extractor`, `intake-signal`, `onboard-product`, `park-or-reject`) |
 
 ## Rules

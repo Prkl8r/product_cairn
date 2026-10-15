@@ -81,6 +81,8 @@ def load(root: Path) -> dict[str, Doc]:
             required += (d.meta.get("inbound_refs") or []) + (d.meta.get("signal_refs") or [])
             optional += d.meta.get("outbound_refs") or []
             optional += [f"{t}/overview" for t in d.meta.get("touches") or []]
+            optional += d.meta.get("bundled_with") or []
+            optional += [d.meta["see_thread"]] if d.meta.get("see_thread") else []
         elif d.kind == "spec":
             if d.meta.get("thread_id"):
                 required.append(str(d.meta["thread_id"]))
@@ -193,7 +195,8 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
            "updated": doc.updated, "links": sorted(doc.links)}
     if doc.broken:
         out["broken_refs"] = doc.broken
-    for k in ("type", "revision", "kickback_category", "owner", "readiness"):
+    for k in ("type", "revision", "kickback_category", "owner", "readiness",
+              "bundle", "pickup_when", "reject_category"):
         if doc.meta.get(k) is not None:
             out[k] = doc.meta[k]
     return out
@@ -235,6 +238,10 @@ def status_markdown(snap: dict) -> str:
     lines += ["", "## Sent to engineering", ""]
     sent_specs = [s for s in snap["specs"] if s["sent"]]
     lines += [f"- {s['id']} rev {s.get('revision', 1)} (updated {s['updated']})" for s in sent_specs] or ["- nothing yet"]
+    parked = [t for t in snap["threads"] if t["state"] == "Parked"]
+    if parked:
+        lines += ["", "## Parked: waiting on", ""]
+        lines += [f"- {t['id']}: {t.get('pickup_when', 'unknown')}" for t in parked]
     if loose:
         lines += ["", "## Asks with no Thread yet", ""]
         lines += [f"- {s['id']} ({s.get('type', '?')}, {s['updated']})" for s in loose]
