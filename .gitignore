@@ -20,6 +20,9 @@ build/
 *.sqlite
 *.db
 
+# Pilot dry-run output — test data only, not committed
+pilot/
+
 # Eval run output (keep the golden set, ignore results)
 eval/runs/
 

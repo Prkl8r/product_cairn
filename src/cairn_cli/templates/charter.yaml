@@ -1,0 +1,8 @@
+product: TBD
+version: 0.1.0
+modality: TBD            # api | web | mobile
+ui_presence: TBD         # true | false
+profile: TBD             # solo | team
+write_authority: TBD     # manual | auto_commit
+data_class_default: internal
+org_rules: []            # optional, empty is fine

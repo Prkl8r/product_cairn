@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cairn-cli"
+version = "0.1.0"
+description = "Cairn: a Markdown-and-YAML workflow for turning product signal into engineering-ready Specs. CLI installer for Claude Code skills."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+dependencies = [
+    "typer>=0.12",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+cairn = "cairn_cli.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cairn_cli = ["templates/**/*"]
