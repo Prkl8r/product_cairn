@@ -107,3 +107,4 @@ Not changed: the long-form design docs under `docs/`, which still use the old na
   - **export**: the Spec is written out (with the supporting-artifact addendum, when that exists) and handed to a team.
   - **repo**: the Spec is sent to a different repo.
   - **in_place**: the Spec stays where it is for the spec-kit process to pick up (specify → plan → tasks → implement).
+- **API specs are OpenAPI 3.1** (2026-10-16). An `api:` supporting artifact must be an OpenAPI 3.1 document (`openapi: 3.1.x` at its root). Anything else is flagged to the PM, not silently used.

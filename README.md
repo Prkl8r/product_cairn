@@ -36,7 +36,7 @@ signal(s) ──► Exploring ──► Framing ──► Validating ──► S
 |---|---|---|---|
 | **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Problem-and-impact brief written; PM decides **proceed**. | `shape-thread` |
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
-| **Validating** | Getting everyone on board; UX mocks, an API spec and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `spec-generator` → `compile-check` |
+| **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `spec-generator` → `compile-check` |
 
 Leaving Validating is the handoff: the PM sets `status: Specified` and the Spec goes to engineering.
 

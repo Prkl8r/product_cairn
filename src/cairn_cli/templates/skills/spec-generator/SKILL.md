@@ -15,7 +15,7 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 
 ## Required inputs
 
-1. The Thread file — must be `stage: Validating`, `status: Active`, with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. If missing, stop and point the PM at `assess-thread` first.
+1. The Thread file — must be `stage: Validating`, `status: Active`, with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. API specs (`api:` refs) must be OpenAPI 3.1: check for `openapi: 3.1.x` at the document root, and if it's another version or format, tell the PM rather than drafting against it. Endpoints, fields and limits in criteria may then trace to that document. If missing, stop and point the PM at `assess-thread` first.
 2. `charter.yaml`.
 3. Every signal file and `architecture/<system>/overview.md` the Thread references.
 4. If this Thread is part of a Bundle (`bundle_id` set), read every sibling Thread in `thread_ids` too — each needs its own slice(s) in the one Spec this produces.
