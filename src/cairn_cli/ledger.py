@@ -13,14 +13,14 @@ from pathlib import Path
 import yaml
 
 STAGES = ["Exploring", "Framing", "Validating"]  # fidelity order; a Thread's last stage hands off to a Spec
-STATUSES = ["Active", "Parked", "Rejected", "Specified"]
+STATUSES = ["Active", "Parked", "Rejected", "Specified", "Handed off"]
 # Threads written before stage/status existed carry a single `state`; read it as (stage, status).
 LEGACY_STATES = {
     "Signal": ("Exploring", "Active"),
     "Shape": ("Exploring", "Active"),
     "Feasibility": ("Framing", "Active"),
-    "Contract": ("Validating", "Specified"),
-    "Launched": ("Validating", "Specified"),
+    "Contract": ("Validating", "Handed off"),
+    "Launched": ("Validating", "Handed off"),
     "Parked": (None, "Parked"),
     "Rejected": (None, "Rejected"),
 }
@@ -233,7 +233,7 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
 
 def sent(docs: dict[str, Doc]) -> list[Doc]:
     return [s for s in docs.values() if s.kind == "spec" and any(
-        docs[l].kind == "thread" and stage_status(docs[l].meta)[1] == "Specified" for l in s.links)]
+        docs[l].kind == "thread" and stage_status(docs[l].meta)[1] == "Handed off" for l in s.links)]
 
 
 def snapshot(docs: dict[str, Doc], root: Path) -> dict:

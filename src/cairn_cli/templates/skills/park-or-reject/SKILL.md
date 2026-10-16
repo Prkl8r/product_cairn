@@ -38,7 +38,7 @@ Takes a Thread off the active path at any stage, not only at the end of Explorin
 3. On **resume**, set `status: Active`. Keep the park fields as history, and add a `resumed_on` date. If what the Thread was waiting on (`pickup_when`) clearly hasn't happened, say so once, then do what the PM asks.
 4. A Rejected Thread is reopened only when the PM explicitly asks. Set `status: Active` (stage unchanged), keep the reject fields, and add `reopened_on` and `reopen_reason`.
 5. For `duplicate` or `superseded`, offer to tie the Threads together with `bundle-threads`. Don't do it automatically.
-6. If a Spec from this Thread already went to engineering (the Thread is `status: Specified`), say so before parking or rejecting. Engineering may need to be told, and that's the PM's call.
+6. If a Spec from this Thread already went to engineering (the Thread is `status: Handed off`), say so before parking or rejecting. Engineering may need to be told, and that's the PM's call.
 
 ## Output
 

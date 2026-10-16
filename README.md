@@ -38,7 +38,7 @@ signal(s) ──► Exploring ──► Framing ──► Validating ──► S
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
 | **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `spec-generator` → `compile-check` |
 
-Leaving Validating is the handoff: the PM sets `status: Specified` and the Spec goes to engineering.
+Leaving Validating takes two steps. Once the Spec compiles clean, the PM sets `status: Specified`: the Spec exists and is ready. When it goes out, the status becomes `Handed off`.
 
 **Status** is separate from stage, so a Thread keeps its stage when it stops:
 
@@ -47,9 +47,10 @@ Leaving Validating is the handoff: the PM sets `status: Specified` and the Spec 
 | **Active** | Being worked on (default). | — |
 | **Parked** | On hold, with what has to happen first (`pickup_when`). | `park-or-reject` |
 | **Rejected** | Dropped, with a reason and category. | `park-or-reject` |
-| **Specified** | Handed off to engineering. | PM, after a passing `compile-check` |
+| **Specified** | The Spec exists and compiles clean; not sent anywhere yet. | PM, after a passing `compile-check` |
+| **Handed off** | The Spec went out: exported to a team, sent to another repo, or left in place for spec-kit. | PM, recording `handoff` |
 
-- **Kickback**: engineering sends the Spec back. Status returns to Active at Validating; `record-kickback` → `revise-spec` updates the same Spec.
+- **Kickback**: engineering sends the Spec back. Status returns from Handed off to Active at Validating; `record-kickback` → `revise-spec` updates the same Spec.
 - **Fast track**: `fast-track` goes from Exploring to a drafted Spec, backfilling Framing and Validating lightly (`light_stages`), with a Review Brief and one acknowledgement.
 - **Handoff** ends Cairn's part. The PM records where the Spec went in `handoff`: exported to a team, sent to another repo, or left in place for spec-kit to pick up. Whoever receives it tracks build and launch (see `specs/001-thread-fidelity-stages/spec.md`).
 

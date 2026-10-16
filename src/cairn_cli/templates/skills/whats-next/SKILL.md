@@ -15,7 +15,7 @@ The navigator. Reads one Thread (named, or with no argument, the most recently m
 
 If there's no Thread yet because nothing has been captured as a signal — a raw quote, directive, or bug report that hasn't been written to `signals/` — that's `intake-signal`'s job, not this skill's. This skill only navigates Threads that already exist.
 
-With no Thread id given, it also opens with a **project status snapshot** — this is the "I'm back on Monday, what's going on" view: how many Threads are in each stage, and how many are Parked, Rejected or Specified, which one was last touched and when, and any open checklist items waiting on the PM (per-Thread or project-wide — see Checklists below). The per-Thread next-step answer still follows, for the most recently touched Thread.
+With no Thread id given, it also opens with a **project status snapshot** — this is the "I'm back on Monday, what's going on" view: how many Threads are in each stage, and how many are Parked, Rejected, Specified or Handed off, which one was last touched and when, and any open checklist items waiting on the PM (per-Thread or project-wide — see Checklists below). The per-Thread next-step answer still follows, for the most recently touched Thread.
 
 ## Required inputs
 
@@ -25,7 +25,7 @@ With no Thread id given, it also opens with a **project status snapshot** — th
 
 ## Project status snapshot (no Thread id given)
 
-1. Run `cairn ledger --json` rather than opening every file under `threads/` — it returns each Thread's stage, status, linked signals, and which Specs went to engineering in one compact call. Group Active Threads by `stage` and the rest by `status`, and report the counts (e.g. "3 Framing, 1 Validating, 1 Specified, 2 Parked"). Also mention signals with no Thread yet. Only open a Thread file itself when you need its `## Open items`. If `cairn` isn't installed, fall back to reading the files.
+1. Run `cairn ledger --json` rather than opening every file under `threads/` — it returns each Thread's stage, status, linked signals, and which Specs went to engineering in one compact call. Group Active Threads by `stage` and the rest by `status`, and report the counts (e.g. "3 Framing, 1 Validating, 1 Specified, 1 Handed off, 2 Parked"). Also mention signals with no Thread yet. Only open a Thread file itself when you need its `## Open items`. If `cairn` isn't installed, fall back to reading the files.
 2. Name the most recently modified Thread (by file mtime) and how long ago, and flag any Thread untouched for an unusually long time if one stands out — don't manufacture urgency where there isn't any.
 3. Across all Threads, list any unchecked `## Open items` (see Checklists below) grouped by Thread — this is what's still waiting on the PM, not the agent.
 4. If `checklist.md` exists at the product root, list its unchecked top-level items too.
@@ -51,19 +51,20 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Validating, Active | normal | supporting artifacts or reviews still open | get everyone on board: list the open artifacts and review reminders from `## Open items`. Reviews never block |
 | Validating, Active | normal | no Spec in `outbound_refs` | `spec-generator` |
 | Validating, Active | normal | Spec drafted, not compiled | `compile-check` |
-| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say it's ready to hand off: export it to a team, send it to another repo, or leave it in place for spec-kit. The PM sets `status: Specified` and records `handoff` (`to`, `where`, `on`) |
+| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say the PM can set `status: Specified` |
+| Specified | — | — | ready to hand off: export it to a team, send it to another repo, or leave it in place for spec-kit. Handing off sets `status: Handed off` and records `handoff` (`to`, `where`, `on`) |
 | any, Active | fast | no Review Brief yet | `fast-track` |
 | any, Active | fast | Review Brief exists, `brief_ack` unset | `ack-brief` |
 | any, Active | fast | `brief_ack` set, not compiled | `compile-check` |
-| Specified | — | kicked back by eng | `record-kickback`, then `revise-spec` |
-| Specified | — | nothing pending | handed off; say where (`handoff`). Build and launch belong to whoever received it, not Cairn |
+| Handed off | — | kicked back by eng | `record-kickback`, then `revise-spec` |
+| Handed off | — | nothing pending | say where (`handoff`). Build and launch belong to whoever received it, not Cairn |
 | Parked | — | — | say what it's waiting on (`pickup_when`). If that has happened, or the PM wants it back, `park-or-reject` resumes it |
 | Rejected | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
 | any | — | PM wants to stop or pause it | `park-or-reject` |
 | any | — | looks related to another Thread, or PM says "these go together" | `bundle-threads` |
 | any | — | PM asked for something off the core flow | name the matching optional skill (`jury-duty`, `bundle-threads`, `record-approval`, `readiness-check`, `theme-extractor`, `intake-signal`, `onboard-product`, `park-or-reject`) |
 
-Threads written before stages existed may still carry a single `state` field. Read it as: Signal/Shape → Exploring; Feasibility → Framing; Contract/Launched → Specified; Parked/Rejected → that status. Mention once that the Thread uses the old field.
+Threads written before stages existed may still carry a single `state` field. Read it as: Signal/Shape → Exploring; Feasibility → Framing; Contract/Launched → Handed off; Parked/Rejected → that status. Mention once that the Thread uses the old field.
 
 ## Rules
 
