@@ -51,7 +51,7 @@ Leaving Validating is the handoff: the PM sets `status: Specified` and the Spec 
 
 - **Kickback**: engineering sends the Spec back. Status returns to Active at Validating; `record-kickback` → `revise-spec` updates the same Spec.
 - **Fast track**: `fast-track` goes from Exploring to a drafted Spec, backfilling Framing and Validating lightly (`light_stages`), with a Review Brief and one acknowledgement.
-- Built, launched and enablement now belong to the Spec, not the Thread; that lifecycle isn't defined yet (see `specs/001-thread-fidelity-stages/spec.md`).
+- **Handoff** ends Cairn's part. The PM records where the Spec went in `handoff`: exported to a team, sent to another repo, or left in place for spec-kit to pick up. Whoever receives it tracks build and launch (see `specs/001-thread-fidelity-stages/spec.md`).
 
 ---
 
@@ -150,7 +150,7 @@ pilot/                            # a worked example: one real signal through fa
 
 The core flow above is complete. Still missing, named today only as placeholders in `whats-next`'s own dispatch table:
 
-- **A Spec lifecycle after handoff** — nothing yet tracks a Spec being accepted, built and launched, or packages the enablement artifact and overview attestation.
+- **Handoff tooling** — nothing yet writes the export package (Spec plus supporting-artifact addendum) or sends a Spec to another repo; the PM does it by hand and records it in `handoff`.
 - **`onboard-product`'s onboarding is done**; the rest below are genuinely optional, built when a PM first asks for them:
   - `jury-duty` — the Advocate/Skeptic/Judge critique, as its own standalone skill (today it's only described inside `assess-thread`/`fast-track`).
   - `readiness-check` — the on-demand "is this ready for engineering?" qualitative review.

@@ -51,12 +51,12 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Validating, Active | normal | supporting artifacts or reviews still open | get everyone on board: list the open artifacts and review reminders from `## Open items`. Reviews never block |
 | Validating, Active | normal | no Spec in `outbound_refs` | `spec-generator` |
 | Validating, Active | normal | Spec drafted, not compiled | `compile-check` |
-| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say it's ready to hand off: they set `status: Specified` when it goes to engineering |
+| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say it's ready to hand off: export it to a team, send it to another repo, or leave it in place for spec-kit. The PM sets `status: Specified` and records `handoff` (`to`, `where`, `on`) |
 | any, Active | fast | no Review Brief yet | `fast-track` |
 | any, Active | fast | Review Brief exists, `brief_ack` unset | `ack-brief` |
 | any, Active | fast | `brief_ack` set, not compiled | `compile-check` |
 | Specified | — | kicked back by eng | `record-kickback`, then `revise-spec` |
-| Specified | — | nothing pending | handed off; nothing for the Thread to do. What happens next belongs to the Spec |
+| Specified | — | nothing pending | handed off; say where (`handoff`). Build and launch belong to whoever received it, not Cairn |
 | Parked | — | — | say what it's waiting on (`pickup_when`). If that has happened, or the PM wants it back, `park-or-reject` resumes it |
 | Rejected | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
 | any | — | PM wants to stop or pause it | `park-or-reject` |

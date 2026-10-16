@@ -90,8 +90,20 @@ Not changed: the long-form design docs under `docs/`, which still use the old na
 ## Open questions
 
 1. **Supporting artifacts.** Linked only, or sometimes committed to the repo? Today: linked in `outbound_refs` with a kind prefix (`mock:`, `api:`). Direction: let them be exported with the Spec as an **addendum**, so engineering gets one package. Not decided: whether the addendum copies the artifacts or only lists links, and which formats it supports.
-2. **After handoff.** Built, launched and enablement are now properties of the Spec, not the Thread. The Spec's own lifecycle is not defined yet.
+2. **How the handoff happens.** Nothing builds the export package or copies a Spec to another repo yet. Open: a `cairn handoff` command, or a step in an existing skill, and how a copied Spec keeps its link back to the Thread.
 
 ## Decided
 
 - **No sign-offs** (2026-10-15). Validating reminds the PM to have the draft reviewed; it never requires approval. This also settles fast track: it lists the reviews as not yet done in the Review Brief.
+- **Cairn stops at handoff** (2026-10-16). Built, launched and enablement are not tracked by Cairn; whoever picks up the Spec owns that. When the PM sets `status: Specified`, they also record where the Spec went:
+
+  ```yaml
+  handoff:
+    to: export | repo | in_place
+    where: "<team, repo URL or path>"   # export / repo only
+    on: <date>
+  ```
+
+  - **export**: the Spec is written out (with the supporting-artifact addendum, when that exists) and handed to a team.
+  - **repo**: the Spec is sent to a different repo.
+  - **in_place**: the Spec stays where it is for the spec-kit process to pick up (specify → plan → tasks → implement).
