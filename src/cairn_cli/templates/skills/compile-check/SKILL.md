@@ -4,14 +4,14 @@ description: "Check a drafted Spec by hand against Cairn's compile-step validato
 argument-hint: "path to the Spec file to check, e.g. specs/SPEC-001.md"
 metadata:
   product: cairn
-  source: "docs/cairn-pilot-walkthrough.md step 7, docs/spec-as-code-revision.md Part 2 (mcp-spec-compiler)"
+  source: "docs/spec-as-code-revision.md Part 2 (mcp-spec-compiler)"
 user-invocable: true
 disable-model-invocation: false
 ---
 
 ## What this does
 
-Stands in for `mcp-spec-compiler` during the pilot, since no deterministic server exists yet. Proves a Spec is well-formed and every claim has support. It does **not** judge whether the claims are correct — that is human/engineering review, and the on-demand readiness check ("is this ready for engineering?"), not this skill.
+Stands in for `mcp-spec-compiler` until that deterministic server exists. Proves a Spec is well-formed and every claim has support. It does **not** judge whether the claims are correct — that is human/engineering review, and the on-demand readiness check ("is this ready for engineering?"), not this skill.
 
 Be mechanical. Do not soften a failing check because the Spec otherwise reads well, and do not pass something because it "seems fine" — cite the exact line or field for every failure.
 
@@ -43,7 +43,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C12 | Numeric literals and identifiers (endpoints, field names, limits) in criteria appear in a traced source or the charter | Warn |
 | C13 | Validated signals attached to the Thread but cited by no criterion | Warn |
 | C14 | Criterion text overlaps heavily with an out-of-scope item | Warn |
-| C15 | Skill/charter versions match what's pinned (note if no lock file exists yet during pilot — Warn instead of Error) | Error/Warn |
+| C15 | Skill/charter versions match what's pinned (Warn instead of Error if no lock file exists yet) | Error/Warn |
 | C16 | Every cited `/library` or `/architecture` file has `verified: true` and is inside its `review_ttl` | Error if Thread `data_class` is `restricted`, else Warn |
 | C17 | Every system in the Thread's `touches` has an overview file with a named owner, and the product overview exists | Error normally; **Warn** if `track: fast` or `profile: solo` |
 | C18 | Fast track only: Review Brief exists with skipped gates, ranked verify-first items, every assumption tagged with an origin; `brief_ack` is set | Error on `team` profile, Warn on `solo` |
@@ -52,7 +52,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C21 | Every criterion belongs to a slice; every slice has ≥1 criterion, an `order`, and a one-line `verify` note | Error |
 | C22 | Criteria describe observable behavior, not frameworks/databases/internal structure | Warn |
 
-Skip C02/C03/C15/C16/C17/C18/C19 gracefully (note as N/A, not Fail) only where the pilot genuinely has no tooling yet to check them (e.g. no package lock exists) — say so explicitly rather than silently passing.
+Skip C02/C03/C15/C16/C17/C18/C19 gracefully (note as N/A, not Fail) only where the repo genuinely has no tooling yet to check them (e.g. no package lock exists) — say so explicitly rather than silently passing.
 
 ## Output
 

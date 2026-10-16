@@ -4,7 +4,7 @@ description: "Take a Cairn Thread from Exploring straight to a drafted Spec: bac
 argument-hint: "thread id or path to the signal file(s) to run through fast track"
 metadata:
   product: cairn
-  source: "docs/cairn-pilot-walkthrough.md step 5, docs/spec-as-code-revision.md Part 1 section 4 (Fast Track)"
+  source: "docs/spec-as-code-revision.md Part 1 section 4 (Fast Track)"
 user-invocable: true
 disable-model-invocation: false
 ---

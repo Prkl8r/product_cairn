@@ -11,21 +11,21 @@ Goal of the restructure: keep the PRD about outcomes and behavior. Move implemen
 ### Terminology
 **Flow: Signals -> Threads -> Specs.** Signals are captured, one or more of them feed a Thread, and each Thread is pulled through the gates until it compiles into one or more Specs that engineering picks up.
 
-- **Signal:** any raw input that starts or feeds a Thread. Signal types:
+- **Signal:** any raw input that feeds a Thread. A signal is an artifact, never a stage. Signal types:
   - **feedback**: customer requests, support tickets, Slack threads
   - **requirement**: a requirement doc from a business team or upstream group
   - **mandate**: a corporate, executive, or compliance directive
   - **idea**: an internal idea or proposal, including a shower thought
 - **Cairn (the product):** the name of the tool. A cairn is a trail marker that shows the way without walking it for you. Signals, Threads, and Specs are what it works with.
 - **Thread:** the unit of work. It begins when a signal is captured, carries lineage in `inbound_refs` and `outbound_refs`, and is pulled through the gates.
-- **States and gates:** Signal (Level 1), Shape (Level 2), Feasibility (Level 3), Contract (Level 4). Signal is the intake state for every signal type, not only feedback.
-- **Spec:** the compiled output of a Thread at Contract. This is what engineering picks up. One Thread produces one or more Specs.
+- **Stages and status:** a Thread has a `stage` (Exploring, Framing, Validating: how far the thinking has got) and a separate `status` (Active, Parked, Rejected, Specified, Handed off: whether it is being worked on). A Thread is created when the PM decides one or more signals are worth pursuing.
+- **Spec:** what a Thread hands off when it leaves Validating. This is what engineering picks up. One Thread produces one or more Specs.
 - **Context, not signals:** the charter (`charter.yaml`, the product's root boundaries, called the constitution in the original PRD), architecture overviews, and library. They constrain a Thread but never start one.
 - **Ref format:** typed prefix plus ID, for example `feedback:ZD-88421`, `req:REQ-SEC-2026-A`, `mandate:MANDATE-Q3`, `idea:IDEA-017`. All signal refs resolve under `/signals/<type>/`.
 
 ### 1. Problem and Outcomes
 - Problem: specs are written from unstructured signals (feedback, requirement docs, mandates, ideas), so LLM drafts contain claims no one can trace.
-- Reframed outcome: **every claim in a Level 4 Spec is traceable to a signal or library reference, and unsupported claims fail compilation.** (Replaces "zero hallucination.")
+- Reframed outcome: **every claim in a handed-off Spec is traceable to a signal or library reference, and unsupported claims fail compilation.** (Replaces "zero hallucination.")
 - Secondary outcomes: local-first tracking, tool-agnostic execution via MCP, enablement planned before build.
 - Non-goals: replacing engineering review, replacing Jira for engineering execution, autonomous spec approval.
 
@@ -41,46 +41,59 @@ Goal of the restructure: keep the PRD about outcomes and behavior. Move implemen
 4. Default to local execution and minimal data in git.
 5. Gates are guardrails, not a prison. The PM can skip stages. The system does the missing work and flags what to review (see Fast Track in section 4).
 6. A guide, not a factory. The PM drives, the agent advises, and nothing runs unless the PM asks.
-7. Clear before it ships. A Spec that reaches Contract has no open questions. Each one is answered, deferred with a reason and an owner, or moved to out of scope. There is no separate clarification step: the agent asks early ("ask before assuming"), and the compile step confirms nothing was left open.
+7. Clear before it ships. A Spec that is handed off has no open questions. Each one is answered, deferred with a reason and an owner, or moved to out of scope. There is no separate clarification step: the agent asks early ("ask before assuming"), and the compile step confirms nothing was left open.
 
 #### Guide, not a factory
 The system helps the PM think, shape, and check. It does not mass-produce Specs, and it is not a pipeline the PM feeds. If a feature makes the PM feel like an operator on an assembly line, that feature is wrong.
 
 - **The PM drives.** No stage advances, no Spec is generated, and nothing syncs to an external tracker unless the PM asks. Automation (auto-sync, auto-commit) is opt-in, one behavior at a time, and never the default.
 - **Ask before assuming.** At each stage the agent's default move is a short, targeted question or a suggestion with a recommended option, not a finished artifact. It asks only the questions whose answers would change the Spec.
-- **Help on demand, at any state.** The PM can ask at any time: "what am I missing?", "what would engineering ask?", "argue against this", "find similar past Threads", "tighten these criteria", "is this ready for engineering?", "draft the ask to Sarah." These are moves in a conversation, not stages.
+- **Help on demand, at any stage.** The PM can ask at any time: "what am I missing?", "what would engineering ask?", "argue against this", "find similar past Threads", "tighten these criteria", "is this ready for engineering?", "draft the ask to Sarah." These are moves in a conversation, not stages.
 - **Agent text is labeled.** Anything the agent writes is marked agent-drafted until the PM edits or accepts it, so the PM can always see what is theirs and what is not.
 - **Advice can be ignored.** Caution flags, next-step suggestions, and missing-overview notes are advice. The only things that can fail are checks the PM turned on and the compiler's well-formedness checks on a Spec headed to engineering.
-- **Minimal by default.** A Thread's required frontmatter is `thread_id`, `state`, and `owner`. Everything else is added when it is useful. A Thread can be a single signal and a paragraph.
+- **Minimal by default.** A Thread's required frontmatter is `thread_id`, `stage`, `status`, and `owner`. Everything else is added when it is useful. A Thread can be a single signal and a paragraph.
 - **No throughput targets.** Nothing measures Specs per week or compares PMs. Metrics are diagnostics for the PM (see section 11).
 - **Language.** The original PRD calls this an "engine" and talks about "compiling." The product is called Cairn. It is a guide and not an engine, and "compile" is reserved for the narrow Spec well-formedness check.
 
 ### 4. Thread Lifecycle
-States: Signal, Shape, Feasibility, Contract, Launched, plus **Parked** and **Rejected**.
+Stages: **Exploring**, **Framing**, **Validating**. Each name says what is happening now; each gate is what must be true to leave it. Status is a separate field, so a Thread keeps its stage when it stops.
 
-| From | To | Gate (checkable) | Required fields |
+| Stage | What's happening | Exit gate (checkable) | Required fields |
 |---|---|---|---|
-| Signal | Shape | Feedback: recurring-theme threshold met. Requirement, mandate, or idea: a named sponsor has validated it | `signal_refs`, `signal_types`, `validated_by` (plus `themes` for feedback) |
-| Shape | Feasibility | Every system in `touches` has an overview (warning on the `solo` profile). No approval required unless the PM marks one as blocking | `touches` |
-| Feasibility | Contract | Jury verdict present, all edge cases mapped or deferred | `verdict_ref` |
-| Contract | Launched | Spec compiled, eng accepted, enablement asset linked, overviews updated or attested unchanged | `compile_report`, `enablement_ref`, `overview_updated` or `overview_unchanged` |
-| Any | Parked / Rejected | None | `reason`, `revisit_date` (Parked) |
-| Contract | Feasibility | Eng kickback | `kickback_reason`, `kickback_category` |
-| Any | Contract (fast track) | PM invokes `fast-track`; Review Brief acknowledged; compiler errors cleared | `track: fast`, `skipped_gates`, `brief_ack` |
+| Exploring | The PM, alone, fleshing out an idea | Feedback: recurring-theme threshold met. Requirement, mandate, or idea: a named sponsor has validated it. Problem-and-impact brief written; PM decides **proceed** | `inbound_refs`, `validated_by` (plus `themes` for feedback) |
+| Framing | Talking to others to find what needs thinking about; the jury runs here | Every system in `touches` has an overview (warning on the `solo` profile). Jury verdict present, all edge cases mapped or deferred | `touches`, `verdict_ref` |
+| Validating | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made | The Spec compiles clean. No sign-off required: Cairn reminds the PM who should review (the sponsor, owners of systems in `touches`) and never blocks on it | `compile_report`, `outbound_refs` |
+
+| Status | Meaning | Required fields |
+|---|---|---|
+| Active | Being worked on (default) | — |
+| Parked | On hold, keeps its stage | `reason`, `pickup_when` |
+| Rejected | Dropped, keeps its stage | `reason`, `reject_category` |
+| Specified | The Spec compiles clean; not sent anywhere yet. Set by the PM | `compile_report` |
+| Handed off | The Spec went out (export, another repo, or in place for spec-kit). Set by `cairn handoff` | `handoff` |
+
+Transitions outside the normal order:
+
+| Move | Gate | Required fields |
+|---|---|---|
+| Kickback: Handed off → Active, stage stays Validating | Engineering sends the Spec back | `kickback_reason`, `kickback_category` |
+| Fast track: Exploring → a drafted Spec at Validating | PM invokes `fast-track`; Review Brief acknowledged; compiler errors cleared | `track: fast`, `light_stages`, `brief_ack` |
+
+Handoff ends Cairn's part. Whoever receives the Spec tracks build and launch.
 
 Kickback categories (feed the kickback-rate metric): missing edge case, ambiguous criterion, wrong constraint, scope change.
 
-**Shape decision.** When a Thread is shaped, the PM (with the agent's help on research, a crisp problem definition, and a short case for and against) lands on one of three outcomes: **proceed** (move to Feasibility), **hold** (Parked, with the open questions and a revisit date), or **drop** (Rejected, with the reason). The reason is searchable later, so a dropped idea is not re-argued from scratch.
+**Proceed decision.** When a Thread leaves Exploring, the PM (with the agent's help on research, a crisp problem definition, and a short case for and against) lands on one of three outcomes: **proceed** (move to Framing), **hold** (Parked, with the open questions and a revisit date), or **drop** (Rejected, with the reason). The reason is searchable later, so a dropped idea is not re-argued from scratch.
 
 #### Fast Track (gates are guardrails, not a prison)
-The PM owns the Thread and can jump from Signal straight to Contract when the work is small, low risk, or already well understood. The system never blocks the jump. It does the missing work and tells the PM where to look.
+The PM owns the Thread and can jump from Exploring straight to a Spec when the work is small, low risk, or already well understood. The system never blocks the jump. It does the missing work and tells the PM where to look.
 
 **How it works**
-1. The PM runs `fast-track THRD-042` (or says "take this to Spec") from any state. The agent may suggest it for a small Thread but never starts it on its own.
+1. The PM runs `fast-track THRD-042` (or says "take this to Spec") from any stage. The agent may suggest it for a small Thread but never starts it on its own.
 2. The agent backfills each skipped stage in lightweight form:
-   - Shape: a short problem and impact brief drafted from the signal.
-   - Feasibility: a single-pass critique with the top edge cases and risks, each mapped to a criterion or a deferral. No three-round debate.
-   - Contract: the Spec draft, compiled as usual.
+   - Exploring: a short problem and impact brief drafted from the signal.
+   - Framing: a single-pass critique with the top edge cases and risks, each mapped to a criterion or a deferral. No three-round debate.
+   - Validating: the Spec draft, compiled as usual. No supporting artifacts are made; the review reminder still goes in `## Open items`.
    - Overviews: a list of touched systems, noting any overview that is missing or unverified.
 3. The agent writes a **Review Brief** at the top of the Thread. It is short and ranked:
    - **Verify first:** the 3 to 5 items most likely to be wrong or most costly if wrong.
@@ -93,7 +106,8 @@ The PM owns the Thread and can jump from Signal straight to Contract when the wo
 
 ```yaml
 track: fast
-skipped_gates: [Shape, Feasibility]
+light_stages: [Framing, Validating]
+skipped_gates: [Framing, Validating]
 review_brief:
   verify_first:
     - "AC-003 sets a 300 ms p95 target. Source is the mandate, no load data seen."
@@ -154,7 +168,7 @@ One entry point, `onboard-product`, with two paths. Both end in the same state: 
 1. **Charter first.** An import skill reads existing docs and proposes `charter.yaml` (modality, UI presence, profile). The PM ratifies it by hand.
 2. **Import into `/library` and `/architecture` with provenance.** `mcp-brownfield-import` scans old specs, wiki pages, OpenAPI files, and architecture docs. Each file gets frontmatter: `source`, `imported_on`, `owner`, `verified: false`, `last_verified`, `review_ttl`. Where a deterministic source exists (OpenAPI, schemas), generate from it directly. The LLM only summarizes.
 3. **Generate product and system overviews** from the imported material, using the overview template in Appendix E. Everything starts at L1.
-4. **Bring in only in-flight work.** Convert open Jira epics into Threads at the state that matches reality, tagged `legacy: true`, with the Jira key in `inbound_refs`. Closed history stays in Jira. Legacy Specs get the C04 waiver (see Part 2) and a `legacy_untraced` stamp.
+4. **Bring in only in-flight work.** Convert open Jira epics into Threads at the stage and status that match reality, tagged `legacy: true`, with the Jira key in `inbound_refs`. Closed history stays in Jira. Legacy Specs get the C04 waiver (see Part 2) and a `legacy_untraced` stamp.
 5. **Capture as-built behavior and known debt** in `/architecture/<system>/known-quirks.md`. Undocumented current behavior is the most common cause of brownfield kickbacks.
 6. **Backfill lazily.** The first new Thread that lists a system in `touches` triggers a verify task for that system's files. Touch it, verify it. Coverage grows along real work, not through a migration project.
 7. **Pilot on one slice**, such as one API or one client, and reach L2 on just those systems first.
@@ -164,7 +178,7 @@ One entry point, `onboard-product`, with two paths. Both end in the same state: 
 2. Outputs: a draft `charter.yaml`, `/architecture/product-overview.md`, and one overview per planned system, all using the Appendix E template.
 3. There is no source to import from, so the interview answers are the source (`source: interview`). The skill must not invent content. Unanswered fields stay `TBD`, and any `TBD` blocks promotion to L2.
 4. The PM or architect ratifies each overview to L2 by setting `verified: true` with their name and date.
-5. Overviews stay current. A Spec that changes a system's boundaries or interfaces must update that system's overview in the same commit, or attest `overview_unchanged: true` at the Launched gate.
+5. Overviews stay current. A Spec that changes a system's boundaries or interfaces must update that system's overview in the same commit, or attest `overview_unchanged: true` before handoff.
 
 **Rules for both paths**
 - Every overview needs a named `owner`. An unowned file can never reach L2.
@@ -189,7 +203,7 @@ One entry point, `onboard-product`, with two paths. Both end in the same state: 
 - Credentials via keystore or git-ignored `.env`. Write authority per product in the charter.
 
 ### 10. External Sync
-- Local to external: when a Thread reaches Contract, Cairn can create the Epic and keep it updated. Whether that happens automatically, by suggestion, or not at all is chosen per integration (see Background housekeeping below).
+- Local to external: when a Thread's Spec is handed off, Cairn can create the Epic and keep it updated. Whether that happens automatically, by suggestion, or not at all is chosen per integration (see Background housekeeping below).
 - External to local, one-way, limited fields: `exec_status`, `sprint`, `assignee`. Written to a separate `sync/` file, never into authored frontmatter.
 - Conflict rule: authored fields are local-wins, execution fields are external-wins.
 
@@ -197,7 +211,7 @@ One entry point, `onboard-product`, with two paths. Both end in the same state: 
 The original Phase D had the agent create the Epic silently. Revised: housekeeping happens in the background, through suggestions or through choices made once at setup.
 
 - **Setup-time modes.** During `cairn init` (and any time later with `cairn config`), each integration gets a mode: `off`, `suggest`, or `auto`. Defaults: the `solo` profile is `off` for everything external, and the `team` profile is `suggest`. `auto` is always an explicit choice, per integration and per product.
-- **Suggest mode.** When something housekeeping-shaped becomes true (a Thread reaches Contract and compiles, a Spec changes after its Epic was created, an overview passes its review window, an enablement asset is still missing at launch), Cairn adds a one-line item to the **inbox** (`.cairn/inbox.md`). Example: "THRD-042 reached Contract. Create the Jira Epic? [create] [edit first] [not this time] [never for this product]."
+- **Suggest mode.** When something housekeeping-shaped becomes true (a Thread's Spec compiles and is handed off, a Spec changes after its Epic was created, an overview passes its review window, an enablement asset is still missing at launch), Cairn adds a one-line item to the **inbox** (`.cairn/inbox.md`). Example: "THRD-042 was handed off. Create the Jira Epic? [create] [edit first] [not this time] [never for this product]."
 - **Quiet delivery.** The inbox never interrupts work. It surfaces at natural pauses: session start, after a commit, or when the PM asks "what's pending?". Stale items expire, and ignoring one costs nothing.
 - **Dismissals stick.** "Never for this product" is saved in config, so the same suggestion does not come back.
 - **Auto mode.** If the PM opts in, the action runs and is written to the Thread's changelog, with an undo where the target system allows it.
@@ -322,7 +336,7 @@ Body sections (any left as `TBD` blocks promotion to L2):
 ## Part 2: Compile-Step Validator Spec (`mcp-spec-compiler`)
 
 ### Purpose
-Deterministic gate between a drafted Spec and `state: Contract`. No LLM calls. It proves a Spec is well-formed and every claim has support. It does not prove the claims are correct, and human review still owns that.
+Deterministic gate between a drafted Spec and `status: Specified`. No LLM calls. It proves a Spec is well-formed and every claim has support. It does not prove the claims are correct, and human review still owns that.
 
 ### Inputs
 - Draft Spec (`specs/<spec_id>.md`) with structured frontmatter
@@ -389,7 +403,7 @@ criteria:
 | ID | Check | Severity |
 |---|---|---|
 | C01 | Frontmatter validates against the Spec schema | Error |
-| C02 | Parent Thread exists and is in state `Feasibility` | Error |
+| C02 | Parent Thread exists, lists this Spec in `outbound_refs`, and is `stage: Validating`, `status: Active` | Error |
 | C03 | Any approval the PM marked `blocking: true` on the Thread has been recorded as granted | Error (self-imposed blocks only) |
 | C04 | Every criterion has at least one `trace` entry | Error |
 | C05 | Every `trace.ref` resolves to an existing file and anchor in committed content (never a raw signal copy) | Error |
@@ -409,17 +423,17 @@ criteria:
 | C19 | Fast track only: the Thread matches no org rule in `charter.yaml` for a gate being skipped | Warn by default, Error if `enforcement: block` |
 | C20 | Clear before it ships: the Spec has no open questions. Each is answered, deferred with a reason and an owner, or moved to out of scope. In fast track, open questions from the Review Brief count | Error |
 | C21 | Every criterion belongs to a slice. Every slice has at least one criterion, an order, and a one-line `verify` note saying how it can be confirmed on its own | Error |
-| C22 | Contract level, not build level: criteria describe observable behavior and do not prescribe frameworks, databases, or internal structure (terms come from a lint list) | Warn |
+| C22 | Spec level, not build level: criteria describe observable behavior and do not prescribe frameworks, databases, or internal structure (terms come from a lint list) | Warn |
 
 **Legacy waivers:** Threads and Specs tagged `legacy: true` skip C04 and are stamped `legacy_untraced` in the report. C16 still applies. Waivers expire when the Spec is next revised.
 
-Warnings do not block, but each must be acknowledged in frontmatter (`ack: [C12:AC-003 "reason"]`) before the state change.
+Warnings do not block, but each must be acknowledged in frontmatter (`ack: [C12:AC-003 "reason"]`) before the status change.
 
 **Fast-track behavior** (Threads with `track: fast`):
 
 | Check | Normal | Fast track |
 |---|---|---|
-| C02 | Thread must be in `Feasibility` | Any state, as long as `track: fast` is set |
+| C02 | Thread must be `stage: Validating` | Any stage, as long as `track: fast` is set |
 | C03 | Self-imposed blocking approvals only | Unchanged. A blocking approval holds until granted or until the PM lifts it |
 | C11 | Judge's verdict edge cases mapped | Single-pass critique edge cases mapped or deferred |
 | C16 | As listed above | Warn |
@@ -431,14 +445,14 @@ A single acknowledgement (`brief_ack`) is bound to the Spec content hash. Editin
 
 ### Outputs
 - `compile_report.json` (machine) and `compile_report.md` (human), listing each check, result, and offending criterion IDs.
-- On pass: write `compile_report` ref and a **content hash** of the Spec into the Thread, then permit the transition to `Contract`.
-- On fail: no state change. Report lists exactly what to fix.
+- On pass: write `compile_report` ref and a **content hash** of the Spec into the Thread, then permit `status: Specified`.
+- On fail: no status change. Report lists exactly what to fix.
 - Any edit to the Spec after compile changes the hash and invalidates the pass.
 - Exit codes: 0 pass, 1 errors, 2 warnings unacknowledged, 3 config or resolution failure.
 
 ### How It Plugs In
 1. `spec-generator` must emit the frontmatter contract above, so the skill prompt is updated to produce `trace` per criterion.
-2. `mcp-local-tracker` refuses the `Feasibility` to `Contract` transition unless a passing report matches the current Spec hash.
+2. `mcp-local-tracker` refuses `status: Specified` (and `cairn handoff` refuses to deliver) unless a passing report matches the current Spec hash.
 3. The same checks run in CI as a pre-merge guard when the repo is shared.
 4. The eval harness runs the compiler over golden-set outputs to measure orphan-claim and error rates per skill version.
 
@@ -450,7 +464,7 @@ A single acknowledgement (`brief_ack`) is bound to the Spec content hash. Editin
 ### Build Order
 1. Schema and C01, C04, C05, C10 (cheap, high value)
 2. C06, C07, C08, C09
-3. Approval and state checks (C02, C03, C15), then tracker integration
+3. Approval and stage checks (C02, C03, C15), then tracker integration
 4. Heuristic checks (C12 to C14) tuned on real Threads
 5. Golden-set eval harness
 6. C16 and C17, once `onboard-product` has produced readiness levels and overview files

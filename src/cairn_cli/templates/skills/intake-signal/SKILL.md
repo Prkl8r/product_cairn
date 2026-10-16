@@ -27,7 +27,7 @@ This is the step before a Thread exists. It never creates or touches a Thread �
 - **requirement** — a scoped ask from a business team, partner, or upstream group outside the PM's own team (sales wants local ads, partnerships wants a roster import, support wants a merge tool). It comes with a named sponsor who can be asked to validate it.
 - **mandate** — a directive from leadership, legal, compliance, or an executive. The PM isn't being asked, they're being told, usually with a deadline or a hard constraint (monetization directives, legal/compliance requirements, a competitive response leadership wants shipped).
 - **idea** — self-sourced: a dev noticed something, a PM had a thought, an internal proposal nobody outside the team asked for. Tech-debt call-outs the engineering team raises on its own belong here even when they read like requirements — the test is "did anyone outside ask for this, or did the team originate it itself?"
-- When nothing fits cleanly (the recurring case is a bug/crash report — see `pilot/friction-log.md`'s "Capture the signal" row for this exact friction), pick the closest type and say explicitly in the body which type was chosen and why, so a later reader isn't misled into thinking it was a clean fit.
+- When nothing fits cleanly (the recurring case is a bug/crash report), pick the closest type and say explicitly in the body which type was chosen and why, so a later reader isn't misled into thinking it was a clean fit.
 - If the choice is genuinely ambiguous and changes which Exploring exit gate later applies (a named sponsor vs. a theme threshold), ask the PM once per batch, not once per item.
 
 ## Generating signal_id

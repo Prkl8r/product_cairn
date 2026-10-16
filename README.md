@@ -153,8 +153,6 @@ library/                         # historical specs, compliance docs (optional)
 docs/
   spec-as-code-master-document.md  # the PRD: outcomes, behavior, metrics
   spec-as-code-revision.md         # full lifecycle, compile-check rules, install/update design
-  cairn-pilot-walkthrough.md       # a by-hand dry run of fast-track, no tooling
-pilot/                            # a worked example: one real signal through fast-track
 ```
 
 ---

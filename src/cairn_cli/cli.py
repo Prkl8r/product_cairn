@@ -221,7 +221,11 @@ def doctor(
     expected_skills = set(lock_data.get("skills") or _skill_names())
     for skill in sorted(expected_skills):
         skill_file = target / ".claude" / "skills" / skill / "SKILL.md"
-        if skill_file.exists():
+        template = _templates_root() / "skills" / skill / "SKILL.md"
+        if skill_file.exists() and template.exists() and skill_file.read_bytes() != template.read_bytes():
+            typer.secho(f"  WARN    .claude/skills/{skill}/SKILL.md differs from the installed CLI's copy. "
+                        "Run `cairn init --here --force` to update it.", fg=typer.colors.YELLOW)
+        elif skill_file.exists():
             typer.secho(f"  OK      .claude/skills/{skill}/SKILL.md", fg=typer.colors.GREEN)
         else:
             typer.secho(f"  MISSING .claude/skills/{skill}/SKILL.md", fg=typer.colors.RED)

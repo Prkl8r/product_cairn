@@ -18,7 +18,7 @@
 2. **Local-First Tracking (The Repo is the Database):** All project tracking, state management, and status updates happen within the workflow via Markdown YAML frontmatter. External trackers (like Jira or Linear) are optional. At most a few execution fields (status, sprint, assignee) flow back, one-way, into a separate file.
 3. **Tool-Agnostic Execution:** The architecture is built on the Model Context Protocol (MCP), so it runs across any compatible AI assistant or IDE.
 4. **A Guide, Not a Factory:** The PM drives and the agent advises. Gates are guardrails the PM can step over, nothing runs unless the PM asks, and approvals are recorded when the PM wants them, not enforced. It works for a team product or a solo project.
-5. **Clear Before It Ships:** A Spec that reaches Contract has no open questions. Each one is answered, deferred with a reason and an owner, or moved to out of scope.
+5. **Clear Before It Ships:** A Spec that is handed off has no open questions. Each one is answered, deferred with a reason and an owner, or moved to out of scope.
 
 ## 2. Context Tiering & Token Optimization (The Local RAG)
 To prevent context-window bloat and stop the LLM from hallucinating irrelevant constraints, Cairn relies on a strict, modular context hierarchy. These files constrain a Thread but never start one.
@@ -27,7 +27,7 @@ To prevent context-window bloat and stop the LLM from hallucinating irrelevant c
 *   **The Reference Library (`/library/`):** A folder of historical specs and compliance guidelines acting as a local RAG repository. Imported files carry provenance and a review window.
 
 ## 3. The Thread: State Machine & Lineage Tracking
-The core unit of work is a **Thread**. A Thread begins when any **signal** is captured. Signal types are:
+The core unit of work is a **Thread**. A Thread begins when the PM decides one or more **signals** are worth pursuing. A signal is an artifact, never a stage. Signal types are:
 *   **feedback:** customer requests, support tickets, Slack threads
 *   **requirement:** a requirement doc from a business team or upstream group
 *   **mandate:** a corporate, executive, or compliance directive
@@ -37,8 +37,9 @@ The Thread is then pulled through progressive gates until it compiles into one o
 
 ```yaml
 ---
-thread_id: "THRD-042"          # Internal unique identifier (only thread_id, state, owner are required)
-state: "Feasibility"           # Signal -> Shape -> Feasibility -> Contract -> Launched (also Parked, Rejected)
+thread_id: "THRD-042"          # Internal unique identifier (only thread_id, stage, status, owner are required)
+stage: "Framing"              # Exploring -> Framing -> Validating
+status: "Active"              # Active, Parked, Rejected, Specified, Handed off
 owner: "pm_name"
 inbound_refs: ["req:REQ-SEC-2026-A", "feedback:ZD-88421", "mandate:MANDATE-Q3"]  # Typed signal refs
 outbound_refs: ["Jira-CONN-1402", "Spec-042"]  # Downstream execution targets
@@ -47,19 +48,18 @@ touches: ["connectivity-client"]               # Systems whose overviews load as
 ```
 
 **The Progressive Gates:**
-*   **Level 1: Signal (Intake)** -> *Gate: Feedback shows a recurring theme. A requirement, mandate, or idea has a named sponsor who has validated it.*
-*   **Level 2: Shape (The 1-Pager)** -> *Decision: proceed, hold (Parked, with open questions and a revisit date), or drop (Rejected, with a reason).*
-*   **Level 3: Feasibility (De-Risking)** -> *Gate: Does the logic hold up to edge-case review? Every edge case is mapped to a criterion or deferred with a reason, and every touched system has an overview.*
-*   **Level 4: Contract (The Spec)** -> *Gate: Does the Spec pass the compile check (traceability, binary or thresholded criteria, slices, no open questions, charter constraints)?*
+*   **Exploring (The 1-Pager)** -> *Gate: Feedback shows a recurring theme, or a requirement, mandate, or idea has a named sponsor who has validated it. Decision: proceed, hold (Parked, with what has to happen first), or drop (Rejected, with a reason).*
+*   **Framing (De-Risking)** -> *Gate: Does the logic hold up to edge-case review? Every edge case is mapped to a criterion or deferred with a reason, and every touched system has an overview.*
+*   **Validating (The Spec)** -> *Gate: Does the Spec pass the compile check (traceability, binary or thresholded criteria, slices, no open questions, charter constraints)? Status then goes to Specified, and to Handed off once it goes out.*
 
-**Gates are guardrails, not a prison.** The PM can jump from Level 1 to Level 4 for something quick. The agent backfills the skipped stages in lightweight form and writes a Review Brief: what to verify first, every assumption tagged by origin, open questions, and what was skipped. One acknowledgement is the only checkpoint. The compile check's traceability and well-formedness rules still apply, because they protect engineering from a bad Spec.
+**Gates are guardrails, not a prison.** The PM can jump from Exploring straight to a Spec for something quick. The agent backfills the skipped stages in lightweight form and writes a Review Brief: what to verify first, every assumption tagged by origin, open questions, and what was skipped. One acknowledgement is the only checkpoint. The compile check's traceability and well-formedness rules still apply, because they protect engineering from a bad Spec.
 
 **Approvals are recorded, not enforced.** If the PM needs someone's OK, they get it the normal way and, if they want it on record, tell the agent. The agent can draft the ask. The PM can mark an approval as blocking for their own Thread. The tool never gates on approval by default.
 
 ## 4. The MCP (Model Context Protocol) Integration Layer
 Cairn uses lightweight MCP servers to handle all deterministic actions and state tracking locally.
 *   **`mcp-local-tracker` (Core State & Changelog):** Parses YAML frontmatter and Git commit history across all active Threads.
-*   **`mcp-signal-ingest` (Level 1):** One adapter per signal type. Feedback adapters fetch from Zendesk or Slack. Requirement and mandate adapters import documents. An idea adapter handles quick capture. Each adapter writes a raw copy to `/signals/<type>/raw/` (git-ignored) and a redacted signal file to `/signals/<type>/<id>.md` (committed) with common frontmatter.
+*   **`mcp-signal-ingest` (intake):** One adapter per signal type. Feedback adapters fetch from Zendesk or Slack. Requirement and mandate adapters import documents. An idea adapter handles quick capture. Each adapter writes a raw copy to `/signals/<type>/raw/` (git-ignored) and a redacted signal file to `/signals/<type>/<id>.md` (committed) with common frontmatter.
 *   **`mcp-library-rag` (Context Routing):** Retrieves specific constraints from `/library/` and `/architecture/` without loading whole folders into context. Explicit `touches` tags route first, and semantic search is added only if the library outgrows tags.
 *   **`mcp-spec-compiler` (The Compile Check):** Deterministic, no LLM. Validates a Spec's structure, trace links, criteria quality, slices, and open questions, and binds a pass to the Spec's content hash.
 *   **`mcp-external-sync` (Optional):** Creates and updates downstream tickets. Each integration is set to `off`, `suggest`, or `auto` at setup.
@@ -81,18 +81,18 @@ Routing follows a data classification field on each Thread (`public`, `internal`
 
 ## 7. Enablement & Handoff
 *   **Contextual Delivery:** The PM/Agent drafts exact tooltips, macros, or micro-learning scripts that sit inside the GTM team's workflow. Enablement checks are on for the `team` profile and off for `solo`.
-*   **Artifact Handoff:** When a Thread achieves `state: "Launched"` locally, enablement artifacts are packaged for GTM deployment. Before launch, any system overview the Spec changed is updated, or marked unchanged.
+*   **Artifact Handoff:** When a Thread is handed off (`cairn handoff`), the Spec and its supporting artifacts are packaged for the receiving team. Before handoff, any system overview the Spec changed is updated, or marked unchanged.
 
 ## 8. The User Experience (UX) Flow: Guiding the PM
-The agent's default move at every phase is a short, targeted question or a suggestion, not a finished artifact. The PM can ask for help at any state: "what am I missing?", "argue against this", "find similar past Threads", "tighten these criteria", "is this ready for engineering?", "draft the ask to Sarah."
+The agent's default move at every phase is a short, targeted question or a suggestion, not a finished artifact. The PM can ask for help at any stage: "what am I missing?", "argue against this", "find similar past Threads", "tighten these criteria", "is this ready for engineering?", "draft the ask to Sarah."
 *   **Phase A: Context Gathering (The Librarian):** A new signal arrives (a customer request via Zendesk, a requirement doc, an executive mandate, or an idea). The PM starts a new **Thread**. The IDE agent pulls related signals (`mcp-signal-ingest`) and cross-references them against constraints (`mcp-library-rag`).
 *   **Phase B: Pressure-Testing (The Thought Partner):** The PM drafts a messy 1-Pager. The agent runs `pm-jury-duty` to attack assumptions and surface edge cases.
 *   **Phase C: Translating to Spec (The Scribe):** When the PM asks, the agent runs `spec_generator` to translate the Thread context into a strict **Spec**, and the compile check confirms every claim is traceable.
-*   **Phase D: Background Housekeeping (The Assistant):** Housekeeping happens through suggestions or choices made once at setup. In `suggest` mode, a one-line item lands in a quiet inbox ("THRD-042 reached Contract. Create the Jira Epic? create / edit first / not this time / never for this product"). It surfaces at natural pauses, never interrupts work, and dismissals stick. In `auto` mode, which the PM opts into per integration, the action runs and is logged in the Thread changelog. Solo projects default to `off` for anything external.
+*   **Phase D: Background Housekeeping (The Assistant):** Housekeeping happens through suggestions or choices made once at setup. In `suggest` mode, a one-line item lands in a quiet inbox ("THRD-042 was handed off. Create the Jira Epic? create / edit first / not this time / never for this product"). It surfaces at natural pauses, never interrupts work, and dismissals stick. In `auto` mode, which the PM opts into per integration, the action runs and is logged in the Thread changelog. Solo projects default to `off` for anything external.
 
 ## 9. Success Metrics & Telemetry (KPIs)
 These are diagnostics for the PM, not targets to hit. There is no Specs-per-week measure, and nothing compares PMs. Segment every metric by signal type and by track (normal or fast).
-*   **Time-to-Spec (Cycle Time):** Elapsed time from a Thread's creation to its compilation into a Level 4 Spec, always read next to kickback rate.
+*   **Time-to-Spec (Cycle Time):** Elapsed time from a Thread's creation to its compilation into a Spec, always read next to kickback rate.
 *   **Engineering Defect & Kickback Rate:** Percentage of Specs returned by engineering, by category (missing edge case, ambiguous criterion, wrong constraint, scope change).
 *   **Orphan-Claim Rate:** Claims in a Spec with no trace to a signal or library reference, from the compile report. This replaces the Context Preservation Ratio.
 *   **Enablement Attach Rate:** Percentage of shipped features that launch with a fully completed GTM enablement asset.
@@ -114,7 +114,7 @@ To fully build and deploy Cairn, the following components must be developed:
 *These define the AI's behavior and personas. They are saved in the IDE's skill/prompt registry and versioned.*
 1.  **`theme-extractor.md`**: Prompt instructions to name and summarize deterministic clusters of feedback signals as root-cause problem statements.
 2.  **`pm-jury-duty.md`**: Prompt instructions establishing the "Advocate," "Skeptic," and "Judge" personas, enforcing the 3-round debate format. *(Status: Built)*
-3.  **`spec-generator.md`**: Prompt instructions that read `charter.yaml` and translate Thread contexts into strict Level 4 Acceptance Criteria with trace links and slices. *(Status: Built; needs update to emit trace links, slices, and open questions)*
+3.  **`spec-generator.md`**: Prompt instructions that read `charter.yaml` and translate Thread contexts into strict Acceptance Criteria with trace links and slices. *(Status: Built; needs update to emit trace links, slices, and open questions)*
 4.  **`fast-track.md`**: Backfills skipped stages and writes the Review Brief.
 5.  **`onboard-product` skills**: An import skill for existing products and an interview skill for new products, both producing a charter and product overviews.
 
@@ -123,7 +123,7 @@ To fully build and deploy Cairn, the following components must be developed:
 1.  **`mcp-local-tracker.py`**: Uses `os`, `yaml`, and `gitpython`. Traverses the local repository to read Thread YAML frontmatter, builds dependency graphs from `inbound_refs`/`outbound_refs`, reads Git logs to render local changelogs, and holds the housekeeping inbox.
 2.  **`mcp-signal-ingest.py`**: Uses `requests` and per-type adapters. Fetches or imports signals based on user queries and writes a raw copy to `/signals/<type>/raw/` and a redacted file to `/signals/<type>/<id>.md`.
 3.  **`mcp-library-rag.py`**: Indexes `/library` and `/architecture` markdown files. Uses `touches` tags first, with `sqlite-vec` or `sentence-transformers` search only if needed.
-4.  **`mcp-external-sync.py`**: Uses the Atlassian Jira or Linear REST APIs. Reads the local Thread state, maps it to a downstream ticket, and writes the Issue ID back to `outbound_refs`. Pulls a few execution fields back one-way into a separate file.
+4.  **`mcp-external-sync.py`**: Uses the Atlassian Jira or Linear REST APIs. Reads the local Thread stage and status, maps it to a downstream ticket, and writes the Issue ID back to `outbound_refs`. Pulls a few execution fields back one-way into a separate file.
 5.  **`mcp-spec-compiler.py`**: Implements the compile checks, writes `compile_report.json` and `.md`, and stamps the Spec content hash.
 
 ### C. Configuration Code (State & Boundaries)

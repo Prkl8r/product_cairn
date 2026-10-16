@@ -1,6 +1,6 @@
 # Thread fidelity stages
 
-**Status**: Draft
+**Status**: Done
 
 ## Problem
 
@@ -85,9 +85,8 @@ light_stages: [Framing, Validating]     # fast track only
 - Skills: `shape-thread`, `assess-thread`, `spec-generator`, `compile-check`, `fast-track`, `record-kickback`, `revise-spec`, `park-or-reject`, `whats-next`, `bundle-threads`, `intake-signal`, `onboard-product`.
 - `src/cairn_cli/ledger.py` and `cli.py`: stage/status with legacy fallback.
 - `src/cairn_cli/handoff.py`, `templates/handoff.py`, `tests/test_handoff.py`: the handoff command.
-- `pilot/threads/THRD-001.md` and `pilot/specs/SPEC-001.md` (local only: `pilot/` is git-ignored).
 
-Not changed: the long-form design docs under `docs/`, which still use the old names.
+The long-form design docs under `docs/` were updated to these names in a later pass.
 
 ## Handoff command
 
