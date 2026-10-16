@@ -71,6 +71,8 @@ def load(root: Path) -> dict[str, Doc]:
         for p in sorted(base.rglob("*.md")):
             if "raw" in p.relative_to(base).parts:
                 continue  # never surface raw, unredacted copies
+            if p.name.endswith(".compile_report.md"):
+                continue  # compile-check output, not a Spec
             meta, body = _split(p)
             doc_id = str(meta.get(key) or p.stem)
             docs[doc_id] = Doc(kind, doc_id, p, meta, body)

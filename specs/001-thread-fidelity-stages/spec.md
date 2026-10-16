@@ -84,25 +84,26 @@ light_stages: [Framing, Validating]     # fast track only
 - `README.md`: concepts, lifecycle, gate table, getting-started step 3. Line 16 no longer says a Thread "begins when a signal is captured".
 - Skills: `shape-thread`, `assess-thread`, `spec-generator`, `compile-check`, `fast-track`, `record-kickback`, `revise-spec`, `park-or-reject`, `whats-next`, `bundle-threads`, `intake-signal`, `onboard-product`.
 - `src/cairn_cli/ledger.py` and `cli.py`: stage/status with legacy fallback.
+- `src/cairn_cli/handoff.py`, `templates/handoff.py`, `tests/test_handoff.py`: the handoff command.
 - `pilot/threads/THRD-001.md` and `pilot/specs/SPEC-001.md` (local only: `pilot/` is git-ignored).
 
 Not changed: the long-form design docs under `docs/`, which still use the old names.
 
-## Open questions
+## Handoff command
 
-None left in the model. The handoff design below is settled and ready to build.
+Built: `cairn handoff <spec-id> --to export|repo|in_place [--where ...] [--dry-run]`.
 
-1. **`cairn handoff` as a template script.** `cairn handoff <spec-id> --to export|repo|in_place [--where ...]` does the fixed part, and a team-editable script does the delivery.
-   - **Fixed part (Cairn):** checks the Spec's latest compile report passed; builds a package in `.cairn/handoff/<spec-id>/` holding the Spec and an `addendum/` with a copy of every supporting artifact in the Thread's `outbound_refs` (files in the repo are copied; URLs are downloaded where reachable, otherwise listed in `addendum/LINKS.md`); writes `handoff` on the Thread.
-   - **Delivery (the team's script):** `cairn init` installs `.cairn/handoff.py` from a template, once, and never overwrites it, the same way it treats `charter.yaml`. Cairn calls it with the package path, `to` and `where`. The template's default: `export` zips the package, `repo` copies it into a local checkout of the target repo, `in_place` does nothing.
-   - `cairn handoff` sets `status: Handed off` along with `handoff`, and refuses a Thread that isn't Specified.
-   - Every handed-off Spec carries a link back in its frontmatter, so a copy in another repo or an export can be traced:
+- **Cairn's part:** refuses unless the Thread is Specified and the compile report has `## Verdict: Pass`. Builds `.cairn/handoff/<spec-id>/` (git-ignored) with `spec.md` (the Spec plus its `source` link), `addendum/` (copies of every supporting artifact in the Thread's `outbound_refs`: repo files copied, downloadable URLs fetched, the rest listed in `addendum/LINKS.md`) and `manifest.json`. Warns when an `api:` artifact isn't OpenAPI 3.1. Then runs the delivery script, and only if it succeeds sets `status: Handed off` and writes `handoff`.
+- **Delivery (the team's script):** `cairn init` installs `.cairn/handoff.py` from a template, once, and never overwrites it, even with `--force`. The default: `export` zips the package, `repo` copies it into `<checkout>/specs/<spec-id>/` of a local checkout of the target repo, `in_place` does nothing. A non-zero exit leaves the Thread Specified.
+- The source link is added only to the packaged copy; the Spec in this repo is unchanged:
 
-     ```yaml
-     source:
-       repo: <this repo's remote URL, or its path if it has none>
-       thread_id: THRD-NNN
-     ```
+  ```yaml
+  source:
+    repo: <this repo's remote URL, or its path if it has none>
+    thread_id: THRD-NNN
+  ```
+
+- The Thread's `handoff` records `to`, `where` (export/repo only), `on`, `spec_id` and `revision`.
 
 ## Decided
 

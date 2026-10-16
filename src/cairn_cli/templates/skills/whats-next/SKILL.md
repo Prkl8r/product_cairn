@@ -52,7 +52,7 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Validating, Active | normal | no Spec in `outbound_refs` | `spec-generator` |
 | Validating, Active | normal | Spec drafted, not compiled | `compile-check` |
 | Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say the PM can set `status: Specified` |
-| Specified | — | — | ready to hand off: export it to a team, send it to another repo, or leave it in place for spec-kit. Handing off sets `status: Handed off` and records `handoff` (`to`, `where`, `on`) |
+| Specified | — | — | ready to hand off with `cairn handoff <spec-id> --to export\|repo\|in_place` (export to a team, send to another repo, or leave in place for spec-kit). It packages the Spec with its supporting artifacts, sets `status: Handed off` and records `handoff` |
 | any, Active | fast | no Review Brief yet | `fast-track` |
 | any, Active | fast | Review Brief exists, `brief_ack` unset | `ack-brief` |
 | any, Active | fast | `brief_ack` set, not compiled | `compile-check` |

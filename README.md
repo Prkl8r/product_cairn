@@ -52,7 +52,7 @@ Leaving Validating takes two steps. Once the Spec compiles clean, the PM sets `s
 
 - **Kickback**: engineering sends the Spec back. Status returns from Handed off to Active at Validating; `record-kickback` → `revise-spec` updates the same Spec.
 - **Fast track**: `fast-track` goes from Exploring to a drafted Spec, backfilling Framing and Validating lightly (`light_stages`), with a Review Brief and one acknowledgement.
-- **Handoff** ends Cairn's part. The PM records where the Spec went in `handoff`: exported to a team, sent to another repo, or left in place for spec-kit to pick up. Whoever receives it tracks build and launch (see `specs/001-thread-fidelity-stages/spec.md`).
+- **Handoff** ends Cairn's part: `cairn handoff` exports the Spec to a team, sends it to another repo, or leaves it in place for spec-kit to pick up, and records where in the Thread's `handoff`. Whoever receives it tracks build and launch.
 
 ---
 
@@ -85,6 +85,16 @@ cairn init --here --status-hook
 ```
 
 The hook does nothing on machines where `cairn` isn't installed, so it won't block a teammate's commits.
+
+When a Thread is Specified, hand its Spec off:
+
+```bash
+cairn handoff SPEC-001 --to export --where "platform team"   # zip a package for a team
+cairn handoff SPEC-001 --to repo --where ../other-repo        # copy into another repo's specs/SPEC-001/
+cairn handoff SPEC-001 --to in_place                          # leave it here for spec-kit
+```
+
+It refuses unless the Thread is Specified and the Spec's compile report says `## Verdict: Pass`. It then builds `.cairn/handoff/<spec-id>/`: the Spec with a `source` link back to this repo and Thread, plus an `addendum/` holding copies of every supporting artifact in the Thread's `outbound_refs`. Files in the repo are copied, downloadable URLs are fetched, and anything else is listed in `addendum/LINKS.md`. API specs that aren't OpenAPI 3.1 get a warning. Delivery is done by `.cairn/handoff.py`, a script `cairn init` installs once and never overwrites, so each team can change how export and repo work. If it succeeds, the Thread becomes Handed off. `--dry-run` builds the package and stops.
 
 `--json` and `snapshot` leave out anything marked `data_class: restricted`, including the ids of restricted signals, unless you pass `--include-restricted`. Plain terminal output shows everything and tags restricted items. Every output lists broken references (a Thread or Spec pointing at a signal, Thread, or library file that doesn't exist), and `cairn doctor` warns about them.
 
@@ -130,6 +140,8 @@ Everything an agent drafts is marked agent-drafted until the PM edits or accepts
 
 ```
 charter.yaml                     # product root boundaries (from onboard-product)
+.cairn/handoff.py                # your delivery script for cairn handoff (yours to edit)
+.cairn/handoff/<spec-id>/        # built handoff packages (git-ignored)
 signals/<type>/<id>.md           # committed, redacted signal
 signals/<type>/raw/<id>.*        # git-ignored raw copy
 threads/<id>.md                  # one Thread per unit of work
@@ -151,7 +163,6 @@ pilot/                            # a worked example: one real signal through fa
 
 The core flow above is complete. Still missing, named today only as placeholders in `whats-next`'s own dispatch table:
 
-- **Handoff tooling** — nothing yet writes the export package (Spec plus supporting-artifact addendum) or sends a Spec to another repo; the PM does it by hand and records it in `handoff`.
 - **`onboard-product`'s onboarding is done**; the rest below are genuinely optional, built when a PM first asks for them:
   - `jury-duty` — the Advocate/Skeptic/Judge critique, as its own standalone skill (today it's only described inside `assess-thread`/`fast-track`).
   - `readiness-check` — the on-demand "is this ready for engineering?" qualitative review.
@@ -168,5 +179,7 @@ cairn init --here --force --skills-only   # refresh .claude/skills/ after editin
 ```
 
 Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills/`, or the next `--force` will overwrite your change.
+
+Run the tests with `pip install pytest && pytest tests`.
 
 See the docs above for the full design behind all of this, including the compile-check rule table (C01–C22) and the install/update/packaging model.

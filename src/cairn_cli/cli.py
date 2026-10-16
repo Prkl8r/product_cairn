@@ -13,6 +13,7 @@ import typer
 import yaml
 
 from . import __version__
+from . import handoff as _handoff
 from . import ledger as _ledger
 
 app = typer.Typer(
@@ -29,6 +30,7 @@ GITIGNORE_ENTRIES = [
     ".env.*",
     ".cairn/inbox.md",
     ".cairn/local/",
+    ".cairn/handoff/",
 ]
 
 
@@ -150,6 +152,10 @@ def init(
     status = _copy_if_absent(templates / "checklist.md", checklist_dst, force=False)
     report.append(("checklist.md", status))
 
+    # 3c. .cairn/handoff.py (user-owned delivery script, never overwritten)
+    status = _copy_if_absent(templates / "handoff.py", target / _handoff.SCRIPT, force=False)
+    report.append((str(_handoff.SCRIPT), status))
+
     # 4. .cairn/package.lock (records the installed version)
     cairn_dir = target / ".cairn"
     cairn_dir.mkdir(parents=True, exist_ok=True)
@@ -240,6 +246,12 @@ def doctor(
         else:
             typer.secho(f"  MISSING {name}/", fg=typer.colors.RED)
             ok = False
+
+    if (target / _handoff.SCRIPT).exists():
+        typer.secho(f"  OK      {_handoff.SCRIPT}", fg=typer.colors.GREEN)
+    else:
+        typer.secho(f"  WARN    {_handoff.SCRIPT} missing; `cairn handoff` can't deliver. Run `cairn init --here`.",
+                    fg=typer.colors.YELLOW)
 
     for d in _ledger.load(target).values():
         if d.broken:
@@ -343,6 +355,33 @@ def snapshot(path: Path = PATH_OPT, include_restricted: bool = RESTRICTED_OPT):
     typer.echo(f"Wrote STATUS.json and STATUS.md ({len(snap['threads'])} threads, {len(snap['signals'])} signals).")
     if snap["broken_refs"]:
         typer.secho(f"  {len(snap['broken_refs'])} file(s) have broken references — see STATUS.md", fg=typer.colors.YELLOW)
+
+
+@app.command()
+def handoff(
+    spec_id: str = typer.Argument(..., help="The Spec to hand off, e.g. SPEC-001."),
+    to: str = typer.Option(..., "--to", help="export (to a team), repo (to another repo), or in_place (spec-kit picks it up here)."),
+    where: Optional[str] = typer.Option(None, "--where", help="The team, or the target repo's local checkout. Not needed for in_place."),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Build the package only: don't run the delivery script or change the Thread."),
+    path: Path = PATH_OPT,
+):
+    """Hand a Specified Spec off: package it with its supporting artifacts, deliver it, mark the Thread Handed off."""
+    root = path.resolve()
+    try:
+        spec, thread = _handoff.check(root, spec_id, to, where)
+        pkg, warnings = _handoff.build_package(root, spec, thread)
+        for w in warnings:
+            typer.secho(f"  WARN  {w}", fg=typer.colors.YELLOW)
+        typer.echo(f"Package: {pkg.relative_to(root)}")
+        if dry_run:
+            typer.echo("Dry run: nothing delivered, Thread unchanged.")
+            return
+        _handoff.run_script(root, pkg, to, where)
+        _handoff.mark_handed_off(thread, spec, to, where)
+    except _handoff.HandoffError as e:
+        typer.secho(str(e), fg=typer.colors.RED)
+        raise typer.Exit(1)
+    typer.secho(f"{thread.id} is Handed off ({spec.id} -> {to}{' ' + where if where else ''}).", fg=typer.colors.GREEN)
 
 
 @app.command()

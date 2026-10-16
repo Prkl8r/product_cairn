@@ -58,7 +58,7 @@ Skip C02/C03/C15/C16/C17/C18/C19 gracefully (note as N/A, not Fail) only where t
 
 Write `compile_report.md` next to the Spec (e.g. `specs/<spec-id>.compile_report.md`) with:
 - A table of every check, its result, and the offending ID(s) for any Fail or Warn.
-- A one-line verdict: **Pass** (no Errors; Warnings may remain but must be listed), or **Fail** (lists exactly what to fix, nothing else implied).
+- A one-line verdict, written as a heading `## Verdict: Pass` or `## Verdict: Fail` (`cairn handoff` reads this line). **Pass**: no Errors; Warnings may remain but must be listed. **Fail**: lists exactly what to fix, nothing else implied.
 - Unacknowledged Warnings listed separately so the PM can add `ack: [C12:AC-003 "reason"]` style entries if they choose to proceed anyway.
 
 Do not change the Thread's `stage` or `status` yourself. Report the verdict; on a Pass, the PM may set `status: Specified` (the Spec is ready); it becomes `Handed off` when it goes out.
