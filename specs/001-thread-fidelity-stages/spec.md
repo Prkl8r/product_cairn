@@ -90,11 +90,19 @@ Not changed: the long-form design docs under `docs/`, which still use the old na
 
 ## Open questions
 
-1. **`cairn handoff` as a template script.** Direction: `cairn handoff <spec-id> --to export|repo|in_place [--where ...]` does the fixed part, and a team-editable script does the delivery.
+None left in the model. The handoff design below is settled and ready to build.
+
+1. **`cairn handoff` as a template script.** `cairn handoff <spec-id> --to export|repo|in_place [--where ...]` does the fixed part, and a team-editable script does the delivery.
    - **Fixed part (Cairn):** checks the Spec's latest compile report passed; builds a package in `.cairn/handoff/<spec-id>/` holding the Spec and an `addendum/` with a copy of every supporting artifact in the Thread's `outbound_refs` (files in the repo are copied; URLs are downloaded where reachable, otherwise listed in `addendum/LINKS.md`); writes `handoff` on the Thread.
    - **Delivery (the team's script):** `cairn init` installs `.cairn/handoff.py` from a template, once, and never overwrites it, the same way it treats `charter.yaml`. Cairn calls it with the package path, `to` and `where`. The template's default: `export` zips the package, `repo` copies it into a local checkout of the target repo, `in_place` does nothing.
    - `cairn handoff` sets `status: Handed off` along with `handoff`, and refuses a Thread that isn't Specified.
-   - Not decided: how a Spec copied to another repo keeps a link back to its Thread (a `source:` line naming this repo and Thread id is the candidate).
+   - Every handed-off Spec carries a link back in its frontmatter, so a copy in another repo or an export can be traced:
+
+     ```yaml
+     source:
+       repo: <this repo's remote URL, or its path if it has none>
+       thread_id: THRD-NNN
+     ```
 
 ## Decided
 
