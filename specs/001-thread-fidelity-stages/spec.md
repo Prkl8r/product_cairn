@@ -89,8 +89,10 @@ Not changed: the long-form design docs under `docs/`, which still use the old na
 
 ## Open questions
 
-1. **Supporting artifacts.** Linked only, or sometimes committed to the repo? Today: linked in `outbound_refs` with a kind prefix (`mock:`, `api:`). Direction: let them be exported with the Spec as an **addendum**, so engineering gets one package. Not decided: whether the addendum copies the artifacts or only lists links, and which formats it supports.
-2. **How the handoff happens.** Nothing builds the export package or copies a Spec to another repo yet. Open: a `cairn handoff` command, or a step in an existing skill, and how a copied Spec keeps its link back to the Thread.
+1. **`cairn handoff` as a template script.** Direction: `cairn handoff <spec-id> --to export|repo|in_place [--where ...]` does the fixed part, and a team-editable script does the delivery.
+   - **Fixed part (Cairn):** checks the Spec's latest compile report passed; builds a package in `.cairn/handoff/<spec-id>/` holding the Spec and an `addendum/` with a copy of every supporting artifact in the Thread's `outbound_refs` (files in the repo are copied; URLs are downloaded where reachable, otherwise listed in `addendum/LINKS.md`); writes `handoff` on the Thread.
+   - **Delivery (the team's script):** `cairn init` installs `.cairn/handoff.py` from a template, once, and never overwrites it, the same way it treats `charter.yaml`. Cairn calls it with the package path, `to` and `where`. The template's default: `export` zips the package, `repo` copies it into a local checkout of the target repo, `in_place` does nothing.
+   - Not decided: whether `cairn handoff` also sets `status: Specified`, or only records `handoff` and leaves the status to the PM; how a Spec copied to another repo keeps a link back to its Thread (a `source:` line naming this repo and Thread id is the candidate).
 
 ## Decided
 
@@ -107,4 +109,5 @@ Not changed: the long-form design docs under `docs/`, which still use the old na
   - **export**: the Spec is written out (with the supporting-artifact addendum, when that exists) and handed to a team.
   - **repo**: the Spec is sent to a different repo.
   - **in_place**: the Spec stays where it is for the spec-kit process to pick up (specify → plan → tasks → implement).
+- **Supporting artifacts are copied into the handoff** (2026-10-16), as an addendum alongside the Spec, not just linked.
 - **API specs are OpenAPI 3.1** (2026-10-16). An `api:` supporting artifact must be an OpenAPI 3.1 document (`openapi: 3.1.x` at its root). Anything else is flagged to the PM, not silently used.
