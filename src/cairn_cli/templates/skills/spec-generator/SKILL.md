@@ -22,7 +22,7 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 
 ## Rules (do not deviate)
 
-1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible.
+1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible. Each trace carries a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field, as in `compile-check` C23; an `inferred` trace points `assumption` at an edge case or assumption id in the jury verdict. Never mark something `direct` that the source doesn't actually say.
 2. Group criteria into ordered slices; each slice gets a one-line `verify` note.
 3. Map every edge case from the jury verdict to a criterion, or carry its deferral forward into `open_questions`.
 4. Never invent numbers, endpoints, field names, or limits. Ask the PM or list as an open question.

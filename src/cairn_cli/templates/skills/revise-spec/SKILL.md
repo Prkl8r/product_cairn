@@ -25,7 +25,7 @@ disable-model-invocation: false
 2. Identify exactly which slices/criteria the kickback reason touches. Redraft only those. Everything else — slices, criteria, traces, open questions — carries forward untouched.
 3. Bump `revision` (starts at 1 on first draft, so a first revision is `revision: 2`).
 4. Write a short "what changed and why" note, tied directly to the `kickback_reason`/`kickback_category` — this is what a reviewer reads first.
-5. Same drafting rules as `spec-generator`: every criterion traces to a real source, no invented values, binary-or-threshold typing, agent-drafted labeling.
+5. Same drafting rules as `spec-generator`: every criterion traces to a real source with a `basis` on each trace (add one to carried-forward traces that lack it, without changing anything else), no invented values, binary-or-threshold typing, agent-drafted labeling.
 6. If the kickback reveals an edge case the original jury verdict missed, add it to the Thread's edge-case list (retroactively) so the record stays honest about what was missed and why.
 
 ## Output

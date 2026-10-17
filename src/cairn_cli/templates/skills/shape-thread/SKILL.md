@@ -30,8 +30,13 @@ Before drafting, run `cairn find "<a few key words from the signal>"` (a single 
 ## Rules
 
 1. **Check the Exploring exit gate before drafting.** Feedback signals need a recurring-theme threshold met (`themes`); requirement/mandate/idea signals need a named sponsor who validated it (`validated_by`). If the gate isn't met, say exactly what's missing and ask the PM how they want to proceed — gates are guardrails, not a prison, so the PM can override, but never silently.
-2. Draft a short problem-and-impact brief: what's broken, who's affected, why now — grounded only in the signal(s) and any existing overview content. Never invent data.
-3. Give a short case for and against proceeding (not a full jury debate — that's `assess-thread`/`jury-duty`'s job, not this skill's).
+2. Draft a short problem-and-impact brief, grounded only in the signal(s) and any existing overview content. Never invent data. It answers whether this is worth solving, not just whether it's understood. A sponsor or a theme count opens the gate, but neither one shows the work is valuable. Cover each of these headings, and write "unknown" where the signals don't say:
+   - **Problem:** what's broken and who's affected.
+   - **Evidence:** what the signals actually show: how many, from whom, how recent, and how direct (a firsthand report, a secondhand summary, or a request for a specific solution). Rate it `strong`, `moderate`, or `thin`, and say why in one line.
+   - **Alternatives:** what else could address the problem, including doing nothing and any workaround people already use.
+   - **Why now:** what makes this timely, or "nothing specific" if that's the honest answer.
+   - **Expected outcome:** the observable change if this works, and how we'd know (a metric or behavior). If nobody can say, record that as an open question; don't invent a target.
+3. Give a short case for and against proceeding (not a full jury debate — that's `assess-thread`/`jury-duty`'s job, not this skill's). Thin evidence or an unknown outcome goes in the case against. These don't block, but the PM should see them before deciding.
 4. Ask the PM to decide: **proceed**, **hold**, or **drop**. Never decide this yourself.
 5. **On proceed:** check every system in `touches` has an overview file with a named owner (mirrors `compile-check`'s C17). Missing coverage is an Error on the `team` profile, a Warn on `solo`. Record the decision, set `stage: Framing`, and tell the PM this Thread is ready for `assess-thread` — Framing is when they bring others in.
 6. **On hold:** set `status: Parked` (stage stays Exploring), record `reason` and `pickup_when`, the same fields `park-or-reject` writes.
@@ -55,12 +60,14 @@ validated_by: <name>       # requirement | mandate | idea signals
 themes: [...]              # feedback signals only
 touches: [...]
 overview_coverage: ok | "warn: <systems missing an overview>"
+evidence_strength: strong | moderate | thin
+expected_outcome: "..."    # or "unknown"
 shape_decision: proceed | hold | drop
 reason: "..."              # hold or drop
 pickup_when: "..."         # hold only
 ```
 
-Plus the problem-and-impact brief as body text, labeled agent-drafted.
+Plus the problem-and-impact brief as body text under the headings in rule 2, labeled agent-drafted.
 
 If drafting surfaces a real action the PM needs to take outside the tool (e.g. "meet with the Architect to validate touches," "get UX to weigh in during Framing"), propose it as a line in the Thread's `## Open items` section (create the section if it doesn't exist yet) rather than mentioning it only in chat. Checking items off is the PM's job, not yours — see `whats-next`'s Checklists section for how this surfaces later.
 

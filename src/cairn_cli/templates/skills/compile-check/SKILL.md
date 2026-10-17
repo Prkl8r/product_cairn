@@ -51,6 +51,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C20 | No open questions remain unresolved: each is `answered`, `deferred` with a reason and owner, or `out_of_scope` | Error |
 | C21 | Every criterion belongs to a slice; every slice has ≥1 criterion, an `order`, and a one-line `verify` note | Error |
 | C22 | Criteria describe observable behavior, not frameworks/databases/internal structure | Warn |
+| C23 | Every `trace` entry has a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field: `direct` needs a `quote`, `inferred` needs an `assumption` id that exists on the Thread or in the Review Brief, `decided` needs `decided_by`. Warn when every trace on a criterion is `inferred` | Error; Warn for all-inferred |
 
 Skip C02/C03/C15/C16/C17/C18/C19 gracefully (note as N/A, not Fail) only where the repo genuinely has no tooling yet to check them (e.g. no package lock exists) — say so explicitly rather than silently passing.
 
@@ -59,6 +60,7 @@ Skip C02/C03/C15/C16/C17/C18/C19 gracefully (note as N/A, not Fail) only where t
 Write `compile_report.md` next to the Spec (e.g. `specs/<spec-id>.compile_report.md`) with:
 - A table of every check, its result, and the offending ID(s) for any Fail or Warn.
 - A one-line verdict, written as a heading `## Verdict: Pass` or `## Verdict: Fail` (`cairn handoff` reads this line). **Pass**: no Errors; Warnings may remain but must be listed. **Fail**: lists exactly what to fix, nothing else implied.
+- A count of trace entries by `basis`, so a reader sees at a glance how much of the Spec rests on sources versus inference and decisions. A Pass means every claim has a recorded source; it does not mean the claims are true.
 - Unacknowledged Warnings listed separately so the PM can add `ack: [C12:AC-003 "reason"]` style entries if they choose to proceed anyway.
 
 Do not change the Thread's `stage` or `status` yourself. Report the verdict; on a Pass, the PM may set `status: Specified` (the Spec is ready); it becomes `Handed off` when it goes out.

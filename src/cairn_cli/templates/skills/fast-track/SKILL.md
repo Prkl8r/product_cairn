@@ -29,12 +29,12 @@ If any of these are missing and the user hasn't pointed you at them, ask for the
 
 1. Before drafting, ask up to 3 questions — only ones whose answers would change the Spec. If none are needed, say so and proceed.
 2. Backfill the skipped stages in light form:
-   - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal.
+   - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal, using `shape-thread`'s headings (problem, evidence with a strength rating, alternatives, why now, expected outcome), one or two lines each. If evidence is `thin` or the outcome is unknown, say so in the caution flag.
    - **Framing:** a single-pass critique (not a full jury debate) listing the top edge cases and risks, each mapped to a criterion or deferred with a reason.
    - **Validating:** no supporting artifacts (mocks, API spec) are made and nobody has reviewed the draft yet. List the artifacts the normal track would have needed as skipped, and add a review reminder (sponsor, owners of systems in `touches`) to `## Open items`.
 
    Then set the Thread to `stage: Validating`, add `light_stages: [Framing, Validating]`, and add the Spec to its `outbound_refs`. Leave `status: Active`.
-3. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry pointing to a real file. Quote the source where you can — never quote the raw/git-ignored copy.
+3. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry pointing to a real file. Quote the source where you can — never quote the raw/git-ignored copy. Give each trace a `basis`: `direct` (the source says it, quote it), `interpreted` (your restatement of it), `inferred` (your reasoning; point `assumption` at the Review Brief entry), or `decided` (the PM's call; set `decided_by`). Never mark something `direct` that the source doesn't actually say.
 4. Group criteria into ordered slices. Each slice gets a one-line `verify` note.
 5. Never invent numbers, endpoints, field names, or limits. If a value has no source, ask the PM or list it as an open question — do not default it silently.
 6. Describe observable behavior, not implementation (no frameworks, databases, internal structure).
@@ -79,7 +79,10 @@ criteria:
     text: "..."
     trace:
       - ref: <type>:<signal-id-or-lib-path>
-        quote: "..."          # optional, must appear verbatim in the committed source
+        basis: direct         # direct | interpreted | inferred | decided (see compile-check C23)
+        quote: "..."          # required for direct, must appear verbatim in the committed source
+        # assumption: A-01    # inferred: the review_brief assumption this rests on
+        # decided_by: <name>  # decided: who made the call
 review_brief:
   verify_first: []
   assumptions: []              # each: id, text, origin (signal | overview | library | inferred)

@@ -38,7 +38,8 @@ Append to the Thread file:
 stage: Validating          # only once every edge case is mapped or deferred and the PM accepts
 verdict_ref: <path to the verdict, or inline if short>
 edge_cases:
-  - text: "..."
+  - id: EC-01                # an inferred trace in the Spec points here via `assumption`
+    text: "..."
     mapped_to: <planned criterion name>   # or:
     deferred: true
     reason: "..."

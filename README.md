@@ -34,7 +34,7 @@ signal(s) ──► Exploring ──► Framing ──► Validating ──► S
 
 | Stage | What's happening | Exit gate | Skill |
 |---|---|---|---|
-| **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Problem-and-impact brief written; PM decides **proceed**. | `shape-thread` |
+| **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Problem-and-impact brief written (evidence, alternatives, why now, expected outcome); PM decides **proceed**. | `shape-thread` |
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
 | **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `spec-generator` → `compile-check` |
 
@@ -119,7 +119,7 @@ onboard-product --new      # greenfield: runs an interview instead
 
 Four skills, run in order, cover the normal track end to end:
 
-1. **`shape-thread`** — Exploring → Framing (or Parked/Rejected). Checks the entry gate, drafts a problem-and-impact brief, gets the PM's proceed/hold/drop call.
+1. **`shape-thread`** — Exploring → Framing (or Parked/Rejected). Checks the entry gate, drafts a problem-and-impact brief that asks whether the problem is worth solving (evidence strength, alternatives, why now, expected outcome), gets the PM's proceed/hold/drop call.
 2. **`assess-thread`** — The Framing-stage critique, then Framing → Validating. Runs the Advocate/Skeptic/Judge jury, maps every edge case to a future criterion or a deferral, records the verdict.
 3. **`spec-generator`** — Drafts the Spec from a Validating Thread's jury verdict: binary-or-thresholded criteria, each traced to a real source, grouped into verifiable slices.
 4. **`compile-check`** — The deterministic gate. Checks structure, traceability, criteria quality, slices, and that no open question is left hanging — by hand, standing in for the `mcp-spec-compiler` server that doesn't exist yet. No LLM judgment calls on correctness, only well-formedness.
@@ -180,4 +180,4 @@ Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills
 
 Run the tests with `pip install pytest && pytest tests`.
 
-See the docs above for the full design behind all of this, including the compile-check rule table (C01–C22) and the install/update/packaging model.
+See the docs above for the full design behind all of this, including the compile-check rule table (C01–C23) and the install/update/packaging model.

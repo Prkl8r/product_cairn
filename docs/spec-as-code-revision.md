@@ -60,7 +60,7 @@ Stages: **Exploring**, **Framing**, **Validating**. Each name says what is happe
 
 | Stage | What's happening | Exit gate (checkable) | Required fields |
 |---|---|---|---|
-| Exploring | The PM, alone, fleshing out an idea | Feedback: recurring-theme threshold met. Requirement, mandate, or idea: a named sponsor has validated it. Problem-and-impact brief written; PM decides **proceed** | `inbound_refs`, `validated_by` (plus `themes` for feedback) |
+| Exploring | The PM, alone, fleshing out an idea | Feedback: recurring-theme threshold met. Requirement, mandate, or idea: a named sponsor has validated it. Problem-and-impact brief written (problem, evidence and its strength, alternatives, why now, expected outcome); PM decides **proceed** | `inbound_refs`, `validated_by` (plus `themes` for feedback), `evidence_strength` |
 | Framing | Talking to others to find what needs thinking about; the jury runs here | Every system in `touches` has an overview (warning on the `solo` profile). Jury verdict present, all edge cases mapped or deferred | `touches`, `verdict_ref` |
 | Validating | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made | The Spec compiles clean. No sign-off required: Cairn reminds the PM who should review (the sponsor, owners of systems in `touches`) and never blocks on it | `compile_report`, `outbound_refs` |
 
@@ -383,8 +383,11 @@ criteria:
     text: "Endpoint returns 429 when more than N requests arrive in the window."
     trace:
       - ref: feedback:ZD-88421
+        basis: interpreted      # direct | interpreted | inferred | decided
         quote: "we keep getting throttled with no error code"   # optional
       - ref: lib:compliance/sec-04#rate-limits
+        basis: direct
+        quote: "return 429 with a machine-readable error code"
   - id: AC-002
     slice: S2
     type: threshold
@@ -395,8 +398,22 @@ criteria:
     unit: ms
     trace:
       - ref: mandate:MANDATE-Q3
-      - ref: req:REQ-SEC-2026-A
+        basis: direct
+      - ref: thread:THRD-042#decisions
+        basis: decided
+        decided_by: <name>      # the 300 ms number was the PM's call, not the mandate's
 ```
+
+**Trace basis.** A trace proves where a claim came from, not that it's true, and a trace to the Thread can hide an assertion the PM or agent added along the way. Each trace entry therefore says how the criterion relates to its source:
+
+| `basis` | Meaning | Required with it |
+|---|---|---|
+| `direct` | The source states this | `quote` (checked by C06) |
+| `interpreted` | A reasonable restatement of the source (e.g. a complaint turned into a behavior) | `quote` where the source has a usable line |
+| `inferred` | Added by reasoning; the source doesn't say it | `assumption`: the id of an assumption or edge case recorded on the Thread or in the Review Brief |
+| `decided` | A product decision the PM made | `decided_by` |
+
+A criterion whose traces are all `inferred` rests on no source at all; C23 warns so it reaches the PM.
 
 ### Checks
 
@@ -424,6 +441,7 @@ criteria:
 | C20 | Clear before it ships: the Spec has no open questions. Each is answered, deferred with a reason and an owner, or moved to out of scope. In fast track, open questions from the Review Brief count | Error |
 | C21 | Every criterion belongs to a slice. Every slice has at least one criterion, an order, and a one-line `verify` note saying how it can be confirmed on its own | Error |
 | C22 | Spec level, not build level: criteria describe observable behavior and do not prescribe frameworks, databases, or internal structure (terms come from a lint list) | Warn |
+| C23 | Every `trace` entry has a `basis` with the field it requires (`direct`: `quote`; `inferred`: `assumption` that resolves; `decided`: `decided_by`). Warn when every trace on a criterion is `inferred` | Error / Warn |
 
 **Legacy waivers:** Threads and Specs tagged `legacy: true` skip C04 and are stamped `legacy_untraced` in the report. C16 still applies. Waivers expire when the Spec is next revised.
 
