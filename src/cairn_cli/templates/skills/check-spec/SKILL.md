@@ -52,6 +52,14 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C21 | Every criterion belongs to a slice; every slice has ≥1 criterion, an `order`, and a one-line `verify` note | Error |
 | C22 | Criteria describe observable behavior, not frameworks/databases/internal structure | Warn |
 | C23 | Every `trace` entry has a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field: `direct` needs a `quote`, `inferred` needs an `assumption` id that exists on the Thread or in the Review Brief, `decided` needs `decided_by`. Warn when every trace on a criterion is `inferred` | Error; Warn for all-inferred |
+| C24 | Every system in the Thread's `touches` has an overview at `readiness: L2` with `verified: true`. Any other overview (L1, L0, or past its `review_ttl`) never blocks: it produces this Warn, worded exactly as below | Warn (mandatory, can't be acknowledged) |
+| C25 | Every trace to an `analytics` signal points at a snapshot with `metric`, `value`, `unit`, `period`, `pulled_on` and `query` set (`unknown` counts as set for `query`, but is listed). A `threshold` criterion that cites an analytics snapshot names the same metric and unit | Error; Warn when `query` is `unknown` or `comparison` is `none` |
+
+For C24, write one line per system, in this exact form, so it reads the same in every report and in the handoff package:
+
+> Warning: Spec relies on unverified L1 Architecture [<system>]. Engineering must verify constraints during estimation.
+
+Use the overview's real readiness in place of `L1` (L0, or "L2, past review_ttl"). A Spec can Pass with C24 warnings, and the PM can't `ack` them away: they stay until the overview reaches L2. `cairn handoff` adds the same lines to the Spec engineering receives.
 
 Skip C02/C03/C15/C16/C17/C18/C19 gracefully (note as N/A, not Fail) only where the repo genuinely has no tooling yet to check them (e.g. no package lock exists) — say so explicitly rather than silently passing.
 
@@ -61,6 +69,7 @@ Write `compile_report.md` next to the Spec (e.g. `specs/<spec-id>.compile_report
 - A table of every check, its result, and the offending ID(s) for any Fail or Warn.
 - A one-line verdict, written as a heading `## Verdict: Pass` or `## Verdict: Fail` (`cairn handoff` reads this line). **Pass**: no Errors; Warnings may remain but must be listed. **Fail**: lists exactly what to fix, nothing else implied.
 - A count of trace entries by `basis`, so a reader sees at a glance how much of the Spec rests on sources versus inference and decisions. A Pass means every claim has a recorded source; it does not mean the claims are true.
+- C24 warnings in their own section, `## Unverified architecture`, listed even when everything else passes.
 - Unacknowledged Warnings listed separately so the PM can add `ack: [C12:AC-003 "reason"]` style entries if they choose to proceed anyway.
 
 Do not change the Thread's `stage` or `status` yourself. Report the verdict; on a Pass, the PM may set `status: Specified` (the Spec is ready); it becomes `Handed off` when it goes out.

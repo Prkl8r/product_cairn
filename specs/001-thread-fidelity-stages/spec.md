@@ -25,7 +25,7 @@ Stage names are activities: they say what's happening now. Each stage's gate is 
 
 | Stage | What's happening | Exit gate | Skill |
 |---|---|---|---|
-| **Exploring** | The PM, alone, fleshing out an idea. | Entry check met (feedback: recurring theme; requirement/mandate/idea: named sponsor). Problem-and-impact brief written. PM decides to proceed. | `shape-thread` |
+| **Exploring** | The PM, alone, fleshing out an idea. | Entry check met (feedback: recurring theme; requirement/mandate/idea: named sponsor; analytics: a comparison and a known sample size). Problem-and-impact brief written. PM decides to proceed. | `shape-thread` |
 | **Framing** | The PM is talking to others to find what needs thinking about. The jury critique runs here. | Jury verdict recorded; every edge case mapped to a future criterion or deferred with a reason. | `assess-thread` |
 | **Validating** | Getting everyone on board. Supporting artifacts get made: UX mocks, an API spec, and so on. | A Spec compiles clean. No sign-off is required (see Reviews). | `draft-spec` → `check-spec` |
 

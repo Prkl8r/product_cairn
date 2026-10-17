@@ -1,6 +1,6 @@
 ---
 name: "intake-signal"
-description: "Capture a raw input — a quote, directive, bug report, or proposal — as a committed signal file under /signals/<type>/, so shape-thread and fast-track have something real to point a Thread's inbound_refs at. The entry point for getting a signal into Cairn before any Thread exists."
+description: "Capture a raw input — a quote, directive, bug report, proposal, or analytics number — as a committed signal file under /signals/<type>/, so shape-thread and fast-track have something real to point a Thread's inbound_refs at. The entry point for getting a signal into Cairn before any Thread exists."
 argument-hint: "raw text, a pasted quote or ticket, a file/path to import from, or several of these in one call"
 metadata:
   product: cairn
@@ -21,20 +21,31 @@ This is the step before a Thread exists. It never creates or touches a Thread �
 2. `charter.yaml`, for `data_class_default`. If it doesn't exist or is still the unfilled stub (see `onboard`), ask which product/repo this signal belongs to rather than guessing a location — don't write into a repo that hasn't been onboarded.
 3. Existing files under `signals/<type>/` for each type touched, to pick the next free id without colliding.
 
-## Classifying type (feedback | requirement | mandate | idea)
+## Classifying type (feedback | requirement | mandate | idea | analytics)
 
 - **feedback** — came from a user, a support channel, an app-store review, or a crash/crash-analytics report: something happening *to* users, reported after the fact. Bug and crash reports don't have a cleaner home in this enum — treat them as feedback and say so in the body (see below).
 - **requirement** — a scoped ask from a business team, partner, or upstream group outside the PM's own team (sales wants local ads, partnerships wants a roster import, support wants a merge tool). It comes with a named sponsor who can be asked to validate it.
 - **mandate** — a directive from leadership, legal, compliance, or an executive. The PM isn't being asked, they're being told, usually with a deadline or a hard constraint (monetization directives, legal/compliance requirements, a competitive response leadership wants shipped).
 - **idea** — self-sourced: a dev noticed something, a PM had a thought, an internal proposal nobody outside the team asked for. Tech-debt call-outs the engineering team raises on its own belong here even when they read like requirements — the test is "did anyone outside ask for this, or did the team originate it itself?"
+- **analytics** — a number from product data: a funnel drop-off, a conversion or retention rate, an A/B test result, usage telemetry ("Mixpanel shows 40% drop-off at step 3"). It shows *what* users do, not *why*. A crash count belongs here only when the number itself is the point; a single crash report is still feedback.
 - When nothing fits cleanly (the recurring case is a bug/crash report), pick the closest type and say explicitly in the body which type was chosen and why, so a later reader isn't misled into thinking it was a clean fit.
 - If the choice is genuinely ambiguous and changes which Exploring exit gate later applies (a named sponsor vs. a theme threshold), ask the PM once per batch, not once per item.
 
 ## Generating signal_id
 
 - If the raw source already has a natural, stable id (a ticket number, a doc id, a backlog item number), use it as-is (e.g. `ZD-88421`, `TODO-11`).
-- Otherwise generate `<PREFIX>-<NNN>`, prefix by type: `FDBK` (feedback), `REQ` (requirement), `MANDATE` (mandate), `IDEA` (idea). Find the highest existing `NNN` for that prefix under `signals/<type>/` and increment; start at `001` if none exist.
+- Otherwise generate `<PREFIX>-<NNN>`, prefix by type: `FDBK` (feedback), `REQ` (requirement), `MANDATE` (mandate), `IDEA` (idea), `ANLY` (analytics). Find the highest existing `NNN` for that prefix under `signals/<type>/` and increment; start at `001` if none exist.
 - Never reuse or renumber an id, even for a file later deleted or rejected.
+
+## Analytics snapshots
+
+A dashboard changes; a Spec must trace to something that doesn't. So an analytics signal is a **snapshot**: the number as it stood when pulled, committed with enough detail that someone else could pull it again.
+
+- Record every field in the analytics block below. Ask the PM for any that's missing rather than guessing. A number with no `period` or no `query` can't be checked, so say so plainly and write `unknown` instead of leaving the field out.
+- State the number in the body in a plain sentence (e.g. "40% of sessions that reached step 3 did not reach step 4, 1–30 Sep 2026, n = 12,480 sessions."), so a Spec can quote it verbatim.
+- Write down a comparison when there is one: a baseline, the prior period, a target, or the control arm of a test. A lone number with no comparison is still worth capturing, but say in the body that it has none.
+- Never store just a link to a live dashboard. The link goes in `query` as context; the number goes in the file. An export (CSV, screenshot) can go in the raw copy.
+- Don't explain the number. Why users drop off is a question for the Thread, not a fact for this file.
 
 ## Redaction and the raw/committed split
 
@@ -50,10 +61,21 @@ For each input, write:
 ```yaml
 ---
 signal_id: <id>
-type: feedback | requirement | mandate | idea
+type: feedback | requirement | mandate | idea | analytics
 source: <where this came from, as specific as the PM gave you>
 captured_on: <today's date>
 data_class: public | internal | restricted
+# analytics only:
+metric: <what was measured, e.g. "step 3 -> step 4 drop-off">
+value: <number>
+unit: <%, sessions, seconds, ...>
+segment: <who it covers, e.g. "all web sessions"; "all" if unfiltered>
+period: <start>..<end>
+sample_size: <n and what it counts, or unknown>
+comparison: <baseline, prior period, target or control, with its value; or none>
+tool: <Mixpanel, Amplitude, GA4, SQL, ...>
+query: <saved report link, query text or event names>
+pulled_on: <date the number was read>
 ---
 
 <clean, paraphrased body — this is what later gets quoted>
@@ -66,6 +88,7 @@ Then tell the PM the ref to use (`<type>:<signal_id>`) for each one, and that th
 ## What you must not do
 
 - Do not create or modify a Thread — hand off to `shape-thread`/`fast-track` once the file exists.
+- Do not invent or round a metric value, a sample size or a period. A missing field is `unknown`.
 - Do not invent a sponsor, a theme count, or anything belonging to the Exploring exit gate — this skill only captures the signal, it never validates or scores it.
 - Do not let a committed file quote raw, unredacted text.
 - Do not silently resolve an ambiguous type — flag the call in the body, or ask, per Classifying type above.

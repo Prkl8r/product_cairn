@@ -156,3 +156,31 @@ def test_init_installs_script_once(tmp_path, monkeypatch):
     script.write_text("# mine\n")
     runner.invoke(app, ["init", "--here", "--force"])
     assert script.read_text() == "# mine\n"
+
+
+def overview(repo, system, **meta):
+    (repo / "architecture" / system).mkdir(parents=True)
+    (repo / "architecture" / system / "overview.md").write_text("---\n" + yaml.safe_dump(meta) + "---\nBody.\n")
+
+
+def test_unverified_architecture_warns_but_hands_off(repo):
+    thread = THREAD.format(status="Specified").replace("owner: pm", "owner: pm\ntouches: [auth, billing, search, payments]")
+    (repo / "threads/THRD-001.md").write_text(thread)
+    today = h._dt.date.today()
+    overview(repo, "auth", readiness="L2", verified=True, last_verified=today, review_ttl="180d")
+    overview(repo, "billing", readiness="L1", verified=False)
+    overview(repo, "search", readiness="L2", verified=True, last_verified=today - h._dt.timedelta(days=200),
+             review_ttl="180d")
+    r = run(repo, "SPEC-001", "--to", "in_place")
+    assert r.exit_code == 0, r.output
+    expected = [h.UNVERIFIED_NOTE.format(level=lvl, system=s)
+                for lvl, s in (("L1", "billing"), ("L2, past review_ttl", "search"), ("L0", "payments"))]
+    assert frontmatter(repo / ".cairn/handoff/SPEC-001/spec.md")["unverified_architecture"] == expected
+    assert json.loads((repo / ".cairn/handoff/SPEC-001/manifest.json").read_text())["unverified_architecture"] == expected
+    assert "Warning: Spec relies on unverified L1 Architecture [billing]" in r.output
+    assert "[auth]" not in r.output
+
+
+def test_no_touches_adds_no_warning(repo):
+    assert run(repo, "SPEC-001", "--to", "in_place").exit_code == 0
+    assert "unverified_architecture" not in frontmatter(repo / ".cairn/handoff/SPEC-001/spec.md")

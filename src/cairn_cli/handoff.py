@@ -122,6 +122,37 @@ def _check_api(kind: str, path: Path, ref: str, warnings: list[str]) -> None:
         warnings.append(f"{ref} is not OpenAPI 3.1 (openapi: {version or 'missing'})")
 
 
+UNVERIFIED_NOTE = ("Warning: Spec relies on unverified {level} Architecture [{system}]. "
+                   "Engineering must verify constraints during estimation.")
+
+
+def unverified_architecture(root: Path, thread: _ledger.Doc) -> list[str]:
+    """One warning per system in the Thread's `touches` whose overview isn't a current, verified L2 (C24)."""
+    notes = []
+    for system in thread.meta.get("touches") or []:
+        path = root / "architecture" / str(system) / "overview.md"
+        meta = _ledger._split(path)[0] if path.exists() else {}
+        level = str(meta.get("readiness") or ("L1" if path.exists() else "L0"))
+        if level == "L2" and meta.get("verified") is True:
+            if not _expired(meta):
+                continue
+            level = "L2, past review_ttl"
+        notes.append(UNVERIFIED_NOTE.format(level=level, system=system))
+    return notes
+
+
+def _expired(meta: dict) -> bool:
+    m = re.fullmatch(r"(\d+)d", str(meta.get("review_ttl") or ""))
+    last = meta.get("last_verified")
+    if not m or not last:
+        return False
+    try:
+        last = last if isinstance(last, _dt.date) else _dt.date.fromisoformat(str(last))
+    except ValueError:
+        return False
+    return (_dt.date.today() - last).days > int(m.group(1))
+
+
 def build_package(root: Path, spec: _ledger.Doc, thread: _ledger.Doc) -> tuple[Path, list[str]]:
     """Write .cairn/handoff/<spec-id>/: the Spec with a source link, plus addendum/. Returns (path, warnings)."""
     pkg = root / PACKAGES / spec.id
@@ -129,10 +160,13 @@ def build_package(root: Path, spec: _ledger.Doc, thread: _ledger.Doc) -> tuple[P
         shutil.rmtree(pkg)
     pkg.mkdir(parents=True)
     source = {"repo": repo_id(root), "thread_id": thread.id}
-    (pkg / "spec.md").write_text(set_keys(spec.path.read_text(encoding="utf-8"), {"source": source}),
-                                 encoding="utf-8")
+    unverified = unverified_architecture(root, thread)
+    keys = {"source": source}
+    if unverified:
+        keys["unverified_architecture"] = unverified
+    (pkg / "spec.md").write_text(set_keys(spec.path.read_text(encoding="utf-8"), keys), encoding="utf-8")
 
-    warnings: list[str] = []
+    warnings: list[str] = list(unverified)
     notes: list[str] = []
     refs = [r for r in thread.meta.get("outbound_refs") or [] if not str(r).startswith("spec:")]
     for ref in refs:
@@ -142,7 +176,7 @@ def build_package(root: Path, spec: _ledger.Doc, thread: _ledger.Doc) -> tuple[P
         (pkg / "addendum" / "LINKS.md").write_text(
             "# Supporting artifacts not copied\n\n" + "\n".join(notes) + "\n", encoding="utf-8")
     manifest = {"spec_id": spec.id, "revision": spec.meta.get("revision", 1), "source": source,
-                "addendum": refs, "built_on": _dt.date.today().isoformat()}
+                "addendum": refs, "unverified_architecture": unverified, "built_on": _dt.date.today().isoformat()}
     (pkg / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8")
     return pkg, warnings
 
