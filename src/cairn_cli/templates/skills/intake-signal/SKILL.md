@@ -18,7 +18,7 @@ This is the step before a Thread exists. It never creates or touches a Thread �
 ## Required inputs
 
 1. The raw material — pasted text, a short description, a file the PM names, or several of these given together.
-2. `charter.yaml`, for `data_class_default`. If it doesn't exist or is still the unfilled stub (see `onboard-product`), ask which product/repo this signal belongs to rather than guessing a location — don't write into a repo that hasn't been onboarded.
+2. `charter.yaml`, for `data_class_default`. If it doesn't exist or is still the unfilled stub (see `onboard`), ask which product/repo this signal belongs to rather than guessing a location — don't write into a repo that hasn't been onboarded.
 3. Existing files under `signals/<type>/` for each type touched, to pick the next free id without colliding.
 
 ## Classifying type (feedback | requirement | mandate | idea)

@@ -11,9 +11,9 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 2 of the core flow. Runs while a Thread is in `stage: Framing` (set by `shape-thread`) — the stage where the PM is talking to others to find what needs thinking about. Produces a `verdict_ref`: a critique that finds the real edge cases and risks, with each one mapped to a future acceptance criterion or explicitly deferred with a reason. `spec-generator` reads this verdict next, and `compile-check`'s C11 checks that every edge case it lists is accounted for.
+Step 2 of the core flow. Runs while a Thread is in `stage: Framing` (set by `shape-thread`) — the stage where the PM is talking to others to find what needs thinking about. Produces a `verdict_ref`: a critique that finds the real edge cases and risks, with each one mapped to a future acceptance criterion or explicitly deferred with a reason. `draft-spec` reads this verdict next, and `check-spec`'s C11 checks that every edge case it lists is accounted for.
 
-When every edge case is mapped or deferred and the PM accepts the verdict, set `stage: Validating`: the Thread moves on to getting everyone on board (reviews, UX mocks, an API spec). This skill never sets `status: Specified` — that follows a passing `compile-check`, applied by the PM.
+When every edge case is mapped or deferred and the PM accepts the verdict, set `stage: Validating`: the Thread moves on to getting everyone on board (reviews, UX mocks, an API spec). This skill never sets `status: Specified` — that follows a passing `check-spec`, applied by the PM.
 
 ## Required inputs
 
@@ -25,7 +25,7 @@ When every edge case is mapped or deferred and the PM accepts the verdict, set `
 ## Rules
 
 1. **Default mechanism is the jury**, run via `jury-duty`: Advocate argues the case, Skeptic (on a different model than Advocate/Judge) attacks it for concrete edge cases, Judge renders a verdict. Do not reimplement the critique here — call `jury-duty` so the standalone and in-flow uses never drift apart.
-2. Every edge case the jury raises gets mapped to a future criterion (named, not yet fully drafted — that's `spec-generator`'s job) or explicitly deferred with a reason. An edge case with neither is not allowed to close out.
+2. Every edge case the jury raises gets mapped to a future criterion (named, not yet fully drafted — that's `draft-spec`'s job) or explicitly deferred with a reason. An edge case with neither is not allowed to close out.
 3. Never invent risks that aren't grounded in the signal, overview, or library content — label anything inferred as `inferred`, the same origin-tagging `fast-track` uses for assumptions.
 4. If an overview a system in `touches` depends on is missing or unverified (`verified: false`), say so as part of the verdict — don't silently assess against unverified material.
 5. Mark everything you write as agent-drafted.
@@ -52,6 +52,6 @@ If the verdict shows who should review the draft, or which supporting artifacts 
 
 ## What you must not do
 
-- Do not set `status: Specified`. That follows a passing `compile-check` report.
+- Do not set `status: Specified`. That follows a passing `check-spec` report.
 - Do not draft the Spec or its acceptance criteria — only name what a criterion will need to cover.
 - Do not run a single-pass critique when the Thread is on the normal track — that shortcut belongs to `fast-track` only. Full three-round jury, every time, here.

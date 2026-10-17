@@ -1,0 +1,16 @@
+{
+  "name": "cairn",
+  "owner": {
+    "name": "Prkl8r"
+  },
+  "metadata": {
+    "description": "Cairn: just-in-time requirements, from signal to Spec."
+  },
+  "plugins": [
+    {
+      "name": "cairn",
+      "source": "./src/cairn_cli/templates",
+      "description": "Cairn's PM skills, namespaced as /cairn:<skill>."
+    }
+  ]
+}

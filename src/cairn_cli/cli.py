@@ -33,6 +33,14 @@ GITIGNORE_ENTRIES = [
     ".cairn/handoff/",
 ]
 
+# Skills renamed in a later release: old folder name -> new name. `cairn init --force`
+# removes the old folders so a repo doesn't list both.
+RETIRED_SKILLS = {
+    "spec-generator": "draft-spec",
+    "compile-check": "check-spec",
+    "onboard-product": "onboard",
+}
+
 
 def _templates_root() -> Path:
     return Path(resources.files("cairn_cli") / "templates")
@@ -126,6 +134,15 @@ def init(
         dst = target / ".claude" / "skills" / skill_dir.name
         status = _copy_if_absent(skill_dir, dst, force)
         report.append((f".claude/skills/{skill_dir.name}/", status))
+    for old, new in RETIRED_SKILLS.items():
+        old_dst = target / ".claude" / "skills" / old
+        if not old_dst.exists():
+            continue
+        if force:
+            shutil.rmtree(old_dst)
+            report.append((f".claude/skills/{old}/ (now {new})", "removed"))
+        else:
+            report.append((f".claude/skills/{old}/ (now {new}; --force removes it)", "retired"))
 
     if skills_only:
         for path, status in report:
@@ -190,11 +207,12 @@ def init(
     typer.secho(f"Cairn {__version__} installed into {target}", fg=typer.colors.GREEN)
     for path, status in report:
         color = {"created": typer.colors.GREEN, "updated": typer.colors.GREEN, "skipped": typer.colors.YELLOW,
-                 "overwritten": typer.colors.CYAN, "not a git repo": typer.colors.RED}[status]
+                 "overwritten": typer.colors.CYAN,
+                 "removed": typer.colors.CYAN, "retired": typer.colors.YELLOW, "not a git repo": typer.colors.RED}[status]
         typer.secho(f"  {status:>11}  {path}", fg=color)
 
     typer.echo()
-    typer.echo("Next: fill in charter.yaml, then run onboard-product in Claude Code.")
+    typer.echo("Next: fill in charter.yaml, then run onboard in Claude Code.")
 
 
 @app.command()
@@ -218,7 +236,13 @@ def doctor(
             fg=typer.colors.YELLOW,
         )
 
-    expected_skills = set(lock_data.get("skills") or _skill_names())
+    expected_skills = set(lock_data.get("skills") or _skill_names()) - set(RETIRED_SKILLS)
+    for old, new in RETIRED_SKILLS.items():
+        if (target / ".claude" / "skills" / old).exists():
+            typer.secho(f"  WARN    .claude/skills/{old}/ was renamed to {new}. "
+                        "Run `cairn init --here --force` to replace it.", fg=typer.colors.YELLOW)
+        if old in (lock_data.get("skills") or []):
+            expected_skills.add(new)
     for skill in sorted(expected_skills):
         skill_file = target / ".claude" / "skills" / skill / "SKILL.md"
         template = _templates_root() / "skills" / skill / "SKILL.md"

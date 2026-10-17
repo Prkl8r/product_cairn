@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 1 of Cairn's core flow (shape → assess → spec-generator → compile-check). Takes a Thread from `stage: Exploring` to `stage: Framing` (or sets `status: Parked`/`Rejected`), by confirming the Exploring exit gate is met, drafting a short problem-and-impact brief, and asking the PM to decide: proceed, hold, or drop.
+Step 1 of Cairn's core flow (shape → assess → draft-spec → check-spec). Takes a Thread from `stage: Exploring` to `stage: Framing` (or sets `status: Parked`/`Rejected`), by confirming the Exploring exit gate is met, drafting a short problem-and-impact brief, and asking the PM to decide: proceed, hold, or drop.
 
 You are acting on the PM's Thread. You draft and check gates; the PM decides.
 
@@ -21,7 +21,7 @@ Before drafting, locate and read:
 1. `charter.yaml` — modality, UI presence, profile (`solo`/`team`), org rules.
 2. Every signal file referenced in the Thread's `inbound_refs` (committed, redacted versions only — never `signals/*/raw/`).
 3. The Thread file. If it doesn't exist yet, create it with minimal frontmatter (`thread_id`, `stage: Exploring`, `status: Active`, `owner`, `inbound_refs`, `touches`), the same as `fast-track` does.
-4. `architecture/<system>/overview.md` for every system in `touches`, to check existence (not full content yet — that's `assess-thread`/`spec-generator`'s job).
+4. `architecture/<system>/overview.md` for every system in `touches`, to check existence (not full content yet — that's `assess-thread`/`draft-spec`'s job).
 
 If any of these are missing and the user hasn't pointed you at them, ask for the paths rather than guessing.
 
@@ -38,7 +38,7 @@ Before drafting, run `cairn find "<a few key words from the signal>"` (a single 
    - **Expected outcome:** the observable change if this works, and how we'd know (a metric or behavior). If nobody can say, record that as an open question; don't invent a target.
 3. Give a short case for and against proceeding (not a full jury debate — that's `assess-thread`/`jury-duty`'s job, not this skill's). Thin evidence or an unknown outcome goes in the case against. These don't block, but the PM should see them before deciding.
 4. Ask the PM to decide: **proceed**, **hold**, or **drop**. Never decide this yourself.
-5. **On proceed:** check every system in `touches` has an overview file with a named owner (mirrors `compile-check`'s C17). Missing coverage is an Error on the `team` profile, a Warn on `solo`. Record the decision, set `stage: Framing`, and tell the PM this Thread is ready for `assess-thread` — Framing is when they bring others in.
+5. **On proceed:** check every system in `touches` has an overview file with a named owner (mirrors `check-spec`'s C17). Missing coverage is an Error on the `team` profile, a Warn on `solo`. Record the decision, set `stage: Framing`, and tell the PM this Thread is ready for `assess-thread` — Framing is when they bring others in.
 6. **On hold:** set `status: Parked` (stage stays Exploring), record `reason` and `pickup_when`, the same fields `park-or-reject` writes.
 7. **On drop:** set `status: Rejected` (stage stays Exploring), record `reason` and `reject_category`. This is searchable later so a dropped idea isn't re-argued from scratch.
 8. Mark everything you write as agent-drafted.
@@ -75,5 +75,5 @@ If drafting surfaces a real action the PM needs to take outside the tool (e.g. "
 
 - Do not run the jury critique — hand off to `assess-thread` (which defaults to `jury-duty`).
 - Do not draft the Spec.
-- Do not set `status: Specified` — that only happens after a passing `compile-check` report, applied by the PM.
+- Do not set `status: Specified` — that only happens after a passing `check-spec` report, applied by the PM.
 - Do not decide proceed/hold/drop yourself, and do not fabricate a sponsor validation or a theme threshold to force the gate open.

@@ -27,7 +27,7 @@ Stage names are activities: they say what's happening now. Each stage's gate is 
 |---|---|---|---|
 | **Exploring** | The PM, alone, fleshing out an idea. | Entry check met (feedback: recurring theme; requirement/mandate/idea: named sponsor). Problem-and-impact brief written. PM decides to proceed. | `shape-thread` |
 | **Framing** | The PM is talking to others to find what needs thinking about. The jury critique runs here. | Jury verdict recorded; every edge case mapped to a future criterion or deferred with a reason. | `assess-thread` |
-| **Validating** | Getting everyone on board. Supporting artifacts get made: UX mocks, an API spec, and so on. | A Spec compiles clean. No sign-off is required (see Reviews). | `spec-generator` → `compile-check` |
+| **Validating** | Getting everyone on board. Supporting artifacts get made: UX mocks, an API spec, and so on. | A Spec compiles clean. No sign-off is required (see Reviews). | `draft-spec` → `check-spec` |
 
 Leaving Validating takes two steps: the Spec compiles clean (status Specified), then it goes out (status Handed off). There is no "Specifying" stage; putting the Spec together is the act of leaving Validating.
 
@@ -47,7 +47,7 @@ Names, not numbers, go in Thread files: names carry meaning and survive a stage 
 | **Specified** | The Spec exists and compiles clean; not sent anywhere yet. Stage stays Validating. |
 | **Handed off** | The Spec went out (see Decided: handoff). Stage stays Validating. |
 
-Only the PM sets `status: Specified`, after a passing `compile-check`. `Handed off` is set when the handoff is recorded.
+Only the PM sets `status: Specified`, after a passing `check-spec`. `Handed off` is set when the handoff is recorded.
 
 ### Thread frontmatter
 
@@ -63,7 +63,7 @@ light_stages: [Framing, Validating]     # fast track only
 
 ### Flows
 
-- **Normal**: `shape-thread` (Exploring → Framing), `assess-thread` (Framing → Validating), `spec-generator` + `compile-check` (Validating → status Specified), then handoff (status Handed off).
+- **Normal**: `shape-thread` (Exploring → Framing), `assess-thread` (Framing → Validating), `draft-spec` + `check-spec` (Validating → status Specified), then handoff (status Handed off).
 - **Fast track**: `fast-track` goes from Exploring to a drafted Spec in one pass. Framing and Validating are backfilled in light form and listed in `light_stages`; the Review Brief records what was skipped, including any reviews and supporting artifacts.
 - **Kickback**: status goes from Handed off back to Active; stage stays Validating. `record-kickback` → `revise-spec` updates the same Spec at a new revision.
 - **Park / reject / resume**: change `status` only. Resume sets status back to Active at the same stage.
@@ -82,7 +82,7 @@ light_stages: [Framing, Validating]     # fast track only
 ## Changed in this pass
 
 - `README.md`: concepts, lifecycle, gate table, getting-started step 3. Line 16 no longer says a Thread "begins when a signal is captured".
-- Skills: `shape-thread`, `assess-thread`, `spec-generator`, `compile-check`, `fast-track`, `record-kickback`, `revise-spec`, `park-or-reject`, `whats-next`, `bundle-threads`, `intake-signal`, `onboard-product`.
+- Skills: `shape-thread`, `assess-thread`, `draft-spec`, `check-spec`, `fast-track`, `record-kickback`, `revise-spec`, `park-or-reject`, `whats-next`, `bundle-threads`, `intake-signal`, `onboard`.
 - `src/cairn_cli/ledger.py` and `cli.py`: stage/status with legacy fallback.
 - `src/cairn_cli/handoff.py`, `templates/handoff.py`, `tests/test_handoff.py`: the handoff command.
 

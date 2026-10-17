@@ -36,7 +36,7 @@ signal(s) ──► Exploring ──► Framing ──► Validating ──► S
 |---|---|---|---|
 | **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Problem-and-impact brief written (evidence, alternatives, why now, expected outcome); PM decides **proceed**. | `shape-thread` |
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
-| **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `spec-generator` → `compile-check` |
+| **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `draft-spec` → `check-spec` |
 
 Leaving Validating takes two steps. Once the Spec compiles clean, the PM sets `status: Specified`: the Spec exists and is ready. When it goes out, the status becomes `Handed off`.
 
@@ -47,7 +47,7 @@ Leaving Validating takes two steps. Once the Spec compiles clean, the PM sets `s
 | **Active** | Being worked on (default). | — |
 | **Parked** | On hold, with what has to happen first (`pickup_when`). | `park-or-reject` |
 | **Rejected** | Dropped, with a reason and category. | `park-or-reject` |
-| **Specified** | The Spec exists and compiles clean; not sent anywhere yet. | PM, after a passing `compile-check` |
+| **Specified** | The Spec exists and compiles clean; not sent anywhere yet. | PM, after a passing `check-spec` |
 | **Handed off** | The Spec went out: exported to a team, sent to another repo, or left in place for spec-kit. | PM, recording `handoff` |
 
 - **Kickback**: engineering sends the Spec back. Status returns from Handed off to Active at Validating; `record-kickback` → `revise-spec` updates the same Spec.
@@ -67,6 +67,15 @@ cairn init --here                       # or: cairn init <new-project-name>
 ```
 
 This copies the `.claude/skills/` into the target repo, creates the `signals/`, `threads/`, `specs/`, `architecture/`, `library/` skeleton, writes a `charter.yaml` template, and pins the installed version in `.cairn/package.lock`. It's idempotent — rerunning `cairn init` never overwrites `charter.yaml` or anything you've already written; pass `--force` to refresh the skill files themselves after an update. Run `cairn doctor` any time to check the install is complete.
+
+**Or install the skills as a Claude Code plugin.** They then show up namespaced as `/cairn:<skill>` (for example `/cairn:whats-next`) in every repo, with no copies to keep in sync:
+
+```
+/plugin marketplace add /path/to/product_cairn   # or the GitHub repo
+/plugin install cairn@cairn
+```
+
+You still need `cairn init` for the `signals/`, `threads/`, `specs/` skeleton and `charter.yaml`. `cairn init` also copies the skills into `.claude/skills/`, so a repo using the plugin shows each skill twice (`/shape-thread` and `/cairn:shape-thread`). Delete the copied ones if you use the plugin.
 
 Two read-only commands show what's been asked and what's shipped. Neither keeps an index; both rescan the files each run:
 
@@ -101,8 +110,8 @@ It refuses unless the Thread is Specified and the Spec's compile report says `##
 **1. Onboard the product, once.** Nothing else works without a ratified `charter.yaml` and at least an L1 overview for the systems a Thread will touch:
 
 ```
-onboard-product            # brownfield: pulls from the codebase and/or a connected tracker
-onboard-product --new      # greenfield: runs an interview instead
+onboard            # brownfield: pulls from the codebase and/or a connected tracker
+onboard --new      # greenfield: runs an interview instead
 ```
 
 **2. Capture a signal.** Write it to `signals/<type>/<id>.md` (redacted/committed) with a raw copy under `signals/<type>/raw/` (git-ignored).
@@ -121,16 +130,16 @@ Four skills, run in order, cover the normal track end to end:
 
 1. **`shape-thread`** — Exploring → Framing (or Parked/Rejected). Checks the entry gate, drafts a problem-and-impact brief that asks whether the problem is worth solving (evidence strength, alternatives, why now, expected outcome), gets the PM's proceed/hold/drop call.
 2. **`assess-thread`** — The Framing-stage critique, then Framing → Validating. Runs the Advocate/Skeptic/Judge jury, maps every edge case to a future criterion or a deferral, records the verdict.
-3. **`spec-generator`** — Drafts the Spec from a Validating Thread's jury verdict: binary-or-thresholded criteria, each traced to a real source, grouped into verifiable slices.
-4. **`compile-check`** — The deterministic gate. Checks structure, traceability, criteria quality, slices, and that no open question is left hanging — by hand, standing in for the `mcp-spec-compiler` server that doesn't exist yet. No LLM judgment calls on correctness, only well-formedness.
+3. **`draft-spec`** — Drafts the Spec from a Validating Thread's jury verdict: binary-or-thresholded criteria, each traced to a real source, grouped into verifiable slices.
+4. **`check-spec`** — The deterministic gate. Checks structure, traceability, criteria quality, slices, and that no open question is left hanging — by hand, standing in for the `mcp-spec-compiler` server that doesn't exist yet. No LLM judgment calls on correctness, only well-formedness.
 
 **The loop-back**, for when engineering sends a Spec back: **`record-kickback`** logs why and sets the Thread's status back to Active (it stays in Validating); **`revise-spec`** redrafts only the affected slices under the *same* `spec_id` at a bumped `revision`, so it reads as an update, not a new document.
 
-**The shortcut**: **`fast-track`** jumps straight from Exploring to a drafted Spec, backfilling Framing and Validating in light form (a short brief, a single-pass critique instead of the full jury) and writing a **Review Brief** — verify-first items, every assumption tagged by origin (`signal`/`overview`/`library`/`inferred`), open questions, and what was skipped. One acknowledgement (`brief_ack`) is the only checkpoint; `compile-check` still enforces everything else.
+**The shortcut**: **`fast-track`** jumps straight from Exploring to a drafted Spec, backfilling Framing and Validating in light form (a short brief, a single-pass critique instead of the full jury) and writing a **Review Brief** — verify-first items, every assumption tagged by origin (`signal`/`overview`/`library`/`inferred`), open questions, and what was skipped. One acknowledgement (`brief_ack`) is the only checkpoint; `check-spec` still enforces everything else.
 
 **The navigator**: **`whats-next`** is a lookup, not a gate. Point it at a Thread (or nothing, for the most recently touched one) and it names the one thing to do next — so nobody has to memorize this table.
 
-**The prerequisite**: **`onboard-product`** is the one entry point before any Thread can exist. Brownfield, it pulls context itself — scanning a codebase (READMEs, manifests, directory layout, OpenAPI/schema files, infra config) and/or querying a connected tracker (Jira, Linear, ClickUp, Monday, Asana) — rather than waiting for the PM to hand it docs. Greenfield (`--new`), it runs a structured interview and leaves unanswered fields as visible `TBD`. Either way it never self-verifies: every overview it produces starts at L1, and only a named human can promote one to L2.
+**The prerequisite**: **`onboard`** is the one entry point before any Thread can exist. Brownfield, it pulls context itself — scanning a codebase (READMEs, manifests, directory layout, OpenAPI/schema files, infra config) and/or querying a connected tracker (Jira, Linear, ClickUp, Monday, Asana) — rather than waiting for the PM to hand it docs. Greenfield (`--new`), it runs a structured interview and leaves unanswered fields as visible `TBD`. Either way it never self-verifies: every overview it produces starts at L1, and only a named human can promote one to L2.
 
 Everything an agent drafts is marked agent-drafted until the PM edits or accepts it. Nothing above changes a Thread's stage or status or writes a file without the PM asking.
 
@@ -139,20 +148,20 @@ Everything an agent drafts is marked agent-drafted until the PM edits or accepts
 ## Repo layout
 
 ```
-charter.yaml                     # product root boundaries (from onboard-product)
+charter.yaml                     # product root boundaries (from onboard)
 .cairn/handoff.py                # your delivery script for cairn handoff (yours to edit)
 .cairn/handoff/<spec-id>/        # built handoff packages (git-ignored)
 signals/<type>/<id>.md           # committed, redacted signal
 signals/<type>/raw/<id>.*        # git-ignored raw copy
 threads/<id>.md                  # one Thread per unit of work
 specs/<id>.md                    # compiled output, one or more per Thread
-specs/<id>.compile_report.md     # compile-check's output for that Spec
+specs/<id>.compile_report.md     # check-spec's output for that Spec
 architecture/<system>/overview.md  # one per system a Thread can `touches`
 library/                         # historical specs, compliance docs (optional)
 .claude/skills/                  # the skills documented above
 docs/
   spec-as-code-master-document.md  # the PRD: outcomes, behavior, metrics
-  spec-as-code-revision.md         # full lifecycle, compile-check rules, install/update design
+  spec-as-code-revision.md         # full lifecycle, check-spec rules, install/update design
 ```
 
 ---
@@ -161,7 +170,7 @@ docs/
 
 The core flow above is complete. Still missing, named today only as placeholders in `whats-next`'s own dispatch table:
 
-- **`onboard-product`'s onboarding is done**; the rest below are genuinely optional, built when a PM first asks for them:
+- **`onboard`'s onboarding is done**; the rest below are genuinely optional, built when a PM first asks for them:
   - `jury-duty` — the Advocate/Skeptic/Judge critique, as its own standalone skill (today it's only described inside `assess-thread`/`fast-track`).
   - `readiness-check` — the on-demand "is this ready for engineering?" qualitative review.
   - `record-approval` — recording/drafting an approval ask.
@@ -180,4 +189,4 @@ Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills
 
 Run the tests with `pip install pytest && pytest tests`.
 
-See the docs above for the full design behind all of this, including the compile-check rule table (C01–C23) and the install/update/packaging model.
+See the docs above for the full design behind all of this, including the check-spec rule table (C01–C23) and the install/update/packaging model.

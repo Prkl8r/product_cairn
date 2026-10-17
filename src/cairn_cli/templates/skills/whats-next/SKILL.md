@@ -38,7 +38,7 @@ Two levels, both plain `- [ ]` / `- [x]` Markdown, checked off by the PM like an
 - **Per-Thread** (`## Open items` section in the Thread's own file): operational to-dos tied to *that* Thread's progress — "meet with Architect to validate AC-002," "set up a UX review." These travel with the Thread through its lifecycle and get surfaced by this skill's status snapshot and single-Thread lookup alike.
 - **Project-wide** (`checklist.md` at the product root): goals or commitments that span or sit above individual Threads — "ship the new email feature by Monday." May reference Thread ids but isn't required to.
 
-This skill only reads and reports these — it never checks an item off or adds one. Any skill drafting or updating a Thread (`shape-thread`, `fast-track`, `assess-thread`, `spec-generator`) may propose an `## Open items` entry when it surfaces a real action the PM needs to take, but the PM owns checking items off.
+This skill only reads and reports these — it never checks an item off or adds one. Any skill drafting or updating a Thread (`shape-thread`, `fast-track`, `assess-thread`, `draft-spec`) may propose an `## Open items` entry when it surfaces a real action the PM needs to take, but the PM owns checking items off.
 
 ## Lookup table
 
@@ -49,20 +49,20 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Framing, Active | normal | no `verdict_ref` | `assess-thread` — and this is the stage to talk it through with others |
 | Framing, Active | normal | `verdict_ref` present, edge cases unmapped | finish `assess-thread`; it moves the Thread to Validating |
 | Validating, Active | normal | supporting artifacts or reviews still open | get everyone on board: list the open artifacts and review reminders from `## Open items`. Reviews never block |
-| Validating, Active | normal | no Spec in `outbound_refs` | `spec-generator` |
-| Validating, Active | normal | Spec drafted, not compiled | `compile-check` |
+| Validating, Active | normal | no Spec in `outbound_refs` | `draft-spec` |
+| Validating, Active | normal | Spec drafted, not compiled | `check-spec` |
 | Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say the PM can set `status: Specified` |
 | Specified | — | — | ready to hand off with `cairn handoff <spec-id> --to export\|repo\|in_place` (export to a team, send to another repo, or leave in place for spec-kit). It packages the Spec with its supporting artifacts, sets `status: Handed off` and records `handoff` |
 | any, Active | fast | no Review Brief yet | `fast-track` |
 | any, Active | fast | Review Brief exists, `brief_ack` unset | `ack-brief` |
-| any, Active | fast | `brief_ack` set, not compiled | `compile-check` |
+| any, Active | fast | `brief_ack` set, not compiled | `check-spec` |
 | Handed off | — | kicked back by eng | `record-kickback`, then `revise-spec` |
 | Handed off | — | nothing pending | say where (`handoff`). Build and launch belong to whoever received it, not Cairn |
 | Parked | — | — | say what it's waiting on (`pickup_when`). If that has happened, or the PM wants it back, `park-or-reject` resumes it |
 | Rejected | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
 | any | — | PM wants to stop or pause it | `park-or-reject` |
 | any | — | looks related to another Thread, or PM says "these go together" | `bundle-threads` |
-| any | — | PM asked for something off the core flow | name the matching optional skill (`bundle-threads`, `intake-signal`, `onboard-product`, `park-or-reject`). `jury-duty`, `readiness-check`, `record-approval` and `theme-extractor` aren't built yet: say so, and do the work inline if the PM wants it |
+| any | — | PM asked for something off the core flow | name the matching optional skill (`bundle-threads`, `intake-signal`, `onboard`, `park-or-reject`). `jury-duty`, `readiness-check`, `record-approval` and `theme-extractor` aren't built yet: say so, and do the work inline if the PM wants it |
 
 Threads written before stages existed may still carry a single `state` field. Read it as: Signal/Shape → Exploring; Feasibility → Framing; Contract/Launched → Handed off; Parked/Rejected → that status. Mention once that the Thread uses the old field.
 

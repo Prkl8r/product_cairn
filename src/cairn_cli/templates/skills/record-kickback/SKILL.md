@@ -38,4 +38,4 @@ kickback_date: <date>
 ## What you must not do
 
 - Do not touch the Spec file itself — that's `revise-spec`'s job.
-- Do not set `status: Specified` or `Handed off` back — Specified follows a fresh passing `compile-check`, and Handed off follows a new handoff.
+- Do not set `status: Specified` or `Handed off` back — Specified follows a fresh passing `check-spec`, and Handed off follows a new handoff.

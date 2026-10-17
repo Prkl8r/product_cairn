@@ -167,7 +167,7 @@ def check(root: Path, spec_id: str, to: str, where: str | None) -> tuple[_ledger
     verdict = compile_verdict(spec.path.with_name(f"{spec_id}.compile_report.md"))
     if verdict != "Pass":
         raise HandoffError(f"{spec_id}'s compile report " + ("is missing" if verdict is None else "says Fail")
-                           + ". Run compile-check first.")
+                           + ". Run check-spec first.")
     return spec, thread
 
 

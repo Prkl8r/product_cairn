@@ -1,5 +1,5 @@
 ---
-name: "onboard-product"
+name: "onboard"
 description: "The one entry point before any Thread can exist: ratify a charter.yaml and draft product/system overviews, either by pulling context from a codebase and/or a connected tracker (brownfield) or by running an interview (greenfield, --new)."
 argument-hint: "--new for a greenfield interview; or a codebase path / tracker connection to pull context from for an existing product (brownfield import)"
 metadata:

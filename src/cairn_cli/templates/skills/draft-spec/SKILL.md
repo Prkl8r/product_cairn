@@ -1,5 +1,5 @@
 ---
-name: "spec-generator"
+name: "draft-spec"
 description: "Draft the Spec a Thread hands off, from a Thread already in Validating, using its full jury verdict and linked supporting artifacts — the normal-track equivalent of what fast-track does in light form."
 argument-hint: "thread id to draft a Spec for"
 metadata:
@@ -22,7 +22,7 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 
 ## Rules (do not deviate)
 
-1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible. Each trace carries a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field, as in `compile-check` C23; an `inferred` trace points `assumption` at an edge case or assumption id in the jury verdict. Never mark something `direct` that the source doesn't actually say.
+1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible. Each trace carries a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field, as in `check-spec` C23; an `inferred` trace points `assumption` at an edge case or assumption id in the jury verdict. Never mark something `direct` that the source doesn't actually say.
 2. Group criteria into ordered slices; each slice gets a one-line `verify` note.
 3. Map every edge case from the jury verdict to a criterion, or carry its deferral forward into `open_questions`.
 4. Never invent numbers, endpoints, field names, or limits. Ask the PM or list as an open question.
@@ -39,7 +39,7 @@ spec_id: SPEC-NNN
 thread_id: THRD-NNN        # or bundle_id: BUNDLE-NNN, see bundle-threads
 charter_version: <from charter.yaml>
 generated_by:
-  skill: spec-generator
+  skill: draft-spec
   skill_version: 0.1.0
 track: normal
 # no skipped_gates, no review_brief, no brief_ack — those are fast-track-only
@@ -55,7 +55,7 @@ After drafting, add a review reminder to the Thread's `## Open items` if one isn
 
 ## What you must not do
 
-- Do not mark the Spec as compiled or ready — that's `compile-check`'s job.
+- Do not mark the Spec as compiled or ready — that's `check-spec`'s job.
 - Do not set `status: Specified` yourself.
 - Do not draft without a recorded jury verdict unless the Thread is explicitly `track: fast` (in which case use `fast-track`, not this skill).
 - Do not write to `signals/*/raw/`, and never fabricate a trace target.

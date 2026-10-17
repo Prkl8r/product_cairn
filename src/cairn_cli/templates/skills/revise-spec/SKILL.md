@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 ## What this does
 
-`spec-generator` in "update, not create" mode. Takes a Spec that was kicked back (via `record-kickback`) or that the PM otherwise wants to revise, and redrafts only the affected slices and criteria — carrying everything else forward unchanged. The output is the same `spec_id` at a new `revision`, so what goes back to engineering reads as *SPEC-042, revision 2*, not a fresh document.
+`draft-spec` in "update, not create" mode. Takes a Spec that was kicked back (via `record-kickback`) or that the PM otherwise wants to revise, and redrafts only the affected slices and criteria — carrying everything else forward unchanged. The output is the same `spec_id` at a new `revision`, so what goes back to engineering reads as *SPEC-042, revision 2*, not a fresh document.
 
 ## Required inputs
 
@@ -25,7 +25,7 @@ disable-model-invocation: false
 2. Identify exactly which slices/criteria the kickback reason touches. Redraft only those. Everything else — slices, criteria, traces, open questions — carries forward untouched.
 3. Bump `revision` (starts at 1 on first draft, so a first revision is `revision: 2`).
 4. Write a short "what changed and why" note, tied directly to the `kickback_reason`/`kickback_category` — this is what a reviewer reads first.
-5. Same drafting rules as `spec-generator`: every criterion traces to a real source with a `basis` on each trace (add one to carried-forward traces that lack it, without changing anything else), no invented values, binary-or-threshold typing, agent-drafted labeling.
+5. Same drafting rules as `draft-spec`: every criterion traces to a real source with a `basis` on each trace (add one to carried-forward traces that lack it, without changing anything else), no invented values, binary-or-threshold typing, agent-drafted labeling.
 6. If the kickback reveals an edge case the original jury verdict missed, add it to the Thread's edge-case list (retroactively) so the record stays honest about what was missed and why.
 
 ## Output
@@ -50,5 +50,5 @@ changelog:
 
 - Do not create a new `spec_id` or a new file — same Spec, new revision.
 - Do not touch slices/criteria the kickback reason doesn't mention.
-- Do not mark it compiled — send it back through `compile-check` before it goes to engineering again.
-- Do not set `status: Specified` yourself — that follows `compile-check`'s pass, applied by the PM.
+- Do not mark it compiled — send it back through `check-spec` before it goes to engineering again.
+- Do not set `status: Specified` yourself — that follows `check-spec`'s pass, applied by the PM.

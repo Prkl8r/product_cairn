@@ -1,5 +1,5 @@
 ---
-name: "compile-check"
+name: "check-spec"
 description: "Check a drafted Spec by hand against Cairn's compile-step validator rules before the Thread hands it off to engineering. No LLM judgment calls on correctness — only well-formedness and traceability."
 argument-hint: "path to the Spec file to check, e.g. specs/SPEC-001.md"
 metadata:

@@ -79,7 +79,7 @@ criteria:
     text: "..."
     trace:
       - ref: <type>:<signal-id-or-lib-path>
-        basis: direct         # direct | interpreted | inferred | decided (see compile-check C23)
+        basis: direct         # direct | interpreted | inferred | decided (see check-spec C23)
         quote: "..."          # required for direct, must appear verbatim in the committed source
         # assumption: A-01    # inferred: the review_brief assumption this rests on
         # decided_by: <name>  # decided: who made the call
@@ -107,6 +107,6 @@ If a **Verify first** item needs an outside action rather than just a read-throu
 
 ## What you must not do
 
-- Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `compile-check`'s job, not yours, and only the PM sets `status: Specified`, after a passing `compile-check`.
+- Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `check-spec`'s job, not yours, and only the PM sets `status: Specified`, after a passing `check-spec`.
 - Do not write to `signals/*/raw/`.
 - Do not fabricate trace targets to satisfy the "every criterion needs a trace" rule — an uncovered claim is an open question, not a reason to invent a source.
