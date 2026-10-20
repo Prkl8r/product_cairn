@@ -5,6 +5,7 @@ import json
 import shutil
 import stat
 import subprocess
+import sys
 from importlib import resources
 from pathlib import Path
 from typing import Optional
@@ -40,6 +41,62 @@ RETIRED_SKILLS = {
     "compile-check": "check-spec",
     "onboard-product": "onboard",
 }
+
+
+# Where each supported agent looks for project skills (all read the Agent Skills SKILL.md format).
+# VS Code covers Copilot agent mode, including Ollama models picked through it. Cursor also reads
+# .agents/skills/, so installing both codex and cursor shows each skill twice there.
+AGENT_SKILL_DIRS = {
+    "claude": Path(".claude/skills"),
+    "vscode": Path(".github/skills"),
+    "codex": Path(".agents/skills"),
+    "cursor": Path(".cursor/skills"),
+    "cline": Path(".cline/skills"),
+}
+AGENT_LABELS = {
+    "claude": "Claude Code",
+    "vscode": "VS Code / Copilot",
+    "codex": "Codex CLI",
+    "cursor": "Cursor",
+    "cline": "Cline",
+}
+
+
+def _check_agents(agents: list[str]) -> list[str]:
+    unknown = [a for a in agents if a not in AGENT_SKILL_DIRS]
+    if unknown:
+        typer.secho(f"Unknown --agent {', '.join(unknown)}. Choose from: {', '.join(AGENT_SKILL_DIRS)}.", fg=typer.colors.RED)
+        raise typer.Exit(1)
+    return sorted(set(agents), key=list(AGENT_SKILL_DIRS).index)
+
+
+def _locked_agents(target: Path) -> list[str]:
+    lock_path = target / ".cairn" / "package.lock"
+    if not lock_path.exists():
+        return []
+    return (yaml.safe_load(lock_path.read_text()) or {}).get("agents") or ["claude"]
+
+
+def _pick_agents(preselected: list[str]) -> list[str]:
+    """Checkbox menu of agents. Falls back to claude when there's no terminal to ask on."""
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        return preselected or ["claude"]
+    import questionary
+
+    width = max(len(l) for l in AGENT_LABELS.values())
+    choices = [
+        questionary.Choice(f"{AGENT_LABELS[a]:<{width}}  {d}/", value=a, checked=a in (preselected or ["claude"]))
+        for a, d in AGENT_SKILL_DIRS.items()
+    ]
+    picked = questionary.checkbox(
+        "Which agents should Cairn install skills for?",
+        choices=choices,
+        instruction="(space to toggle, enter to confirm)",
+        validate=lambda xs: bool(xs) or "Pick at least one.",
+    ).ask()
+    if picked is None:  # Ctrl-C
+        raise typer.Exit(1)
+    return picked
 
 
 def _templates_root() -> Path:
@@ -110,7 +167,11 @@ def init(
         False, "--status-hook", help="Add a git pre-commit hook that refreshes STATUS.md/STATUS.json on every commit. Safe to run on an existing install."
     ),
     skills_only: bool = typer.Option(
-        False, "--skills-only", help="Install or refresh .claude/skills/ only: no skeleton, charter, lock file, or .gitignore changes."
+        False, "--skills-only", help="Install or refresh the skills folder only: no skeleton, charter, lock file, or .gitignore changes."
+    ),
+    agent: Optional[list[str]] = typer.Option(
+        None, "--agent", help=f"Agent to install skills for; repeat for several. One of: {', '.join(AGENT_SKILL_DIRS)}. "
+        "Omit to choose from a menu (defaults to claude when not run in a terminal)."
     ),
 ):
     """Install Cairn's skills and skeleton into a product repo."""
@@ -122,27 +183,30 @@ def init(
         raise typer.Exit(1)
 
     target = Path.cwd() if here else Path.cwd() / project_name
+    agents = _check_agents(agent) if agent else _pick_agents(_locked_agents(target))
     target.mkdir(parents=True, exist_ok=True)
 
     report: list[tuple[str, str]] = []
 
     # 1. Skills (package-owned, replaced on update unless user has overrides elsewhere)
     templates = _templates_root()
-    for skill_dir in sorted((templates / "skills").iterdir()):
-        if not skill_dir.is_dir():
-            continue
-        dst = target / ".claude" / "skills" / skill_dir.name
-        status = _copy_if_absent(skill_dir, dst, force)
-        report.append((f".claude/skills/{skill_dir.name}/", status))
-    for old, new in RETIRED_SKILLS.items():
-        old_dst = target / ".claude" / "skills" / old
-        if not old_dst.exists():
-            continue
-        if force:
-            shutil.rmtree(old_dst)
-            report.append((f".claude/skills/{old}/ (now {new})", "removed"))
-        else:
-            report.append((f".claude/skills/{old}/ (now {new}; --force removes it)", "retired"))
+    for name in agents:
+        skills_rel = AGENT_SKILL_DIRS[name]
+        for skill_dir in sorted((templates / "skills").iterdir()):
+            if not skill_dir.is_dir():
+                continue
+            dst = target / skills_rel / skill_dir.name
+            status = _copy_if_absent(skill_dir, dst, force)
+            report.append((f"{skills_rel}/{skill_dir.name}/", status))
+        for old, new in RETIRED_SKILLS.items():
+            old_dst = target / skills_rel / old
+            if not old_dst.exists():
+                continue
+            if force:
+                shutil.rmtree(old_dst)
+                report.append((f"{skills_rel}/{old}/ (now {new})", "removed"))
+            else:
+                report.append((f"{skills_rel}/{old}/ (now {new}; --force removes it)", "retired"))
 
     if skills_only:
         for path, status in report:
@@ -177,11 +241,13 @@ def init(
     cairn_dir = target / ".cairn"
     cairn_dir.mkdir(parents=True, exist_ok=True)
     lock_path = cairn_dir / "package.lock"
+    locked = _check_agents(_locked_agents(target) + agents)
     lock_data = {
         "package": "cairn-cli",
         "package_version": __version__,
         "schema_version": 1,
         "skills": _skill_names(),
+        "agents": locked,
         "installed_at": _dt.datetime.now(_dt.timezone.utc).isoformat(timespec="seconds"),
     }
     lock_path.write_text(yaml.safe_dump(lock_data, sort_keys=False))
@@ -212,7 +278,7 @@ def init(
         typer.secho(f"  {status:>11}  {path}", fg=color)
 
     typer.echo()
-    typer.echo("Next: fill in charter.yaml, then run onboard in Claude Code.")
+    typer.echo(f"Next: fill in charter.yaml, then run onboard in {', '.join(AGENT_LABELS[a] for a in agents)}.")
 
 
 @app.command()
@@ -238,22 +304,29 @@ def doctor(
 
     expected_skills = set(lock_data.get("skills") or _skill_names()) - set(RETIRED_SKILLS)
     for old, new in RETIRED_SKILLS.items():
-        if (target / ".claude" / "skills" / old).exists():
-            typer.secho(f"  WARN    .claude/skills/{old}/ was renamed to {new}. "
-                        "Run `cairn init --here --force` to replace it.", fg=typer.colors.YELLOW)
         if old in (lock_data.get("skills") or []):
             expected_skills.add(new)
-    for skill in sorted(expected_skills):
-        skill_file = target / ".claude" / "skills" / skill / "SKILL.md"
-        template = _templates_root() / "skills" / skill / "SKILL.md"
-        if skill_file.exists() and template.exists() and skill_file.read_bytes() != template.read_bytes():
-            typer.secho(f"  WARN    .claude/skills/{skill}/SKILL.md differs from the installed CLI's copy. "
-                        "Run `cairn init --here --force` to update it.", fg=typer.colors.YELLOW)
-        elif skill_file.exists():
-            typer.secho(f"  OK      .claude/skills/{skill}/SKILL.md", fg=typer.colors.GREEN)
-        else:
-            typer.secho(f"  MISSING .claude/skills/{skill}/SKILL.md", fg=typer.colors.RED)
-            ok = False
+    for agent in lock_data.get("agents") or ["claude"]:
+        skills_rel = AGENT_SKILL_DIRS.get(agent)
+        if skills_rel is None:
+            typer.secho(f"  WARN    package.lock lists unknown agent {agent!r}", fg=typer.colors.YELLOW)
+            continue
+        flag = f" --agent {agent}"
+        for old, new in RETIRED_SKILLS.items():
+            if (target / skills_rel / old).exists():
+                typer.secho(f"  WARN    {skills_rel}/{old}/ was renamed to {new}. "
+                            f"Run `cairn init --here --force{flag}` to replace it.", fg=typer.colors.YELLOW)
+        for skill in sorted(expected_skills):
+            skill_file = target / skills_rel / skill / "SKILL.md"
+            template = _templates_root() / "skills" / skill / "SKILL.md"
+            if skill_file.exists() and template.exists() and skill_file.read_bytes() != template.read_bytes():
+                typer.secho(f"  WARN    {skills_rel}/{skill}/SKILL.md differs from the installed CLI's copy. "
+                            f"Run `cairn init --here --force{flag}` to update it.", fg=typer.colors.YELLOW)
+            elif skill_file.exists():
+                typer.secho(f"  OK      {skills_rel}/{skill}/SKILL.md", fg=typer.colors.GREEN)
+            else:
+                typer.secho(f"  MISSING {skills_rel}/{skill}/SKILL.md", fg=typer.colors.RED)
+                ok = False
 
     charter_path = target / "charter.yaml"
     if not charter_path.exists():

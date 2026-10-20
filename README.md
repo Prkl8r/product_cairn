@@ -77,6 +77,18 @@ This copies the `.claude/skills/` into the target repo, creates the `signals/`, 
 
 You still need `cairn init` for the `signals/`, `threads/`, `specs/` skeleton and `charter.yaml`. `cairn init` also copies the skills into `.claude/skills/`, so a repo using the plugin shows each skill twice (`/shape-thread` and `/cairn:shape-thread`). Delete the copied ones if you use the plugin.
 
+**Installing for other agents.** Run `cairn init` in a terminal and it asks which agents to install skills for. Use the arrow keys to move, space to tick or untick, and enter to confirm. Agents already in `.cairn/package.lock` start ticked. Every agent gets the same `SKILL.md` folders:
+
+| `--agent` | Tool | Skills folder |
+|---|---|---|
+| `claude` | Claude Code | `.claude/skills/` |
+| `vscode` | VS Code / Copilot agent mode (works with Ollama models picked there) | `.github/skills/` |
+| `codex` | OpenAI Codex CLI | `.agents/skills/` |
+| `cursor` | Cursor | `.cursor/skills/` |
+| `cline` | Cline | `.cline/skills/` |
+
+Scripts and CI skip the menu by passing `--agent`, as many times as needed (`cairn init --here --agent claude --agent vscode`). Without a terminal and without `--agent`, it installs for `claude`. `.cairn/package.lock` records every agent installed, and `cairn doctor` checks each one's folder. Cursor also reads `.agents/skills/`, so a repo with both `codex` and `cursor` shows each skill twice in Cursor.
+
 Two read-only commands show what's been asked and what's shipped. Neither keeps an index; both rescan the files each run:
 
 ```bash
