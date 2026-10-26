@@ -1,0 +1,11 @@
+# Cairn project settings. Yours to edit; `cairn init --force` never overwrites this file.
+
+jury:
+  # Model for each jury seat, used by jury-duty in Claude Code.
+  # Any model Claude Code accepts: opus, sonnet, haiku, fable, or a full model id.
+  # Keep the Skeptic on a different model from the other two: that's what makes the critique independent.
+  # Leave a seat blank to use the default in its agent file (opus / sonnet / opus).
+  models:
+    advocate: opus
+    skeptic: sonnet
+    judge: opus

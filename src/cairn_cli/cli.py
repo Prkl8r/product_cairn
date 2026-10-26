@@ -53,6 +53,9 @@ AGENT_SKILL_DIRS = {
     "cursor": Path(".cursor/skills"),
     "cline": Path(".cline/skills"),
 }
+CLAUDE_AGENTS_DIR = Path(".claude/agents")
+CONFIG_FILE = Path(".cairn/config.yaml")
+JURY_DEFAULT_MODELS = {"advocate": "opus", "skeptic": "sonnet", "judge": "opus"}
 AGENT_LABELS = {
     "claude": "Claude Code",
     "vscode": "VS Code / Copilot",
@@ -198,6 +201,13 @@ def init(
             dst = target / skills_rel / skill_dir.name
             status = _copy_if_absent(skill_dir, dst, force)
             report.append((f"{skills_rel}/{skill_dir.name}/", status))
+        # Jury seats: real subagents for Claude Code, reference files for jury-duty's inline mode everywhere.
+        for seat in sorted((templates / "agents").glob("*.md")):
+            dst = target / skills_rel / "jury-duty" / "seats" / seat.name
+            _copy_if_absent(seat, dst, force=True)
+            if name == "claude":
+                dst = target / CLAUDE_AGENTS_DIR / seat.name
+                report.append((f"{CLAUDE_AGENTS_DIR}/{seat.name}", _copy_if_absent(seat, dst, force)))
         for old, new in RETIRED_SKILLS.items():
             old_dst = target / skills_rel / old
             if not old_dst.exists():
@@ -236,6 +246,10 @@ def init(
     # 3c. .cairn/handoff.py (user-owned delivery script, never overwritten)
     status = _copy_if_absent(templates / "handoff.py", target / _handoff.SCRIPT, force=False)
     report.append((str(_handoff.SCRIPT), status))
+
+    # 3d. .cairn/config.yaml (user-owned project settings, never overwritten)
+    status = _copy_if_absent(templates / "config.yaml", target / CONFIG_FILE, force=False)
+    report.append((str(CONFIG_FILE), status))
 
     # 4. .cairn/package.lock (records the installed version)
     cairn_dir = target / ".cairn"
@@ -352,6 +366,19 @@ def doctor(
         typer.secho(f"  OK      {_handoff.SCRIPT}", fg=typer.colors.GREEN)
     else:
         typer.secho(f"  WARN    {_handoff.SCRIPT} missing; `cairn handoff` can't deliver. Run `cairn init --here`.",
+                    fg=typer.colors.YELLOW)
+
+    config_path = target / CONFIG_FILE
+    if config_path.exists():
+        models = ((yaml.safe_load(config_path.read_text()) or {}).get("jury") or {}).get("models") or {}
+        seats = {**JURY_DEFAULT_MODELS, **{k: v for k, v in models.items() if v}}
+        if seats["skeptic"] in (seats["advocate"], seats["judge"]):
+            typer.secho(f"  WARN    {CONFIG_FILE}: the jury Skeptic uses the same model as another seat "
+                        f"({seats['skeptic']}), so its critique isn't independent.", fg=typer.colors.YELLOW)
+        else:
+            typer.secho(f"  OK      {CONFIG_FILE}", fg=typer.colors.GREEN)
+    else:
+        typer.secho(f"  WARN    {CONFIG_FILE} missing; the jury uses its default models. Run `cairn init --here`.",
                     fg=typer.colors.YELLOW)
 
     for d in _ledger.load(target).values():

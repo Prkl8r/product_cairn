@@ -149,6 +149,8 @@ Four skills, run in order, cover the normal track end to end:
 
 **The shortcut**: **`fast-track`** jumps straight from Exploring to a drafted Spec, backfilling Framing and Validating in light form (a short brief, a single-pass critique instead of the full jury) and writing a **Review Brief** — verify-first items, every assumption tagged by origin (`signal`/`overview`/`library`/`inferred`), open questions, and what was skipped. One acknowledgement (`brief_ack`) is the only checkpoint; `check-spec` still enforces everything else.
 
+**The jury**: **`jury-duty`** runs the Advocate/Skeptic/Judge critique that `assess-thread` calls, and a PM can run it alone to pressure-test anything. In Claude Code each seat is its own agent (`jury-advocate`, `jury-skeptic`, `jury-judge`), with the Skeptic on a different model from the other two. Each juror returns a short, fixed-format result, so the debate doesn't flood the conversation. Other agents play the three seats inline, and the verdict records `jury_mode: inline` so you know the Skeptic shared a model. Set each seat's model under `jury.models` in `.cairn/config.yaml`.
+
 **The navigator**: **`whats-next`** is a lookup, not a gate. Point it at a Thread (or nothing, for the most recently touched one) and it names the one thing to do next — so nobody has to memorize this table.
 
 **The prerequisite**: **`onboard`** is the one entry point before any Thread can exist. Brownfield, it pulls context itself — scanning a codebase (READMEs, manifests, directory layout, OpenAPI/schema files, infra config) and/or querying a connected tracker (Jira, Linear, ClickUp, Monday, Asana) — rather than waiting for the PM to hand it docs. Greenfield (`--new`), it runs a structured interview and leaves unanswered fields as visible `TBD`. Either way it never self-verifies: every overview it produces starts at L1, and only a named human can promote one to L2.
@@ -162,6 +164,7 @@ Everything an agent drafts is marked agent-drafted until the PM edits or accepts
 ```
 charter.yaml                     # product root boundaries (from onboard)
 .cairn/handoff.py                # your delivery script for cairn handoff (yours to edit)
+.cairn/config.yaml               # project settings, e.g. jury models (yours to edit)
 .cairn/handoff/<spec-id>/        # built handoff packages (git-ignored)
 signals/<type>/<id>.md           # committed, redacted signal
 signals/<type>/raw/<id>.*        # git-ignored raw copy
@@ -171,6 +174,7 @@ specs/<id>.compile_report.md     # check-spec's output for that Spec
 architecture/<system>/overview.md  # one per system a Thread can `touches`
 library/                         # historical specs, compliance docs (optional)
 .claude/skills/                  # the skills documented above
+.claude/agents/jury-*.md         # the jury's three seats (Claude Code only)
 docs/
   spec-as-code-master-document.md  # the PRD: outcomes, behavior, metrics
   spec-as-code-revision.md         # full lifecycle, check-spec rules, install/update design
@@ -183,7 +187,6 @@ docs/
 The core flow above is complete. Still missing, named today only as placeholders in `whats-next`'s own dispatch table:
 
 - **`onboard`'s onboarding is done**; the rest below are genuinely optional, built when a PM first asks for them:
-  - `jury-duty` — the Advocate/Skeptic/Judge critique, as its own standalone skill (today it's only described inside `assess-thread`/`fast-track`).
   - `readiness-check` — the on-demand "is this ready for engineering?" qualitative review.
   - `record-approval` — recording/drafting an approval ask.
   - `theme-extractor` — deterministic clustering for feedback signals, with the LLM only naming the clusters.

@@ -24,7 +24,7 @@ When every edge case is mapped or deferred and the PM accepts the verdict, set `
 
 ## Rules
 
-1. **Default mechanism is the jury**, run via `jury-duty`: Advocate argues the case, Skeptic (on a different model than Advocate/Judge) attacks it for concrete edge cases, Judge renders a verdict. Do not reimplement the critique here — call `jury-duty` so the standalone and in-flow uses never drift apart.
+1. **Default mechanism is the jury**, run via `jury-duty`: Advocate argues the case, Skeptic (on a different model than Advocate/Judge) attacks it for concrete edge cases, Judge renders a verdict. Do not reimplement the critique here — call `jury-duty` so the standalone and in-flow uses never drift apart. In Claude Code it runs the jurors as separate agents; elsewhere it plays the seats inline and says so.
 2. Every edge case the jury raises gets mapped to a future criterion (named, not yet fully drafted — that's `draft-spec`'s job) or explicitly deferred with a reason. An edge case with neither is not allowed to close out.
 3. Never invent risks that aren't grounded in the signal, overview, or library content — label anything inferred as `inferred`, the same origin-tagging `fast-track` uses for assumptions.
 4. If an overview a system in `touches` depends on is missing or unverified (`verified: false`), say so as part of the verdict — don't silently assess against unverified material.
@@ -37,6 +37,8 @@ Append to the Thread file:
 ```yaml
 stage: Validating          # only once every edge case is mapped or deferred and the PM accepts
 verdict_ref: <path to the verdict, or inline if short>
+jury_mode: agents | agents (same model) | inline   # from jury-duty; anything but `agents` means the Skeptic shared a model
+jury_models: {advocate: ..., skeptic: ..., judge: ...}   # from jury-duty; omit when inline
 edge_cases:
   - id: EC-01                # an inferred trace in the Spec points here via `assumption`
     text: "..."
