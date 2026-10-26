@@ -204,6 +204,8 @@ cairn init --here --force --skills-only   # refresh .claude/skills/ after editin
 
 Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills/`, or the next `--force` will overwrite your change.
 
+**Bump the version with every push.** Claude Code only picks up a plugin update when `version` changes, so an unbumped push leaves plugin users on the old skills. The version lives in three places that must match: `pyproject.toml`, `src/cairn_cli/__init__.py` and `src/cairn_cli/templates/.claude-plugin/plugin.json`. `tests/test_version.py` fails if they drift. Use a minor bump (0.2.0 → 0.3.0) for skill or behavior changes and a patch bump for fixes and doc-only changes.
+
 Run the tests with `pip install pytest && pytest tests`.
 
 See the docs above for the full design behind all of this, including the check-spec rule table (C01–C25) and the install/update/packaging model.
