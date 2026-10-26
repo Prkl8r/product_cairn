@@ -67,8 +67,8 @@ Cairn uses lightweight MCP servers to handle all deterministic actions and state
 ## 5. Agentic Skills (The LLM Layer)
 Skills are context-aware prompts designed for *generative* and *qualitative* tasks.
 *   **`skill: theme_extractor`**: For feedback signals. Deterministic clustering groups feedback, and the LLM only names and summarizes the clusters. Requirement, mandate, and idea signals use a structured intake step instead (problem, sponsor, constraints, success target).
-*   **`skill: pm-jury-duty`**: Runs a 3-round adversarial debate (Advocate vs. Skeptic, with the Skeptic on a different model) to output a "Judge's Verdict" of concrete edge cases.
-*   **`skill: spec_generator`**: Reads `charter.yaml` and applies strict modality constraints to generate binary or thresholded Acceptance Criteria, each with a trace link and a slice.
+*   **`skill: jury-duty`**: Runs a 3-round adversarial debate (Advocate vs. Skeptic, with the Skeptic on a different model; in Claude Code each seat is its own agent, `jury-advocate`, `jury-skeptic`, `jury-judge`, with models set under `jury.models` in `.cairn/config.yaml`) to output a "Judge's Verdict" of concrete edge cases.
+*   **`skill: draft-spec`**: Reads `charter.yaml` and applies strict modality constraints to generate binary or thresholded Acceptance Criteria, each with a trace link and a slice.
 *   **`skill: fast-track`**: On the PM's request, backfills skipped stages and writes the Review Brief.
 *   **Readiness check (on demand):** "Is this ready for engineering?" reviews a Spec for what the compiler cannot see: ambiguity, contradictions, missing scenarios, and anything an engineer would have to guess.
 
@@ -86,7 +86,7 @@ Routing follows a data classification field on each Thread (`public`, `internal`
 ## 8. The User Experience (UX) Flow: Guiding the PM
 The agent's default move at every phase is a short, targeted question or a suggestion, not a finished artifact. The PM can ask for help at any stage: "what am I missing?", "argue against this", "find similar past Threads", "tighten these criteria", "is this ready for engineering?", "draft the ask to Sarah."
 *   **Phase A: Context Gathering (The Librarian):** A new signal arrives (a customer request via Zendesk, a requirement doc, an executive mandate, or an idea). The PM starts a new **Thread**. The IDE agent pulls related signals (`mcp-signal-ingest`) and cross-references them against constraints (`mcp-library-rag`).
-*   **Phase B: Pressure-Testing (The Thought Partner):** The PM drafts a messy 1-Pager. The agent runs `pm-jury-duty` to attack assumptions and surface edge cases.
+*   **Phase B: Pressure-Testing (The Thought Partner):** The PM drafts a messy 1-Pager. The agent runs `jury-duty` to attack assumptions and surface edge cases.
 *   **Phase C: Translating to Spec (The Scribe):** When the PM asks, the agent runs `spec_generator` to translate the Thread context into a strict **Spec**, and the compile check confirms every claim is traceable.
 *   **Phase D: Background Housekeeping (The Assistant):** Housekeeping happens through suggestions or choices made once at setup. In `suggest` mode, a one-line item lands in a quiet inbox ("THRD-042 was handed off. Create the Jira Epic? create / edit first / not this time / never for this product"). It surfaces at natural pauses, never interrupts work, and dismissals stick. In `auto` mode, which the PM opts into per integration, the action runs and is logged in the Thread changelog. Solo projects default to `off` for anything external.
 
@@ -113,10 +113,10 @@ To fully build and deploy Cairn, the following components must be developed:
 ### A. The Agentic Skills (LLM Instructions)
 *These define the AI's behavior and personas. They are saved in the IDE's skill/prompt registry and versioned.*
 1.  **`theme-extractor.md`**: Prompt instructions to name and summarize deterministic clusters of feedback signals as root-cause problem statements.
-2.  **`pm-jury-duty.md`**: Prompt instructions establishing the "Advocate," "Skeptic," and "Judge" personas, enforcing the 3-round debate format. *(Status: Built)*
-3.  **`spec-generator.md`**: Prompt instructions that read `charter.yaml` and translate Thread contexts into strict Acceptance Criteria with trace links and slices. *(Status: Built; needs update to emit trace links, slices, and open questions)*
-4.  **`fast-track.md`**: Backfills skipped stages and writes the Review Brief.
-5.  **`onboard-product` skills**: An import skill for existing products and an interview skill for new products, both producing a charter and product overviews.
+2.  **`jury-duty`**: Prompt instructions establishing the "Advocate," "Skeptic," and "Judge" personas, enforcing the 3-round debate format. Each seat is an agent under `.claude/agents/jury-*.md`; other agents play the seats inline (`jury_mode: inline`). *(Status: Built)*
+3.  **`draft-spec`**: Prompt instructions that read `charter.yaml` and translate Thread contexts into strict Acceptance Criteria with trace links and slices. *(Status: Built)*
+4.  **`fast-track`**: Backfills skipped stages and writes the Review Brief. *(Status: Built)*
+5.  **`onboard` skills**: An import skill for existing products and an interview skill for new products, both producing a charter and product overviews. Built as one skill, `onboard` (`--new` for the interview). *(Status: Built)*
 
 ### B. Deterministic Scripts (Python MCP Servers)
 *These act as the system's hands, strictly governing data flow, search, and API interactions without LLM hallucination.*
@@ -130,7 +130,7 @@ To fully build and deploy Cairn, the following components must be developed:
 *These are the static files that define the rules of the system.*
 1.  **`charter.yaml`**: The root configuration file defining product modality (`API`, `Web`, `Mobile`), UI presence (`true`/`false`), profile (`solo`/`team`), Git permissions (`auto_commit: false`), and optional org rules.
 2.  **Templates**: Thread, Spec, and Overview boilerplate so `mcp-local-tracker` can index everything.
-3.  **`.cairn/config.yaml`**: Integration modes, enforcement setting, dismissed suggestions.
+3.  **`.cairn/config.yaml`**: Integration modes, enforcement setting, dismissed suggestions, and the jury's per-seat models (`jury.models`).
 
 ---
 

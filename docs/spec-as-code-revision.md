@@ -157,7 +157,7 @@ For personal projects the Spec still earns its place: it is the written contract
 - Versioning: charter, skills, and prompts carry versions, recorded in every compiled Spec.
 
 ### 6. Product Onboarding (Brownfield and New Product)
-One entry point, `onboard-product`, with two paths. Both end in the same state: a ratified `charter.yaml` and product overviews at a known readiness level. No Thread can be created until both exist.
+One entry point, `onboard`, with two paths. Both end in the same state: a ratified `charter.yaml` and product overviews at a known readiness level. No Thread can be created until both exist.
 
 **Readiness levels (per system)**
 - L0: uncharted, nothing documented.
@@ -174,7 +174,7 @@ One entry point, `onboard-product`, with two paths. Both end in the same state: 
 7. **Pilot on one slice**, such as one API or one client, and reach L2 on just those systems first.
 
 **Path B: New product (greenfield)**
-1. The PM runs `onboard-product --new`. The `product-overview-interview` skill asks for: purpose, target users, modality, boundaries, key systems, interfaces, dependencies, data classes, success targets, non-goals, and owners.
+1. The PM runs `onboard --new`. The `onboard` skill's interview asks for: purpose, target users, modality, boundaries, key systems, interfaces, dependencies, data classes, success targets, non-goals, and owners.
 2. Outputs: a draft `charter.yaml`, `/architecture/product-overview.md`, and one overview per planned system, all using the Appendix E template.
 3. There is no source to import from, so the interview answers are the source (`source: interview`). The skill must not invent content. Unanswered fields stay `TBD`, and any `TBD` blocks promotion to L2.
 4. The PM or architect ratifies each overview to L2 by setting `verified: true` with their name and date.
@@ -188,7 +188,7 @@ One entry point, `onboard-product`, with two paths. Both end in the same state: 
 ### 7. Components (summary only)
 - MCP servers: local-tracker, signal-ingest, library-rag, external-sync, **spec-compiler (new)**.
 - `signal-ingest` uses one adapter per signal type: feedback (Zendesk, Slack), requirement (doc or wiki import), mandate (document or email upload), idea (quick capture). Every adapter writes a raw copy to `/signals/<type>/raw/` (git-ignored) and a redacted signal file to `/signals/<type>/<id>.md` (committed), with the same frontmatter (`signal_id`, `type`, `source`, `captured_on`, `data_class`).
-- Skills: theme-extractor (naming and summarizing only), pm-jury-duty, spec-generator, **fast-track (new)**, which backfills skipped stages and writes the Review Brief.
+- Skills: theme-extractor (naming and summarizing only), jury-duty, draft-spec, **fast-track (new)**, which backfills skipped stages and writes the Review Brief.
 - Clustering inside theme-extractor is a deterministic step, not an LLM step, and applies to feedback signals. Requirement, mandate, and idea signals do not cluster. They need a structured intake step that extracts problem, sponsor, constraints, and success target (see open questions).
 
 ### 8. Trust Model
@@ -239,7 +239,8 @@ Cairn ships as a versioned package that installs into a product repo and updates
 
 ```
 cairn-package/                   # the package (versioned, package-owned, installed as `cairn`)
-  skills/                     # theme-extractor, pm-jury-duty, spec-generator, fast-track, onboarding
+  skills/                     # shape-thread, assess-thread, jury-duty, draft-spec, check-spec, fast-track, onboard, ...
+  agents/                     # jury-advocate, jury-skeptic, jury-judge (Claude Code)
   servers/                    # local-tracker, signal-ingest, library-rag, external-sync, spec-compiler
   addons/                     # optional signal adapters, sync targets, export formats
   checks/                     # compiler rules, lint lists, severity defaults per profile
@@ -253,14 +254,14 @@ cairn-package/                   # the package (versioned, package-owned, instal
   signals/  threads/  specs/  architecture/  library/
   .cairn/
     package.lock              # pinned package version and checksums
-    config.yaml               # integration modes, enforcement, dismissals
+    config.yaml               # integration modes, enforcement, dismissals, jury models
     overrides/                # the PM's changes to skills, lint terms, checks
     inbox.md                  # background suggestions
 ```
 
 **Install**
 1. Install the package with one command (from an internal registry or a git tag).
-2. In a product repo, run `cairn init`. It asks for the profile (`solo` or `team`), creates the skeleton, writes `.cairn/package.lock`, adds `.gitignore` entries (`signals/*/raw/`, `.env`, `.env.*`, `.cairn/inbox.md`, `.cairn/local/`, and local index files), and offers `onboard-product` (brownfield or new). It is idempotent and never overwrites an existing file.
+2. In a product repo, run `cairn init`. It asks for the profile (`solo` or `team`), creates the skeleton, writes `.cairn/package.lock`, adds `.gitignore` entries (`signals/*/raw/`, `.env`, `.env.*`, `.cairn/inbox.md`, `.cairn/local/`, and local index files), and offers `onboard` (brownfield or new). It is idempotent and never overwrites an existing file.
 3. MCP servers are registered with the host assistant or IDE by writing a config snippet the PM approves, or by printing it. Nothing is edited silently. Skills are generated from one source into each host's format (host wrappers), alongside a shared instruction file (`AGENTS.md` or the host's equivalent), so every assistant gets the same guidance.
 4. `cairn doctor` checks the setup: servers start, credentials resolve, the charter validates, and schemas match the lock.
 5. Setup choices (integration modes, org rules, approver suggestions) are asked once, in plain language, with defaults per profile. `cairn config` changes them later.
@@ -352,7 +353,7 @@ spec_id: SPEC-042
 thread_id: THRD-042
 charter_version: 1.3.0
 generated_by:
-  skill: spec-generator
+  skill: draft-spec
   skill_version: 0.4.1
   model: <model-id>
 sections:
@@ -469,7 +470,7 @@ A single acknowledgement (`brief_ack`) is bound to the Spec content hash. Editin
 - Exit codes: 0 pass, 1 errors, 2 warnings unacknowledged, 3 config or resolution failure.
 
 ### How It Plugs In
-1. `spec-generator` must emit the frontmatter contract above, so the skill prompt is updated to produce `trace` per criterion.
+1. `draft-spec` must emit the frontmatter contract above, so the skill prompt is updated to produce `trace` per criterion.
 2. `mcp-local-tracker` refuses `status: Specified` (and `cairn handoff` refuses to deliver) unless a passing report matches the current Spec hash.
 3. The same checks run in CI as a pre-merge guard when the repo is shared.
 4. The eval harness runs the compiler over golden-set outputs to measure orphan-claim and error rates per skill version.
@@ -485,7 +486,7 @@ A single acknowledgement (`brief_ack`) is bound to the Spec content hash. Editin
 3. Approval and stage checks (C02, C03, C15), then tracker integration
 4. Heuristic checks (C12 to C14) tuned on real Threads
 5. Golden-set eval harness
-6. C16 and C17, once `onboard-product` has produced readiness levels and overview files
+6. C16 and C17, once `onboard` has produced readiness levels and overview files
 7. Fast track: `fast-track` skill, Review Brief format, `ack-brief` command, C18 and C19. Consider building this earlier, since it is the path the PM will use most day to day.
 8. Packaging: package layout, `cairn init`, `cairn doctor`, then `cairn update` with migrations and rollback. Settle the package-owned versus user-owned split first, since it is painful to retrofit.
 9. Add-on mechanism and starter sets, once the core is stable. Then add-ons one at a time, starting with the signal adapters and sync targets the pilot needs.

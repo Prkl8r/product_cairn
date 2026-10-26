@@ -126,7 +126,7 @@ onboard            # brownfield: pulls from the codebase and/or a connected trac
 onboard --new      # greenfield: runs an interview instead
 ```
 
-**2. Capture a signal.** Write it to `signals/<type>/<id>.md` (redacted/committed) with a raw copy under `signals/<type>/raw/` (git-ignored).
+**2. Capture a signal.** Run `intake-signal` with the quote, ticket, directive or metric. It writes `signals/<type>/<id>.md` (redacted/committed) with a raw copy under `signals/<type>/raw/` (git-ignored).
 
 **3. Start a Thread.** Minimal frontmatter — `thread_id`, `stage: Exploring`, `status: Active`, `owner`, `inbound_refs`, `touches` — plus one paragraph of what this is and why it matters.
 
@@ -150,6 +150,8 @@ Four skills, run in order, cover the normal track end to end:
 **The shortcut**: **`fast-track`** jumps straight from Exploring to a drafted Spec, backfilling Framing and Validating in light form (a short brief, a single-pass critique instead of the full jury) and writing a **Review Brief** — verify-first items, every assumption tagged by origin (`signal`/`overview`/`library`/`inferred`), open questions, and what was skipped. One acknowledgement (`brief_ack`) is the only checkpoint; `check-spec` still enforces everything else.
 
 **The jury**: **`jury-duty`** runs the Advocate/Skeptic/Judge critique that `assess-thread` calls, and a PM can run it alone to pressure-test anything. In Claude Code each seat is its own agent (`jury-advocate`, `jury-skeptic`, `jury-judge`), with the Skeptic on a different model from the other two. Each juror returns a short, fixed-format result, so the debate doesn't flood the conversation. Other agents play the three seats inline, and the verdict records `jury_mode: inline` so you know the Skeptic shared a model. Set each seat's model under `jury.models` in `.cairn/config.yaml`.
+
+**Housekeeping**: **`bundle-threads`** ties related Threads together (same problem, a duplicate, or work that should ship together) so they show as one group in the ledger and in lookups; it never merges them or changes their stage. **`park-or-reject`** parks, resumes or rejects a Thread at any stage.
 
 **The navigator**: **`whats-next`** is a lookup, not a gate. Point it at a Thread (or nothing, for the most recently touched one) and it names the one thing to do next — so nobody has to memorize this table.
 
