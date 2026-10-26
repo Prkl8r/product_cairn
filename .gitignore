@@ -14,8 +14,9 @@ build/
 !.env.example
 .mcp.local.json
 
-# Installed copy of the skills; the source is src/cairn_cli/templates/skills/
+# Installed copy of the skills and agents; the source is src/cairn_cli/templates/
 .claude/skills/
+.claude/agents/
 
 # Local state and indexes
 .cairn/inbox.md

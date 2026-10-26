@@ -27,6 +27,7 @@ If any of these are missing and the user hasn't pointed you at them, ask for the
 
 ## Rules (do not deviate)
 
+0. If the Thread covers two or more outcomes that could each ship on its own, run `shape-thread`'s Scope check first and draft per the PM's choice (by default, one Thread handing off several Specs).
 1. Before drafting, ask up to 3 questions — only ones whose answers would change the Spec. If none are needed, say so and proceed.
 2. Backfill the skipped stages in light form:
    - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal, using `shape-thread`'s headings (problem, evidence with a strength rating, alternatives, why now, expected outcome), one or two lines each. If evidence is `thin` or the outcome is unknown, say so in the caution flag.

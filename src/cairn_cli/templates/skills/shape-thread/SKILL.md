@@ -43,6 +43,41 @@ Before drafting, run `cairn find "<a few key words from the signal>"` (a single 
 7. **On drop:** set `status: Rejected` (stage stays Exploring), record `reason` and `reject_category`. This is searchable later so a dropped idea isn't re-argued from scratch.
 8. Mark everything you write as agent-drafted.
 
+## Scope check
+
+A Thread can hand off more than one Spec, so a Thread that has grown is not by itself a reason to split it. Run this check when the Thread now covers two or more outcomes that could each ship on its own (count them from the brief and anything the PM has added). Don't run it for a Thread with one outcome. Name the parts, then offer these choices and let the PM pick:
+
+1. **Keep one Thread, which will hand off several Specs** (the default). The Thread stays as it is and moves through its stages as one piece. At Validating, `draft-spec` drafts one Spec per part and notes which Spec must ship first. Recommend this when the parts share a signal, a problem, an owner and the same decisions.
+2. **Split into separate Threads and bundle them.** Keep the current Thread for the core part and create each other part as a new Thread at `stage: Exploring` with the same `inbound_refs`, then link them with `bundle-threads`. Recommend this only when a part needs a decision the others don't: it might be parked or rejected on its own, it has a different sponsor or signal, or it would move at a very different pace (Status belongs to the whole Thread, so one Thread can't park just one part).
+3. **Decide later.** Keep one Thread for now and let the jury in `assess-thread` weigh in on scope. Say plainly that, unless it's split later, this Thread will hand off several Specs.
+
+Record the choice on the Thread:
+
+```yaml
+scope_decision: multi_spec | split | deferred
+planned_specs:              # multi_spec or deferred: one entry per part, in ship order
+  - key: core               # short name; draft-spec swaps in the spec_id once drafted
+    outcome: "..."          # what this part delivers, in one line
+    covers: ["..."]         # the pieces of the Thread it takes
+    depends_on: []          # keys of parts that must ship first
+    spec_id: null           # filled by draft-spec
+```
+
+Also show the breakdown in the Thread body, so the PM can read and edit it without the YAML:
+
+```markdown
+## Planned Specs
+
+| # | Spec | Delivers | Covers | Ships after |
+|---|---|---|---|---|
+| 1 | core | ... | ... | — |
+| 2 | refine-and-share | ... | ... | 1 |
+```
+
+Keep the table and `planned_specs` in step: if the PM edits the table, update the YAML to match. A Thread with one outcome needs neither.
+
+Never split a Thread or create new ones without the PM choosing option 2. `assess-thread` and `draft-spec` run this same check (see this section) if the Thread has grown since it was last made.
+
 ## Org rules
 
 If `charter.yaml` lists `org_rules` matching this Thread (restricted data, compliance/InfoSec mandate, public API contract change), remind the PM once ("this one usually needs a sign-off, want me to draft the ask?") and continue — unless that rule sets `enforcement: block`, in which case stop and say why.
@@ -65,6 +100,8 @@ expected_outcome: "..."    # or "unknown"
 shape_decision: proceed | hold | drop
 reason: "..."              # hold or drop
 pickup_when: "..."         # hold only
+scope_decision: ...         # only when the Scope check ran
+planned_specs: [...]        # see Scope check
 ```
 
 Plus the problem-and-impact brief as body text under the headings in rule 2, labeled agent-drafted.

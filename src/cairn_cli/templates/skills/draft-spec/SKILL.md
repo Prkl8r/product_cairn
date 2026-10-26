@@ -11,16 +11,18 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add the new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
+Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add each new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). A Thread can hand off several Specs: draft one per entry in `planned_specs` (see `shape-thread`'s Scope check), each with its own `spec_id`, and note in each Spec which other Specs it depends on (from `depends_on`). Write each new `spec_id` back into its `planned_specs` entry and the `## Planned Specs` table. If the PM asks for only some parts now, draft those and leave the rest with `spec_id: null`. This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
 
 ## Required inputs
 
 1. The Thread file — must be `stage: Validating`, `status: Active`, with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. API specs (`api:` refs) must be OpenAPI 3.1: check for `openapi: 3.1.x` at the document root, and if it's another version or format, tell the PM rather than drafting against it. Endpoints, fields and limits in criteria may then trace to that document. If missing, stop and point the PM at `assess-thread` first.
 2. `charter.yaml`.
 3. Every signal file and `architecture/<system>/overview.md` the Thread references.
-4. If this Thread is part of a Bundle (`bundle_id` set), read every sibling Thread in `thread_ids` too — each needs its own slice(s) in the one Spec this produces.
+4. If this Thread is part of a Bundle (`bundle_id` set), read every sibling Thread in `thread_ids` too — each needs its own slice(s) in the Spec(s) this produces.
 
 ## Rules (do not deviate)
+
+0. **Scope check first.** If the Thread covers two or more outcomes that could each ship on its own but has no `scope_decision`, or `scope_decision: deferred`, run `shape-thread`'s Scope check before drafting, and draft per the PM's choice. Never split the Thread yourself.
 
 1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible. Each trace carries a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field, as in `check-spec` C23; an `inferred` trace points `assumption` at an edge case or assumption id in the jury verdict. Never mark something `direct` that the source doesn't actually say.
 2. Group criteria into ordered slices; each slice gets a one-line `verify` note.
