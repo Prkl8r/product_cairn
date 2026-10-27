@@ -8,7 +8,6 @@ Open follow-up items for the Cairn product repo.
   Running all 22 checks by hand was the heaviest step in the first fast-track run. `cairn handoff` already trusts the compile report's verdict, so the gate should come from code.
   The 2026-10-27 Haiku test run confirmed it: `cairn check` later found 14 errors in two Specs the agent had passed.
   Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23, C27, C28); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
-- [ ] **Cross-repo library refs** — define how a `trace.ref` points at a library file in another repo (C05 currently warns)
 - [ ] **Front end for non-technical PMs** — P2: a web or IDE front end that hides the `cairn` commands, YAML and git behind forms and a Thread board
   Wider adoption needs it, but it's a separate product. Decide first who the audience is; the plugin only removes the install step.
 - [ ] **Track-comparison metrics** — P2: report kickback rate by track (fast vs normal) and assumption burn-down by stage

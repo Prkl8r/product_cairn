@@ -100,13 +100,46 @@ def _lookup(docs: dict, ref: str) -> str | None:
     return None
 
 
+def repos(root: Path) -> dict[str, str]:
+    """Other repos a ref may point into, from `repos:` in .cairn/config.yaml (name -> local path or URL)."""
+    cfg = root / ".cairn" / "config.yaml"
+    try:
+        data = yaml.safe_load(cfg.read_text(encoding="utf-8")) or {} if cfg.exists() else {}
+    except yaml.YAMLError:
+        return {}
+    return {str(k): str(v) for k, v in (data.get("repos") or {}).items() if v}
+
+
+def external(root: Path, ref: str, named: dict[str, str] | None = None) -> tuple[str, Path | str | None] | None:
+    """For a ref like `lib:<repo>/<path>` naming a configured repo: ("local", file or None) or ("url", link).
+
+    None when the ref doesn't start with a configured repo name.
+    """
+    named = repos(root) if named is None else named
+    name, _, rest = ref_id(ref).partition("/")
+    if name not in named or not rest:
+        return None
+    where = named[name]
+    if re.match(r"^[a-z][a-z0-9+.-]*://", where):
+        return "url", f"{where.rstrip('/')}/{rest}"
+    base = (root / where).resolve()
+    for cand in (base / "library" / rest, base / rest):
+        for p in (cand, cand.with_name(cand.name + ".md")):
+            if p.is_file():
+                return "local", p
+    return "local", None
+
+
 def resolve(root: Path, docs: dict, ref: str) -> Path | None:
-    """The file a ref points at: a known doc, or any file in the repo by path. None if neither."""
+    """The file a ref points at: a known doc, any file in the repo by path, or a file in a configured local repo."""
     hit = _lookup(docs, ref)
     if hit:
         return docs[hit].path
     p = root / ref_id(ref)
-    return p if p.is_file() else None
+    if p.is_file():
+        return p
+    ext = external(root, ref)
+    return ext[1] if ext and ext[0] == "local" else None
 
 
 def load(root: Path) -> dict[str, Doc]:
@@ -135,6 +168,7 @@ def load(root: Path) -> dict[str, Doc]:
                 doc_id = p.relative_to(base).with_suffix("").as_posix()
                 docs[doc_id] = Doc(kind, doc_id, p, meta, body)
 
+    named = repos(root)
     # Wire signal <-> thread <-> spec links in both directions.
     # Required refs must resolve here; outbound refs (Jira etc.) and touches may point outside the repo.
     for d in list(docs.values()):
@@ -157,7 +191,9 @@ def load(root: Path) -> dict[str, Doc]:
                 d.links.add(t)
                 docs[t].links.add(d.id)
             elif ref in required and not (root / ref_id(ref)).is_file() and str(ref) not in d.broken:
-                d.broken.append(str(ref))
+                ext = external(root, ref, named)
+                if ext is None or ext == ("local", None):  # a URL repo can't be checked from here
+                    d.broken.append(str(ref))
 
     dates = _git_dates(root)
     today = _dt.date.today().isoformat()

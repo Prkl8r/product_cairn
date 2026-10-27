@@ -39,7 +39,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C02 | Parent Thread exists and lists this Spec in `outbound_refs`. Normal track: Thread is `stage: Validating`, `status: Active`. Fast track (`track: fast`): any stage is fine | Error |
 | C03 | Any approval the PM marked `blocking: true` on the Thread is recorded as granted | Error |
 | C04 | Every criterion has at least one `trace` entry (waived only if `legacy: true`, stamp `legacy_untraced`) | Error |
-| C05 | Every `trace.ref` resolves to an existing committed file and anchor — never a raw signal copy | Error |
+| C05 | Every `trace.ref` resolves to an existing committed file and anchor — never a raw signal copy. A ref like `lib:<repo>/<path>` naming a repo under `repos:` in `.cairn/config.yaml` resolves in that repo; one known only by URL can't be checked and warns instead | Error (Warn for a URL-only repo) |
 | C06 | Every `quote`, if present, appears verbatim (whitespace/case normalized) in the referenced committed file | Error |
 | C07 | Criterion `modality` is allowed by the charter (e.g. no `web` criteria when `ui_presence: false`) | Error |
 | C08 | `binary` criteria contain no vague terms (fast, intuitive, user-friendly, appropriate, robust, "should", etc.) and no either/or wording ("either … or", "within or in place of", "and/or") that lets two different outcomes both pass | Error |

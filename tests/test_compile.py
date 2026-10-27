@@ -201,3 +201,23 @@ def test_judge_seat_and_verdict_file_required(repo):
     (repo / "threads/THRD-001-verdict.md").unlink()
     assert rules(repo, spec_meta()) == {("C28", "THRD-001")}
     assert rules(repo, spec_meta(track="fast")) == set()
+
+
+def test_refs_into_configured_repos(repo, tmp_path_factory):
+    other = tmp_path_factory.mktemp("compliance")
+    (other / "library").mkdir()
+    (other / "library/sec-04.md").write_text("Logs are kept 90 days.\n")
+    (repo / ".cairn").mkdir()
+    (repo / ".cairn/config.yaml").write_text(
+        f"repos:\n  compliance: {other}\n  design: https://example.com/design/blob/main\n")
+    meta = spec_meta()
+    meta["criteria"][0]["trace"] = [
+        {"ref": "lib:compliance/sec-04", "basis": "direct", "quote": "kept 90 days"},
+        {"ref": "lib:design/tokens.md", "basis": "interpreted"}]
+    write(repo, meta)
+    found = c.check(repo, "SPEC-001")
+    assert not c.errors(found)
+    assert [(f.rule, f.severity) for f in found if f.rule == "C05"] == [("C05", "Warn")]
+    assert not ledger.load(repo)["SPEC-001"].broken
+    meta["criteria"][0]["trace"] = [{"ref": "lib:compliance/missing", "basis": "interpreted"}]
+    assert rules(repo, meta) == {("C05", "AC-001")}

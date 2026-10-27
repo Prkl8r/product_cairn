@@ -115,11 +115,18 @@ def check(root: Path, spec_id: str, docs: dict[str, _ledger.Doc] | None = None) 
             elif "/raw/" in ref or ref.startswith("raw/"):
                 err("C05", cid, f"`{ref}` points into a raw signal copy")
             elif path is None:
-                err("C05", cid, f"`{ref}` doesn't resolve to a file in this repo")
+                ext = _ledger.external(root, ref)
+                if ext and ext[0] == "url":
+                    warn("C05", cid, f"`{ref}` is in a repo only known by URL ({ext[1]}); can't check it from here")
+                elif ext:
+                    err("C05", cid, f"`{ref}` isn't a file in the `{_ledger.ref_id(ref).split('/')[0]}` repo")
+                else:
+                    err("C05", cid, f"`{ref}` doesn't resolve to a file in this repo or a configured one")
             # C06: the quote appears verbatim in the source.
             if t.get("quote") and path is not None:
                 if _norm(str(t["quote"])) not in _norm(path.read_text(encoding="utf-8", errors="replace")):
-                    err("C06", cid, f"quote not found verbatim in {path.relative_to(root).as_posix()}")
+                    shown = path.relative_to(root).as_posix() if path.is_relative_to(root) else str(path)
+                    err("C06", cid, f"quote not found verbatim in {shown}")
             # C23: basis and its required field.
             basis = t.get("basis")
             if basis not in BASES:

@@ -62,3 +62,11 @@ overviews:
   # How long an overview stays trusted after `last_verified` before check-spec (C16, C24) treats it as
   # stale. Used when an overview has no `review_ttl` of its own, and written into new stub overviews.
   review_ttl: 180d
+
+# Other repos a trace can point into, e.g. a shared compliance library. A ref like
+# `lib:compliance/sec-04` then looks for library/sec-04.md (or sec-04.md) in that repo.
+# A local path (relative to this repo) is checked like any other ref; a URL can't be checked
+# from here, so check-spec warns instead of failing.
+repos: {}
+#  compliance: ../compliance-library
+#  design-system: https://github.com/acme/design-system/blob/main

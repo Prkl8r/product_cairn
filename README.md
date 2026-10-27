@@ -175,7 +175,7 @@ cairn init --here --status-hook
 
 The hook does nothing on machines where `cairn` isn't installed, so it won't block a teammate's commits.
 
-`cairn check SPEC-001` runs the mechanical half of `check-spec` (required keys, parent Thread, trace refs resolve, quotes appear verbatim, thresholds complete, slices, open questions, trace basis, scope decision recorded, the jury's Judge actually ran) as code. The skill pastes its output into the compile report and does the judgment checks by reading. `--json` and `--markdown` change the output; it exits 1 on any Error.
+`cairn check SPEC-001` runs the mechanical half of `check-spec` (required keys, parent Thread, trace refs resolve, quotes appear verbatim, thresholds complete, slices, open questions, trace basis, scope decision recorded, the jury's Judge actually ran) as code. The skill pastes its output into the compile report and does the judgment checks by reading. `--json` and `--markdown` change the output; it exits 1 on any Error. A trace can point into another repo, such as a shared compliance library: name it under `repos:` in `.cairn/config.yaml` (a local path or a URL) and write `lib:<repo>/<path>`. Local repos are checked like this one; URL-only ones get a warning, since they can't be read from here.
 
 When a Spec is ready (`spec_status: specified`, or a Specified Thread for a single Spec), hand it off:
 

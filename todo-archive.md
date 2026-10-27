@@ -4,6 +4,7 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Cross-repo library refs** — Done: `repos:` in config names other repos; `lib:<repo>/<path>` resolves locally (checked) or by URL (warned)
 - [x] 2026-10-27 **Deferred-risk follow-up** — Done: deferred edge cases can carry `needs_decision` and `resurface_at`; whats-next raises them when due and check-spec C29 warns until decided
 - [x] 2026-10-27 **Default review_ttl** — Done: overviews.review_ttl in config (default 180d), used by C16 when an overview has none and written into stubs
 - [x] 2026-10-27 **Overview depth on fast track** — Done: fast-track's stub overviews stop at four questions (purpose, boundaries, interfaces touched, constraints), the rest TBD
