@@ -7,7 +7,7 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Deterministic compile-check** — build `cairn compile <spec-id>` so the C01–C26 rules run as code instead of by hand
   Running all 22 checks by hand was the heaviest step in the first fast-track run. `cairn handoff` already trusts the compile report's verdict, so the gate should come from code.
   The 2026-10-27 Haiku test run confirmed it: `cairn check` later found 14 errors in two Specs the agent had passed.
-  Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
+  Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23, C27); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
 - [ ] **Deferred questions vs. starting work** — decide whether deferred open questions block starting implementation or only finishing a slice
   An engineer reading a Spec cold couldn't tell if `brief_ack` plus outstanding deferrals meant "go". Write the rule into the Spec template and check-spec.
 - [ ] **Self-sourced signal type** — decide whether internal notes and dev-noticed items need their own signal type or clearer guidance under `idea`
@@ -26,8 +26,6 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Experiment as Thread output** — P3: note in the master doc that a Thread could produce a hypothesis-and-test artifact instead of a Spec
   A known gap, not a build item yet.
 - [ ] **Change impact drives enablement** — P3: derive enablement work from what a change affects (support, sales, docs, training) instead of a checklist on the Spec
-- [ ] **Enforce the scope check** — require a recorded scope-check answer (one Spec, or a `## Planned Specs` table) before draft-spec proceeds
-  The premium mandate (paywall + rain history) went out as one 5-slice Spec with no scope decision recorded.
 - [ ] **Record which jury seats ran** — store each seat's model and output in the verdict; fail the gate if the Judge didn't run
   The agent wrote the verdict itself instead of running the Judge seat and assess-thread accepted it.
 - [ ] **hand-off skill path untested** — rerun the test through the `hand-off` skill with no target configured, so the "how does your team work" setup flow gets exercised

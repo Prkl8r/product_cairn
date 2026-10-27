@@ -14,7 +14,7 @@ Cairn is a Markdown-and-YAML workflow for turning raw product signal (feedback, 
 |---|---|
 | **Signal** | An artifact, never a stage: raw input that feeds a Thread: `feedback` (tickets, Slack), `requirement` (a doc from another team), `mandate` (a compliance/exec directive), `idea`, or `analytics` (a dated snapshot of a product metric: the number, period, sample size, comparison and the query behind it, never just a dashboard link). Lives at `signals/<type>/<id>.md`. |
 | **Thread** | The unit of work. Begins when the PM decides one or more signals are worth pursuing; links to them in `inbound_refs` (signals aren't consumed, so one can feed several Threads) and to what it produced in `outbound_refs`. Has a `stage` (how far the thinking has got) and a `status` (whether it's being worked on). Lives at `threads/<id>.md`. Required frontmatter is only `thread_id`, `stage`, `status`, `owner` — a Thread can be one signal and a paragraph. |
-| **Spec** | What a Thread hands off when it leaves Validating — from then on, the artifact engineering works from. Listed in the Thread's `outbound_refs`. One Thread can produce more than one Spec: split Specs when the parts ship separately, and split Threads only when the parts need separate decisions (one could be parked or rejected alone, or has a different sponsor). The scope check in `shape-thread`, `assess-thread` and `draft-spec` asks which, defaulting to one Thread with several Specs. Lives at `specs/<id>.md`. |
+| **Spec** | What a Thread hands off when it leaves Validating — from then on, the artifact engineering works from. Listed in the Thread's `outbound_refs`. One Thread can produce more than one Spec: split Specs when the parts ship separately, and split Threads only when the parts need separate decisions (one could be parked or rejected alone, or has a different sponsor). The scope check in `shape-thread`, `assess-thread` and `draft-spec` asks which, defaulting to one Thread with several Specs, and records the answer as `scope_decision` (`single`, `multi_spec` or `split`). `draft-spec` won't start without it and `cairn check` fails a Spec whose Thread has none. Lives at `specs/<id>.md`. |
 | **Charter** (`charter.yaml`) | The product's root boundaries: modality, UI presence, profile (`solo`/`team`), write authority, data classification, org rules. Constrains a Thread; never starts one. |
 | **Architecture overview** (`architecture/<system>/overview.md`) | What a system owns, its interfaces, dependencies, constraints, known quirks. Readiness: **L0** uncharted, **L1** drafted/imported, **L2** verified by a named owner. A Spec can rest on L1: it still passes, but carries a warning that engineering must verify those constraints during estimation, and `cairn handoff` writes that warning into the Spec engineering receives. Loaded into context only when a Thread's `touches` names that system. |
 | **Track** | `normal` (every stage, full jury) or `fast` (skip Framing/Validating, backfill them lightly, write a Review Brief). Either way the compile check's traceability rules still apply. |
@@ -172,7 +172,7 @@ cairn init --here --status-hook
 
 The hook does nothing on machines where `cairn` isn't installed, so it won't block a teammate's commits.
 
-`cairn check SPEC-001` runs the mechanical half of `check-spec` (required keys, parent Thread, trace refs resolve, quotes appear verbatim, thresholds complete, slices, open questions, trace basis) as code. The skill pastes its output into the compile report and does the judgment checks by reading. `--json` and `--markdown` change the output; it exits 1 on any Error.
+`cairn check SPEC-001` runs the mechanical half of `check-spec` (required keys, parent Thread, trace refs resolve, quotes appear verbatim, thresholds complete, slices, open questions, trace basis, scope decision recorded) as code. The skill pastes its output into the compile report and does the judgment checks by reading. `--json` and `--markdown` change the output; it exits 1 on any Error.
 
 When a Spec is ready (`spec_status: specified`, or a Specified Thread for a single Spec), hand it off:
 
@@ -356,4 +356,4 @@ Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills
 
 Run the tests with `pip install pytest && pytest tests`.
 
-See the docs above for the full design behind all of this, including the check-spec rule table (C01–C26) and the install/update/packaging model.
+See the docs above for the full design behind all of this, including the check-spec rule table (C01–C27) and the install/update/packaging model.

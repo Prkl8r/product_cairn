@@ -15,6 +15,7 @@ thread_id: THRD-001
 stage: Validating
 status: {status}
 owner: pm
+scope_decision: single
 inbound_refs: ["idea:IDEA-001"]
 outbound_refs:
   - spec:SPEC-001

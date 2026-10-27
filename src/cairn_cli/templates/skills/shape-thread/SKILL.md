@@ -45,7 +45,7 @@ Before drafting, run `cairn find "<a few key words from the signal>"` (a single 
 
 ## Scope check
 
-A Thread can hand off more than one Spec, so a Thread that has grown is not by itself a reason to split it. Run this check when the Thread now covers two or more outcomes that could each ship on its own (count them from the brief and anything the PM has added). Don't run it for a Thread with one outcome. Name the parts, then offer these choices and let the PM pick:
+A Thread can hand off more than one Spec, so a Thread that has grown is not by itself a reason to split it. Run this check when the Thread now covers two or more outcomes that could each ship on its own (count them from the brief and anything the PM has added). For a Thread with one outcome, don't offer the choices: record `scope_decision: single` and say so in one line, so the answer is on file. Otherwise name the parts, then offer these choices and let the PM pick:
 
 1. **Keep one Thread, which will hand off several Specs** (the default). The Thread stays as it is and moves through its stages as one piece. At Validating, `draft-spec` drafts one Spec per part and notes which Spec must ship first. Recommend this when the parts share a signal, a problem, an owner and the same decisions.
 2. **Split into separate Threads and bundle them.** Keep the current Thread for the core part and create each other part as a new Thread at `stage: Exploring` with the same `inbound_refs`, then link them with `bundle-threads`. Recommend this only when a part needs a decision the others don't: it might be parked or rejected on its own, it has a different sponsor or signal, or it would move at a very different pace (Status belongs to the whole Thread, so one Thread can't park just one part).
@@ -54,7 +54,7 @@ A Thread can hand off more than one Spec, so a Thread that has grown is not by i
 Record the choice on the Thread:
 
 ```yaml
-scope_decision: multi_spec | split | deferred
+scope_decision: single | multi_spec | split | deferred   # always recorded; single = one outcome, one Spec
 planned_specs:              # multi_spec or deferred: one entry per part, in ship order
   - key: core               # short name; draft-spec swaps in the spec_id once drafted
     outcome: "..."          # what this part delivers, in one line
@@ -111,7 +111,7 @@ expected_outcome: "..."    # or "unknown"
 shape_decision: proceed | hold | drop
 reason: "..."              # hold or drop
 pickup_when: "..."         # hold only
-scope_decision: ...         # only when the Scope check ran
+scope_decision: ...         # always: the Scope check's answer
 planned_specs: [...]        # see Scope check
 ```
 

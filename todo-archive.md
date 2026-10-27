@@ -4,6 +4,7 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Enforce the scope check** — Done: scope_decision is always recorded (new `single` value); draft-spec refuses without it and `cairn check` C27 fails the Spec
 - [x] 2026-10-27 **Lineage line** — Done: shape-thread, draft-spec and fast-track open Thread and Spec bodies with a `**Lineage:**` line
 - [x] 2026-10-27 **Reviewer reminder at Validating** — Done: assess-thread, draft-spec and fast-track all emit the reminder in a fixed format, repeat it to the PM, and flag TBD owners
 - [x] 2026-10-27 **Onboard missing Appendix E** — Done: the overview template is inlined in onboard's SKILL.md

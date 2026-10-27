@@ -13,6 +13,7 @@ thread_id: THRD-001
 stage: Validating
 status: Active
 owner: pm
+scope_decision: single
 inbound_refs: ["idea:IDEA-001"]
 outbound_refs: ["spec:SPEC-001"]
 ---
@@ -171,3 +172,19 @@ def test_plain_or_passes(repo):
     meta = spec_meta()
     meta["criteria"][0]["text"] = "Shows rain or snow icons."
     assert rules(repo, meta) == set()
+
+
+@pytest.mark.parametrize("line,expect", [("", True), ("scope_decision: deferred\n", True),
+                                         ("scope_decision: multi_spec\n", False)])
+def test_scope_decision_recorded(repo, line, expect):
+    (repo / "threads/THRD-001.md").write_text(THREAD.replace("scope_decision: single\n", line))
+    assert (("C27", "THRD-001") in rules(repo, spec_meta())) == expect
+
+
+def test_single_scope_with_many_slices_warns(repo):
+    slices = [{"id": f"S{i}", "name": "x", "order": i, "verify": "v"} for i in range(1, 5)]
+    crit = [dict(spec_meta()["criteria"][0], id=f"AC-00{i}", slice=f"S{i}") for i in range(1, 5)]
+    write(repo, spec_meta(slices=slices, criteria=crit))
+    found = c.check(repo, "SPEC-001")
+    assert [f.severity for f in found if f.rule == "C27"] == ["Warn"]
+    assert not c.errors(found)

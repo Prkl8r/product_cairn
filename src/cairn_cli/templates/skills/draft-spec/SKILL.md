@@ -24,7 +24,7 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 
 ## Rules (do not deviate)
 
-0. **Scope check first.** If the Thread covers two or more outcomes that could each ship on its own but has no `scope_decision`, or `scope_decision: deferred`, run `shape-thread`'s Scope check before drafting, and draft per the PM's choice. Never split the Thread yourself.
+0. **Scope check first.** Don't draft until the Thread has a `scope_decision` of `single`, `multi_spec` or `split`. If it has none, or `deferred`, run `shape-thread`'s Scope check now, record the PM's answer, and draft per that choice. If it says `single` but the draft is heading for four or more slices, ask the PM once whether it's really several Specs. Never split the Thread yourself. `cairn check` fails a Spec whose Thread has no resolved decision (C27).
 
 1. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry to a real committed file. Quote the source where possible. Each trace carries a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field, as in `check-spec` C23; an `inferred` trace points `assumption` at an edge case or assumption id in the jury verdict. Never mark something `direct` that the source doesn't actually say.
 2. Group criteria into ordered slices; each slice gets a one-line `verify` note.

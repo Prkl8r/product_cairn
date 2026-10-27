@@ -27,7 +27,7 @@ If any of these are missing and the user hasn't pointed you at them, ask for the
 
 ## Rules (do not deviate)
 
-0. If the Thread covers two or more outcomes that could each ship on its own, run `shape-thread`'s Scope check first and draft per the PM's choice (by default, one Thread handing off several Specs, drafted one at a time as `draft-spec`'s "Drafting one of several planned Specs" describes). Then, if the Thread changes a user-facing flow and has no journey yet, offer `map-journey` in light form (happy path plus the error states the signal names). Skip it if the PM declines; note the skip in the Review Brief.
+0. Run `shape-thread`'s Scope check first and record its answer in `scope_decision` (`single` when there's one outcome; `cairn check` C27 fails without it), then draft per the PM's choice (by default, one Thread handing off several Specs, drafted one at a time as `draft-spec`'s "Drafting one of several planned Specs" describes). Then, if the Thread changes a user-facing flow and has no journey yet, offer `map-journey` in light form (happy path plus the error states the signal names). Skip it if the PM declines; note the skip in the Review Brief.
 1. Before drafting, ask up to 3 questions — only ones whose answers would change the Spec. Ask and record them the way `ask-me` does (multiple choice or free form, answers in `## Q&A`). If none are needed, say so and proceed.
 2. Backfill the skipped stages in light form:
    - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal, using `shape-thread`'s headings (problem, evidence with a strength rating, alternatives, why now, expected outcome), one or two lines each. If evidence is `thin` or the outcome is unknown, say so in the caution flag.

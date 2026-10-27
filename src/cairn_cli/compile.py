@@ -14,12 +14,13 @@ import yaml
 
 from . import ledger as _ledger
 
-MECHANICAL = ["C01", "C02", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C20", "C21", "C23"]
+MECHANICAL = ["C01", "C02", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C20", "C21", "C23", "C27"]
 REQUIRED_KEYS = {"spec_id": str, "thread_id": str, "sections": dict, "slices": list, "criteria": list}
 SECTIONS = ["problem", "out_of_scope", "error_states", "empty_states", "enablement_deps"]
 VAGUE = ["fast", "intuitive", "user-friendly", "appropriate", "robust", "should"]  # check-spec C08
 BASES = {"direct": "quote", "interpreted": None, "inferred": "assumption", "decided": "decided_by"}
 EITHER_OR = [r"\beither\b.+\bor\b", r"\b(\w+) or in place of\b", r"\band/or\b"]  # C08: two outcomes, can't fail
+SCOPE_DECISIONS = ["single", "multi_spec", "split"]  # `deferred` must be resolved before drafting
 QUESTION_STATUSES = {"answered", "deferred", "out_of_scope"}
 
 
@@ -73,6 +74,15 @@ def check(root: Path, spec_id: str, docs: dict[str, _ledger.Doc] | None = None) 
             err("C02", thread.id, f"normal track needs {thread.id} at Validating, it's at {stage}")
         if status in ("Parked", "Rejected"):
             err("C02", thread.id, f"{thread.id} is {status}")
+        # C27: the scope check ran and the PM's answer is on the Thread.
+        scope = thread.meta.get("scope_decision")
+        if scope not in SCOPE_DECISIONS:
+            err("C27", thread.id, f"{thread.id} has no scope_decision; run the scope check "
+                                  f"({', '.join(SCOPE_DECISIONS)})" if scope is None else
+                                  f"scope_decision `{scope}`; resolve it to one of {', '.join(SCOPE_DECISIONS)}")
+        elif scope == "single" and len(meta.get("slices") or []) >= 4:
+            warn("C27", thread.id, f"scope_decision is single but {spec_id} has "
+                                   f"{len(meta['slices'])} slices; worth asking whether it's several Specs")
 
     charter = {}
     if (root / "charter.yaml").exists():

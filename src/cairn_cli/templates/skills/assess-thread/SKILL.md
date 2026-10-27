@@ -28,7 +28,7 @@ When every edge case is mapped or deferred and the PM accepts the verdict, set `
 2. Every edge case the jury raises gets mapped to a future criterion (named, not yet fully drafted — that's `draft-spec`'s job) or explicitly deferred with a reason. An edge case with neither is not allowed to close out.
 3. Never invent risks that aren't grounded in the signal, overview, or library content — label anything inferred as `inferred`, the same origin-tagging `fast-track` uses for assumptions.
 4. If an overview a system in `touches` depends on is missing or unverified (`verified: false`), say so as part of the verdict — don't silently assess against unverified material.
-5. **Scope check.** If the Thread now covers two or more outcomes that could each ship on its own and has no `scope_decision`, or has grown since one was recorded, or recorded `deferred`, run the scope check from `shape-thread`'s Scope check section: name the parts and offer the same three choices, defaulting to one Thread that hands off several Specs. Ask the Judge to give a view on scope as part of the verdict when it's `deferred`.
+5. **Scope check.** If the Thread now covers two or more outcomes that could each ship on its own and has no `scope_decision`, or has grown since one was recorded, or recorded `deferred`, run the scope check from `shape-thread`'s Scope check section: name the parts and offer the same three choices, defaulting to one Thread that hands off several Specs. Ask the Judge to give a view on scope as part of the verdict when it's `deferred`, and get the PM to resolve `deferred` to `single`, `multi_spec` or `split` before the Thread moves to Validating: draft-spec won't start without it.
 6. Mark everything you write as agent-drafted.
 
 ## Output
