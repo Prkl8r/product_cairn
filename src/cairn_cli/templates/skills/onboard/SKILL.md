@@ -55,7 +55,7 @@ Go get this yourself before asking the PM for it. Everything pulled here is stil
 
 ### Rules
 1. **Charter first.** Read the source material and propose `charter.yaml`: `product`, `version`, `modality` (`api`/`web`/`mobile`), `ui_presence`, `profile` (`solo`/`team`), `write_authority` (`manual`/`auto_commit`), `data_class_default`, `org_rules`. Don't infer modality or profile from a vibe — cite what in the material told you, and ask for anything you can't ground. The PM ratifies by hand (edits the draft themselves, or tells you explicitly to proceed); you never write it as settled on your own.
-2. Import into `/library` (historical specs, compliance docs) and `/architecture` (system overviews). Every imported file gets provenance frontmatter: `source`, `imported_on`, `owner`, `verified: false`, `last_verified`, `review_ttl`. Use the Appendix E template below for overviews.
+2. Import into `/library` (historical specs, compliance docs) and `/architecture` (system overviews). Every imported file gets provenance frontmatter: `source`, `imported_on`, `owner`, `verified: false`, `last_verified`, `review_ttl`. Use the overview template below for overviews.
 3. Where a deterministic source exists (an OpenAPI file, a schema), generate the Interfaces section from it directly and summarize — don't draft interface content on top of a spec that already states it exactly.
 4. Every overview needs a named `owner` before it can move past L1. If the PM hasn't named one, leave the field blank and say so plainly — an unowned overview can never reach L2.
 5. Everything produced here starts at readiness **L1** (drafted or imported, not verified), no matter how authoritative the source material looked. Never set `verified: true` yourself; that is the named owner's call, made explicitly.
@@ -93,6 +93,36 @@ None exist yet — the PM's own answers are the only source.
   ```
   Body: Purpose, Users/consumers, Boundaries, Interfaces, Dependencies, Data classes, Constraints, Known quirks (brownfield: required), Non-goals, Glossary, Related Threads/Specs.
 - A short close-out summary: what's at L1 and ready to use as-is, what's still `TBD` or unowned, and exactly what the PM needs to do to ratify the charter and reach L2 on the systems that matter now.
+
+## Overview template
+
+Used for `architecture/product-overview.md` and each `architecture/<system>/overview.md`.
+
+```yaml
+---
+overview_of: <product | system name>
+owner: <named person, or TBD>
+source: interview | import | generated-from-schema
+verified: false
+verified_by: null
+last_verified: null
+review_ttl: 180d
+readiness: L1
+---
+```
+
+Body sections, in this order. Any left as `TBD` blocks promotion to L2:
+1. Purpose and the problem it solves
+2. Users and consumers
+3. Boundaries: what it owns, what it does not
+4. Interfaces: APIs, events, UI surfaces, with links to contracts
+5. Dependencies upstream and downstream
+6. Data classes handled and where they flow
+7. Constraints: compliance, performance targets, platform limits
+8. Known quirks and technical debt (required on the brownfield path)
+9. Non-goals
+10. Glossary of product-specific terms
+11. Related Threads and Specs (leave as a pointer: `cairn find <system>` lists them)
 
 ## What you must not do
 

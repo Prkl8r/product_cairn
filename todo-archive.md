@@ -4,6 +4,7 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Onboard missing Appendix E** — Done: the overview template is inlined in onboard's SKILL.md
 - [x] 2026-10-27 **Surface untriaged signals** — Done: ledger JSON carries an `untriaged` list and whats-next lists each one with a nudge
 - [x] 2026-10-27 **CLI test coverage** — Done: tests/test_cli.py covers init, doctor, ledger, find and snapshot
 - [x] 2026-10-27 **Unknown frontmatter keys** — Done: `cairn doctor` warns on keys no skill writes, suggests the closest known key, and accepts `extra_keys` from config

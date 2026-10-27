@@ -31,7 +31,6 @@ Open follow-up items for the Cairn product repo.
   The premium mandate (paywall + rain history) went out as one 5-slice Spec with no scope decision recorded.
 - [ ] **Record which jury seats ran** — store each seat's model and output in the verdict; fail the gate if the Judge didn't run
   The agent wrote the verdict itself instead of running the Judge seat and assess-thread accepted it.
-- [ ] **Onboard missing Appendix E** — inline the overview template in onboard's SKILL.md (or install it) instead of pointing at a doc `cairn init` doesn't copy
 - [ ] **Reviewer reminder at Validating** — actually emit the "who should review this draft" reminder the README promises, and flag when owners are TBD
 - [ ] **hand-off skill path untested** — rerun the test through the `hand-off` skill with no target configured, so the "how does your team work" setup flow gets exercised
   The Haiku agent bypassed it with `cairn handoff --to export`; make the skill harder to skip or have whats-next point at it.
