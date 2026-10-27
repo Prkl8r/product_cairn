@@ -6,6 +6,8 @@ Open follow-up items for the Cairn product repo.
 
 - [ ] **Deterministic compile-check** — build `cairn compile <spec-id>` so the C01–C26 rules run as code instead of by hand
   Running all 22 checks by hand was the heaviest step in the first fast-track run. `cairn handoff` already trusts the compile report's verdict, so the gate should come from code.
+  The 2026-10-27 Haiku test run confirmed it: `cairn check` later found 14 errors in two Specs the agent had passed.
+  Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
 - [ ] **Deferred questions vs. starting work** — decide whether deferred open questions block starting implementation or only finishing a slice
   An engineer reading a Spec cold couldn't tell if `brief_ack` plus outstanding deferrals meant "go". Write the rule into the Spec template and check-spec.
 - [ ] **Either/or criterion wording** — add a C08-style lint against "either/or" phrasing ("within or in place of") in criterion text
@@ -27,3 +29,32 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Experiment as Thread output** — P3: note in the master doc that a Thread could produce a hypothesis-and-test artifact instead of a Spec
   A known gap, not a build item yet.
 - [ ] **Change impact drives enablement** — P3: derive enablement work from what a change affects (support, sales, docs, training) instead of a checklist on the Spec
+- [ ] **Unknown frontmatter keys** — warn on keys not in the schema in `doctor`/check-spec
+  The agent invented `fast_track: true` on a Thread instead of `track: fast`; nothing noticed.
+- [ ] **Enforce the scope check** — require a recorded scope-check answer (one Spec, or a `## Planned Specs` table) before draft-spec proceeds
+  The premium mandate (paywall + rain history) went out as one 5-slice Spec with no scope decision recorded.
+- [ ] **Record which jury seats ran** — store each seat's model and output in the verdict; fail the gate if the Judge didn't run
+  The agent wrote the verdict itself instead of running the Judge seat and assess-thread accepted it.
+- [ ] **Onboard missing Appendix E** — inline the overview template in onboard's SKILL.md (or install it) instead of pointing at a doc `cairn init` doesn't copy
+- [ ] **Reviewer reminder at Validating** — actually emit the "who should review this draft" reminder the README promises, and flag when owners are TBD
+- [ ] **hand-off skill path untested** — rerun the test through the `hand-off` skill with no target configured, so the "how does your team work" setup flow gets exercised
+  The Haiku agent bypassed it with `cairn handoff --to export`; make the skill harder to skip or have whats-next point at it.
+- [ ] **Overview L1 → L2 promotion** — add a skill or command to name an owner and mark an overview verified
+  Jury and check-spec both warned about all-L1 overviews, but there's no step to fix it.
+- [ ] **Recurring-theme gate support** — count/link signals sharing a theme so the feedback exit gate isn't judged by eye
+- [ ] **Surface untriaged signals** — have `whats-next` (no id) list signals no Thread has picked up yet
+  Three of seven signals in the test run were left at "no thread" with no nudge.
+- [ ] **Suggest bundle and journey at the right moment** — prompt `bundle-threads` when new Threads share signals/themes, and `map-journey` in Framing for user-facing changes
+  Neither skill was used in the test run even though rain-next-hour and rain-history clearly relate.
+- [ ] **Commercial context for monetisation work** — give the charter or Thread a place for pricing, tiers and store billing constraints (App Store / Play)
+  The premium mandate had no home for these; the jury found payment/sync edge cases with nothing to trace them to.
+- [ ] **Separate PM in test runs** — rerun the end-to-end test with a human or a separate agent as PM, so Review Brief acknowledgement and PM decisions are real
+- [ ] **Thread priority, user-configured** — add an optional `priority` on Threads, scored by a scheme the user picks in `.cairn/config.yaml`; `ledger`, `whats-next` and `snapshot` sort by it
+  Keep it light: a sorting aid for busy weeks, not a Jira-style backlog tool. Default scheme: High/Medium/Low.
+  Built-in schemes: High/Medium/Low, levels (P0–P3), MoSCoW (Must/Should/Could/Won't), RICE (Reach × Impact × Confidence ÷ Effort) and ICE (Impact × Confidence × Ease).
+  Custom: the config can define its own ordered levels, or named score fields plus a formula. `shape-thread` asks for it at the proceed decision; `doctor` warns when a value doesn't fit the configured scheme.
+  Found in the Haiku test run: with 7 signals and 4 Threads, nothing said what to work on next.
+- [ ] **Thread size, user-configured** — add an optional `size` on Threads (or per planned Spec), with the scheme picked in `.cairn/config.yaml`; `ledger` and `snapshot` show it next to priority
+  Same light touch as priority: a rough signal for busy weeks, not estimation tooling. Default scheme: Small/Medium/Large.
+  Built-in schemes: Small/Medium/Large, T-shirt (XS–XL), story points (Fibonacci 1–13) and ideal days. Custom: the config lists its own ordered values.
+  When the priority scheme is RICE, its Effort can default from size instead of being asked twice. `shape-thread` asks for a first guess; `draft-spec` lets the PM revise it once slices exist.

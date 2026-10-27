@@ -23,6 +23,12 @@ Read, in full:
 3. `charter.yaml`.
 4. Every file any `trace.ref` points to (signals, library, architecture) — resolve each ref to a real committed file and anchor. Never accept a ref into `signals/*/raw/`.
 
+## Run the mechanical checks first
+
+Run `cairn check <spec-id> --markdown`. It runs C01, C02, C04–C10, C20, C21 and C23 as code and prints a row for each. Copy those rows into the report as they are: don't re-derive, soften or override them. Any Fail there is a Fail in the report, and `cairn handoff` refuses the Spec until `cairn check` passes, whatever the report says. If `cairn` isn't installed, run those rules by hand and say so in the report.
+
+Then do the rest by reading: C03, C11–C19, C22 and C24–C26.
+
 ## Checks
 
 Run every check below against the Spec. For each, record **Pass**, **Fail**, or **Warn**, with the offending criterion/section ID when it fails.

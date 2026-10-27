@@ -14,6 +14,7 @@ import typer
 import yaml
 
 from . import __version__
+from . import compile as _compile
 from . import handoff as _handoff
 from . import jury as _jury
 from . import ledger as _ledger
@@ -486,6 +487,33 @@ def snapshot(path: Path = PATH_OPT, include_restricted: bool = RESTRICTED_OPT):
     typer.echo(f"Wrote STATUS.json and STATUS.md ({len(snap['threads'])} threads, {len(snap['signals'])} signals).")
     if snap["broken_refs"]:
         typer.secho(f"  {len(snap['broken_refs'])} file(s) have broken references — see STATUS.md", fg=typer.colors.YELLOW)
+
+
+@app.command()
+def check(
+    spec_id: str = typer.Argument(..., help="The Spec to check, e.g. SPEC-001."),
+    as_json: bool = typer.Option(False, "--json", help="Findings as JSON."),
+    markdown: bool = typer.Option(False, "--markdown", help="A table of every mechanical rule, for the compile report."),
+    path: Path = PATH_OPT,
+):
+    """Run check-spec's mechanical rules (C01, C02, C04-C10, C20, C21, C23) on a Spec. Exits 1 on any Error."""
+    root = path.resolve()
+    findings = _compile.check(root, spec_id)
+    if as_json:
+        typer.echo(json.dumps({"spec_id": spec_id, "rules": _compile.MECHANICAL,
+                               "findings": [f.__dict__ for f in findings]}, indent=1))
+    elif markdown:
+        typer.echo(_compile.report_markdown(spec_id, findings), nl=False)
+    else:
+        for f in findings:
+            typer.secho(f"  {f.severity.upper():<6} {f.rule} {f.where}: {f.message}",
+                        fg=typer.colors.RED if f.severity == "Error" else typer.colors.YELLOW)
+        n = len(_compile.errors(findings))
+        typer.secho(f"{spec_id}: {n} error(s), {len(findings) - n} warning(s) across {len(_compile.MECHANICAL)} "
+                    "mechanical rules. check-spec still runs the rest.",
+                    fg=typer.colors.RED if n else typer.colors.GREEN)
+    if _compile.errors(findings):
+        raise typer.Exit(1)
 
 
 @app.command()

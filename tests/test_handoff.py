@@ -30,6 +30,21 @@ SPEC = """---
 spec_id: SPEC-001
 thread_id: THRD-001
 revision: 2
+sections:
+  problem: "A problem."
+  out_of_scope: ["Nothing else."]
+  error_states: ["An error."]
+  empty_states: ["An empty state."]
+  enablement_deps: "n/a: solo"
+slices:
+  - {id: S1, name: Core, order: 1, verify: "It works."}
+criteria:
+  - id: AC-001
+    slice: S1
+    type: binary
+    text: "The idea is shown."
+    trace:
+      - {ref: "idea:IDEA-001", basis: direct, quote: "An idea."}
 ---
 
 Spec body.
@@ -219,9 +234,10 @@ def test_one_spec_of_several_hands_off_and_thread_stays_active(repo):
 
 def test_last_spec_hands_off_the_thread(repo):
     thread, _ = multi_spec(repo)
-    (repo / "specs/SPEC-002.md").write_text("---\nspec_id: SPEC-002\nthread_id: THRD-001\nspec_status: specified\n---\nx\n")
+    (repo / "specs/SPEC-002.md").write_text(SPEC.replace("spec_id: SPEC-001", "spec_id: SPEC-002\nspec_status: specified"))
     (repo / "specs/SPEC-002.compile_report.md").write_text("## Verdict: Pass\n")
-    thread.write_text(thread.read_text().replace("    spec_id: null", "    spec_id: SPEC-002"))
+    thread.write_text(thread.read_text().replace("    spec_id: null", "    spec_id: SPEC-002")
+                      .replace("  - spec:SPEC-001\n", "  - spec:SPEC-001\n  - spec:SPEC-002\n"))
     assert run(repo, "SPEC-001", "--to", "in_place").exit_code == 0
     assert frontmatter(thread)["status"] == "Active"
     assert run(repo, "SPEC-002", "--to", "in_place").exit_code == 0

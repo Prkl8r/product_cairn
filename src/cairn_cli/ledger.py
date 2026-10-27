@@ -55,9 +55,35 @@ def _split(path: Path) -> tuple[dict, str]:
     return {}, text
 
 
-def _ref_id(ref: str) -> str:
+def ref_id(ref: str) -> str:
     """'feedback:ZD-88421' -> 'ZD-88421'; anchors like 'lib:x#y' keep the part before '#'."""
     return str(ref).split(":", 1)[-1].split("#", 1)[0].strip()
+
+
+_ref_id = ref_id
+
+
+def _lookup(docs: dict, ref: str) -> str | None:
+    """The doc id a ref names, also accepting path forms like 'backend-api/overview.md'."""
+    t = ref_id(ref)
+    for cand in (t, t.removesuffix(".md")):
+        if cand in docs:
+            return cand
+        for folder in ("signals", "threads", "specs", "journeys", *sorted(REFERENCE_KINDS)):
+            if cand.startswith(folder + "/"):
+                rest = cand[len(folder) + 1:]
+                if rest in docs or rest.rsplit("/", 1)[-1] in docs:
+                    return rest if rest in docs else rest.rsplit("/", 1)[-1]
+    return None
+
+
+def resolve(root: Path, docs: dict, ref: str) -> Path | None:
+    """The file a ref points at: a known doc, or any file in the repo by path. None if neither."""
+    hit = _lookup(docs, ref)
+    if hit:
+        return docs[hit].path
+    p = root / ref_id(ref)
+    return p if p.is_file() else None
 
 
 def load(root: Path) -> dict[str, Doc]:
@@ -103,11 +129,11 @@ def load(root: Path) -> dict[str, Doc]:
             for c in d.meta.get("criteria") or []:
                 required += [t["ref"] for t in (c.get("trace") or []) if isinstance(t, dict) and t.get("ref")]
         for ref in required + optional:
-            t = _ref_id(ref)
-            if t in docs:
+            t = _lookup(docs, ref)
+            if t:
                 d.links.add(t)
                 docs[t].links.add(d.id)
-            elif ref in required and str(ref) not in d.broken:
+            elif ref in required and not (root / ref_id(ref)).is_file() and str(ref) not in d.broken:
                 d.broken.append(str(ref))
 
     dates = _git_dates(root)

@@ -16,6 +16,7 @@ from pathlib import Path
 
 import yaml
 
+from . import compile as _compile
 from . import ledger as _ledger
 
 DESTINATIONS = ("export", "repo", "in_place")
@@ -221,6 +222,11 @@ def check(root: Path, spec_id: str, to: str, where: str | None) -> tuple[_ledger
         if spec_status != "specified":
             raise HandoffError(f"{spec_id} is spec_status: {spec_status}, not specified. Set spec_status: "
                                "specified once it compiles clean, then hand off.")
+    failed = _compile.errors(_compile.check(root, spec_id, docs))
+    if failed:
+        raise HandoffError(f"{spec_id} fails {len(failed)} mechanical check(s), whatever its compile report says:\n"
+                           + "\n".join(f"  {f.rule} {f.where}: {f.message}" for f in failed)
+                           + f"\nRun `cairn check {spec_id}` and fix them first.")
     verdict = compile_verdict(spec.path.with_name(f"{spec_id}.compile_report.md"))
     if verdict != "Pass":
         raise HandoffError(f"{spec_id}'s compile report " + ("is missing" if verdict is None else "says Fail")
