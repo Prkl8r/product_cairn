@@ -301,6 +301,8 @@ def init(
 @app.command()
 def doctor(
     path: Path = typer.Argument(Path("."), help="Product repo to check. Defaults to the current directory."),
+    fix: bool = typer.Option(False, "--fix", help="Apply safe fixes: record `scope_decision: single` on "
+                                                  "Validating Threads with at most one Spec. Never touches jury records."),
 ):
     """Check that a product repo's Cairn install is complete and consistent."""
     target = path.resolve()
@@ -394,6 +396,9 @@ def doctor(
             typer.secho(f"  WARN    {CONFIG_FILE}: {field} scheme `{name}` isn't built in "
                         f"({', '.join(built_in)}); using {_rank.DEFAULTS[field]}", fg=typer.colors.YELLOW)
     for d in _ledger.load(target).values():
+        if d.kind == "thread":
+            for line in _gate_gaps(target, d, fix):
+                typer.secho(f"  {line}", fg=typer.colors.GREEN if line.startswith("FIXED") else typer.colors.YELLOW)
         for key in _ledger.unknown_keys(d, extra):
             close = difflib.get_close_matches(key, _ledger.KNOWN_KEYS, n=1)
             hint = f" (did you mean `{close[0]}`?)" if close else ""
@@ -408,6 +413,53 @@ def doctor(
     if not ok:
         raise typer.Exit(1)
     typer.secho("Cairn install looks healthy.", fg=typer.colors.GREEN)
+
+
+def _gate_gaps(root: Path, thread: _ledger.Doc, fix: bool) -> list[str]:
+    """Threads at Validating that `cairn check` will fail on C27 (scope decision) or C28 (jury record),
+    each with how to fix it. With `fix`, records `scope_decision: single` where that's the only answer."""
+    stage, status = _ledger.stage_status(thread.meta)
+    if stage != "Validating" or status in ("Rejected", "Handed off"):
+        return []
+    out = []
+    scope = thread.meta.get("scope_decision")
+    specs = [r for r in thread.meta.get("outbound_refs") or [] if str(r).startswith("spec:")]
+    if scope not in _compile.SCOPE_DECISIONS:
+        if scope is None and not thread.meta.get("planned_specs") and len(specs) <= 1:
+            if fix and _add_frontmatter_line(thread.path, "scope_decision: single"):
+                out.append(f"FIXED   {thread.id}: recorded scope_decision: single (one Spec, no planned Specs)")
+            else:
+                out.append(f"WARN    {thread.id}: no scope_decision (C27). It has one Spec, so "
+                           f"`cairn doctor --fix` can record `single`.")
+        else:
+            why = f"`{scope}`" if scope else "none"
+            out.append(f"WARN    {thread.id}: scope_decision is {why} (C27) and it has "
+                       f"{len(specs)} Spec(s). Run the scope check in assess-thread or draft-spec to record one.")
+    if thread.meta.get("track", "normal") != "fast":
+        seats = {x.get("seat") for x in thread.meta.get("jury_seats") or [] if isinstance(x, dict)}
+        ref = str(thread.meta.get("verdict_ref") or "")
+        if "judge" not in seats or not ref or not (root / ref).is_file():
+            if ref and not (root / ref).is_file() and len(ref) > 60:
+                hint = (f"verdict_ref holds the verdict text. If the jury really ran, move it to "
+                        f"threads/{thread.id}-verdict.md and add jury_seats (jury_models lists the models); "
+                        f"otherwise rerun assess-thread")
+            else:
+                hint = ("if the jury really ran and you have the transcript, save it as the verdict file and add "
+                        "jury_seats; otherwise rerun assess-thread")
+            out.append(f"WARN    {thread.id}: no record that the jury's Judge ran (C28): {hint}.")
+    return out
+
+
+def _add_frontmatter_line(path: Path, line: str) -> bool:
+    """Insert one line at the end of a file's YAML frontmatter, leaving everything else as written."""
+    text = path.read_text(encoding="utf-8")
+    if not text.startswith("---\n"):
+        return False
+    end = text.find("\n---", 3)
+    if end == -1:
+        return False
+    path.write_text(text[:end + 1] + line + "\n" + text[end + 1:], encoding="utf-8")
+    return True
 
 
 PATH_OPT = typer.Option(Path("."), "--path", help="Product repo. Defaults to the current directory.")
