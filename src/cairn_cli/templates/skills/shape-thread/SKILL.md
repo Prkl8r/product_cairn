@@ -117,6 +117,15 @@ planned_specs: [...]        # see Scope check
 
 Plus the problem-and-impact brief as body text under the headings in rule 2, labeled agent-drafted.
 
+**Lineage line.** The first line of the Thread body, under the frontmatter, shows where it sits so a reader doesn't need the design doc:
+
+```markdown
+**Lineage:** feedback:FDBK-001, idea:IDEA-004 → THRD-007 → SPEC-012, SPEC-013
+```
+
+Signals come from the Thread's `inbound_refs`, Specs from its `outbound_refs` (`spec:` entries only); write `→ (no Spec yet)` before any exists. Update the line whenever those refs change. `cairn find <id>` prints the same chain from the files if the two ever disagree.
+
+
 If drafting surfaces a real action the PM needs to take outside the tool (e.g. "meet with the Architect to validate touches," "get UX to weigh in during Framing"), propose it as a line in the Thread's `## Open items` section (create the section if it doesn't exist yet) rather than mentioning it only in chat. Checking items off is the PM's job, not yours — see `whats-next`'s Checklists section for how this surfaces later.
 
 ## What you must not do

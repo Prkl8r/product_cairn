@@ -67,6 +67,15 @@ criteria: [...]
 
 If drafting for a Bundle, criteria carry the normal `trace` entries back to each originating Thread's signals — never a bundle-level trace.
 
+**Lineage line.** The first line of the Spec, and of the parent Thread's body (add or update it there too) body, under the frontmatter, shows where it sits so a reader doesn't need the design doc:
+
+```markdown
+**Lineage:** feedback:FDBK-001, idea:IDEA-004 → THRD-007 → SPEC-012, SPEC-013
+```
+
+Signals come from the Thread's `inbound_refs`, Specs from its `outbound_refs` (`spec:` entries only); write `→ (no Spec yet)` before any exists. In a Spec, list only this Spec on the right and only the signals its criteria trace to on the left. For a Bundle, list each originating Thread: `… → THRD-003 + THRD-004 → SPEC-012`. Update the line whenever those refs change. `cairn find <id>` prints the same chain from the files if the two ever disagree.
+
+
 ## Review reminder (required)
 
 Every time, before you finish, add a review reminder to the Thread's `## Open items` if one isn't there, and repeat it in your reply to the PM:

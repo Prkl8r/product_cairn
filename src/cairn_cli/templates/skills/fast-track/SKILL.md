@@ -94,6 +94,8 @@ brief_ack: null                # the PM sets this, never you
 ---
 ```
 
+Start both the Thread and Spec bodies with the **Lineage** line described in `draft-spec` (`**Lineage:** <signals> → <thread> → <specs>`).
+
 ## Output: the Review Brief
 
 Place this at the top of the Thread file (and mirror the structured version into `review_brief` in the Spec frontmatter). With several planned Specs, write one Review Brief per Spec under a `## Review Brief: <spec_id>` heading, each with its own `brief_ack`:

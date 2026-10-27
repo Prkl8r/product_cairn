@@ -19,6 +19,8 @@ Cairn is a Markdown-and-YAML workflow for turning raw product signal (feedback, 
 | **Architecture overview** (`architecture/<system>/overview.md`) | What a system owns, its interfaces, dependencies, constraints, known quirks. Readiness: **L0** uncharted, **L1** drafted/imported, **L2** verified by a named owner. A Spec can rest on L1: it still passes, but carries a warning that engineering must verify those constraints during estimation, and `cairn handoff` writes that warning into the Spec engineering receives. Loaded into context only when a Thread's `touches` names that system. |
 | **Track** | `normal` (every stage, full jury) or `fast` (skip Framing/Validating, backfill them lightly, write a Review Brief). Either way the compile check's traceability rules still apply. |
 
+Every Thread and Spec body opens with a lineage line, e.g. `**Lineage:** feedback:FDBK-001 → THRD-007 → SPEC-012`, so you can see where a file sits without opening the others.
+
 Gates are guardrails, not a prison. The PM can skip ahead (`fast-track`) or step around a check; the system never silently blocks, it tells you what you're skipping and what to verify.
 
 ---
