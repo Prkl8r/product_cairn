@@ -150,23 +150,11 @@ def unverified_architecture(root: Path, thread: _ledger.Doc) -> list[str]:
         meta = _ledger._split(path)[0] if path.exists() else {}
         level = str(meta.get("readiness") or ("L1" if path.exists() else "L0"))
         if level == "L2" and meta.get("verified") is True:
-            if not _expired(meta):
+            if _ledger.freshness(root, meta)["state"] != "stale":
                 continue
             level = "L2, past review_ttl"
         notes.append(UNVERIFIED_NOTE.format(level=level, system=system))
     return notes
-
-
-def _expired(meta: dict) -> bool:
-    m = re.fullmatch(r"(\d+)d", str(meta.get("review_ttl") or ""))
-    last = meta.get("last_verified")
-    if not m or not last:
-        return False
-    try:
-        last = last if isinstance(last, _dt.date) else _dt.date.fromisoformat(str(last))
-    except ValueError:
-        return False
-    return (_dt.date.today() - last).days > int(m.group(1))
 
 
 def build_package(root: Path, spec: _ledger.Doc, thread: _ledger.Doc) -> tuple[Path, list[str]]:

@@ -417,6 +417,11 @@ def doctor(
         if d.kind == "thread":
             for problem in _rank.problems(target, d.meta):
                 typer.secho(f"  WARN    {d.id}: {problem}", fg=typer.colors.YELLOW)
+        if d.kind in _ledger.REFERENCE_KINDS:
+            f = _ledger.freshness(target, d.meta)
+            if f["state"] in ("stale", "undated"):
+                typer.secho(f"  WARN    {d.id} is {_ledger.freshness_label(f)}. Re-verify it and update "
+                            f"last_verified.", fg=typer.colors.YELLOW)
         if d.broken:
             typer.secho(f"  WARN    {d.id} references missing files: {', '.join(d.broken)}", fg=typer.colors.YELLOW)
 
@@ -518,7 +523,16 @@ def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: 
 
     refs = [d for d in docs.values() if d.kind in _ledger.REFERENCE_KINDS]
     if refs:
-        typer.secho(f"\nReference — {len(refs)} library/architecture docs (cairn find --kind library|architecture)", bold=True)
+        fresh = {d.id: _ledger.freshness(root, d.meta) for d in refs}
+        counts = {}
+        for f in fresh.values():
+            counts[f["state"]] = counts.get(f["state"], 0) + 1
+        summary = ", ".join(f"{counts[k]} {k.replace('_', ' ')}" for k in
+                            ("fresh", "due_soon", "stale", "undated", "unverified") if k in counts)
+        typer.secho(f"\nReference — {len(refs)} library/architecture docs: {summary}", bold=True)
+        for d in sorted(refs, key=lambda d: fresh[d.id].get("days_left", 10**6)):
+            if fresh[d.id]["state"] != "fresh":
+                typer.echo(f"  {d.id:<28} {_ledger.freshness_label(fresh[d.id])}")
 
     broken = [d for d in docs.values() if d.broken]
     if broken:

@@ -132,3 +132,40 @@ def test_doctor_leaves_multi_spec_scope_to_the_pm(repo):
     (repo / "threads/THRD-001.md").write_text(thread)
     out = runner.invoke(app, ["doctor", str(repo), "--fix"]).output
     assert "FIXED" not in out and "has 2 Spec(s)" in out
+
+
+def _overview(repo, system, **meta):
+    lines = "".join(f"{k}: {v}\n" for k, v in meta.items())
+    path = repo / "architecture" / system / "overview.md"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(f"---\n{lines}---\nOverview.\n")
+
+
+def test_freshness_states(repo):
+    import datetime as dt
+
+    from cairn_cli import ledger as L
+    today = dt.date(2026, 10, 27)
+    f = lambda **m: L.freshness(repo, m, today)
+    assert f(verified=False)["state"] == "unverified"
+    assert f(verified=True)["state"] == "undated"
+    assert f(verified=True, last_verified="2026-10-01")["state"] == "fresh"
+    assert f(verified=True, last_verified="2026-05-15")["state"] == "due_soon"  # config default 180d
+    stale = f(verified=True, last_verified="2026-01-01", review_ttl="90d")
+    assert stale["state"] == "stale" and stale["days_left"] < 0
+
+
+def test_ledger_doctor_and_json_show_stale_overviews(repo):
+    import datetime as dt
+    old = (dt.date.today() - dt.timedelta(days=400)).isoformat()
+    _overview(repo, "auth", verified="true", last_verified=dt.date.today().isoformat(), review_ttl="180d")
+    _overview(repo, "search", verified="true", last_verified=old, review_ttl="180d")
+    _overview(repo, "billing", verified="false")
+    out = runner.invoke(app, ["ledger", "--path", str(repo)]).output
+    assert "3 library/architecture docs: 1 fresh, 1 stale, 1 unverified" in out
+    assert "search/overview" in out and "220d overdue" in out
+    assert "auth/overview" not in out
+    assert "search/overview is stale" in runner.invoke(app, ["doctor", str(repo)]).output
+    snap = json.loads(runner.invoke(app, ["ledger", "--path", str(repo), "--json"]).output)
+    states = {r["id"]: r["freshness"]["state"] for r in snap["reference"]}
+    assert states == {"auth/overview": "fresh", "search/overview": "stale", "billing/overview": "unverified"}

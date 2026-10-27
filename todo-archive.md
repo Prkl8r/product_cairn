@@ -4,6 +4,7 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Overview freshness indicator** — Done: ledger, --json, snapshot and doctor show each library/architecture doc as fresh, due soon, stale, unverified or undated, using the config review_ttl default
 - [x] 2026-10-27 **Thread size, user-configured** — Done: optional `size` on Threads and planned Specs (S/M/L, T-shirt, points, days, or custom); feeds RICE effort; shown next to priority
 - [x] 2026-10-27 **Thread priority, user-configured** — Done: optional `priority` with built-in (HML, P0–P3, MoSCoW, RICE, ICE) or custom schemes; ledger, snapshot and whats-next sort by it; doctor checks values
 - [x] 2026-10-27 **Cross-repo library refs** — Done: `repos:` in config names other repos; `lib:<repo>/<path>` resolves locally (checked) or by URL (warned)

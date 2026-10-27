@@ -269,6 +269,8 @@ Every target can use `{package}` (the package folder), `{spec}` (its `spec.md`),
 
 `--json` and `snapshot` leave out anything marked `data_class: restricted`, including the ids of restricted signals, unless you pass `--include-restricted`. Plain terminal output shows everything and tags restricted items. Every output lists broken references (a Thread or Spec pointing at a signal, Thread, or library file that doesn't exist), and `cairn doctor` warns about them.
 
+**Overview freshness.** `cairn ledger` lists each library and architecture doc's freshness: fresh, due soon (within 30 days of its `review_ttl`), stale, unverified, or verified with no `last_verified` date. A doc with no `review_ttl` uses `overviews.review_ttl` from `.cairn/config.yaml` (180d if unset). `--json` adds a `freshness` object to each reference entry, `cairn snapshot` lists the docs that are due or stale, and `cairn doctor` warns about stale and undated ones.
+
 **1. Onboard the product, once.** Nothing else works without a ratified `charter.yaml` and at least an L1 overview for the systems a Thread will touch:
 
 ```

@@ -12,8 +12,6 @@ Open follow-up items for the Cairn product repo.
   Wider adoption needs it, but it's a separate product. Decide first who the audience is; the plugin only removes the install step.
 - [ ] **Track-comparison metrics** — P2: report kickback rate by track (fast vs normal) and assumption burn-down by stage
   Needs real Threads first. Later, use the numbers to suggest when fast track shouldn't be used (e.g. API changes).
-- [ ] **Overview freshness indicator** — P2: show how recently each overview was verified (from `last_verified` and `review_ttl`) in `ledger` or `doctor`
-  A stale overview that passes every check gives false confidence. Could also feed fast-track caution flags.
 - [ ] **Jury vs single-critique test** — P2: run one Thread through both a single critique and the Advocate/Skeptic/Judge jury, and compare what each finds
   A cheap stand-in for a full eval harness. If the jury adds nothing, simplify it.
 - [ ] **Experiment as Thread output** — P3: note in the master doc that a Thread could produce a hypothesis-and-test artifact instead of a Spec

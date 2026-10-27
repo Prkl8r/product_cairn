@@ -305,6 +305,44 @@ def snippet(doc: Doc, width: int = 90) -> str:
     return text[:width] + ("…" if len(text) > width else "")
 
 
+DUE_SOON_DAYS = 30
+
+
+def freshness(root: Path, meta: dict, today: _dt.date | None = None) -> dict:
+    """How current a library/architecture doc is, from `verified`, `last_verified` and `review_ttl`
+    (falling back to `overviews.review_ttl` in config, then 180d, as C16 does).
+    state is one of fresh, due_soon, stale, unverified, undated."""
+    ttl = str(meta.get("review_ttl") or (_rank._config(root).get("overviews") or {}).get("review_ttl") or "180d")
+    m = re.fullmatch(r"(\d+)d", ttl.strip())
+    days = int(m.group(1)) if m else 180
+    out = {"state": "unverified", "last_verified": None, "review_ttl": f"{days}d"}
+    last = meta.get("last_verified")
+    try:
+        last = last if isinstance(last, _dt.date) else _dt.date.fromisoformat(str(last)) if last else None
+    except ValueError:
+        last = None
+    if last:
+        out["last_verified"] = last.isoformat()
+    if meta.get("verified") is not True:
+        return out
+    if not last:
+        return dict(out, state="undated")
+    left = days - ((today or _dt.date.today()) - last).days
+    out["days_left"] = left
+    out["state"] = "stale" if left < 0 else "due_soon" if left <= DUE_SOON_DAYS else "fresh"
+    return out
+
+
+def freshness_label(f: dict) -> str:
+    if f["state"] == "unverified":
+        return "unverified" + (f" (last verified {f['last_verified']})" if f["last_verified"] else "")
+    if f["state"] == "undated":
+        return "verified, no last_verified date"
+    left = f["days_left"]
+    when = f"{-left}d overdue" if left < 0 else f"{left}d left"
+    return f"{f['state'].replace('_', ' ')}: verified {f['last_verified']}, {f['review_ttl']} ttl, {when}"
+
+
 def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
     """Compact, stable shape for --json output."""
     out = {"id": doc.id, "kind": doc.kind, "path": doc.path.relative_to(root).as_posix(),
@@ -317,6 +355,8 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
             out["kickback_category"] = kb.get("category")
     if doc.broken:
         out["broken_refs"] = doc.broken
+    if doc.kind in REFERENCE_KINDS:
+        out["freshness"] = freshness(root, doc.meta)
     for k in ("type", "revision", "spec_status", "owner", "readiness", "priority", "size",
               "bundle", "pickup_when", "reject_category"):
         if doc.meta.get(k) is not None:
@@ -383,6 +423,10 @@ def status_markdown(snap: dict) -> str:
     if loose:
         lines += ["", "## Asks with no Thread yet", ""]
         lines += [f"- {s['id']} ({s.get('type', '?')}, {s['updated']})" for s in loose]
+    stale = [r for r in snap["reference"] if r["freshness"]["state"] in ("stale", "due_soon")]
+    if stale:
+        lines += ["", "## Reference docs due for review", ""]
+        lines += [f"- {r['id']}: {freshness_label(r['freshness'])}" for r in stale]
     if snap["broken_refs"]:
         lines += ["", "## Broken references", ""]
         lines += [f"- {k}: {', '.join(v)}" for k, v in snap["broken_refs"].items()]
