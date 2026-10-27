@@ -88,7 +88,7 @@ Read it left to right: any source becomes a typed **signal**; one or more signal
 |---|---|---|---|
 | **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Analytics: the number has a comparison and a known sample size. Problem-and-impact brief written (evidence, alternatives, why now, expected outcome); PM decides **proceed**. | `shape-thread` |
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
-| **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `draft-spec` → `check-spec` |
+| **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), adds it to the Thread's `## Open items`, flags any owner still `TBD`, and never blocks on it. | `draft-spec` → `check-spec` |
 
 Leaving Validating takes two steps. Once the Spec compiles clean, the PM marks it ready; when it goes out, it's handed off.
 

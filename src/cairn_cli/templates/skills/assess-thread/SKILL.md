@@ -54,7 +54,7 @@ Plus the verdict body: the edge cases found, each tagged with its origin.
 
 If the Thread has `planned_specs`, propose which planned Spec each edge case belongs to (from each part's `outcome` and `covers`) and let the PM confirm, so `draft-spec` doesn't have to sort them out later. An edge case that fits no part goes to the PM as a possible missing part.
 
-If the verdict shows who should review the draft, or which supporting artifacts (UX mocks, an API spec) Validating will need, propose them as lines in the Thread's `## Open items`.
+When the Thread moves to Validating, tell the PM who should review the draft: the sponsor (`validated_by`) and the owner of each system in `touches` from its overview, flagging any owner that is `TBD` or missing. Add that as a line in the Thread's `## Open items` (draft-spec's "Review reminder" section has the format), along with any supporting artifacts (UX mocks, an API spec) the verdict says Validating will need. It's a reminder, never a gate.
 
 ## What you must not do
 

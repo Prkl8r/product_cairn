@@ -67,7 +67,17 @@ criteria: [...]
 
 If drafting for a Bundle, criteria carry the normal `trace` entries back to each originating Thread's signals — never a bundle-level trace.
 
-After drafting, add a review reminder to the Thread's `## Open items` if one isn't there: who should read the draft before handoff — the sponsor (`validated_by`) and the owner of each system in `touches`, by name where the overview gives one. Nobody has to sign off; this is a reminder, never a gate.
+## Review reminder (required)
+
+Every time, before you finish, add a review reminder to the Thread's `## Open items` if one isn't there, and repeat it in your reply to the PM:
+
+```markdown
+- [ ] Review the draft before handoff: <sponsor name> (sponsor), <owner name> (<system> owner), ...
+```
+
+- Name the sponsor from `validated_by` and the owner of each system in `touches`, taken from that system's `architecture/<system>/overview.md` `owner`.
+- Where an owner is `TBD`, missing, or the overview doesn't exist, write `<system>: owner TBD` in the line and say so in the reply: nobody can check those constraints until someone is named.
+- Nobody has to sign off; this is a reminder, never a gate. If the PM says nobody needs to review, write `- [x] Review: none needed (PM, <date>)` so the next skill doesn't add it again.
 
 ## What you must not do
 
