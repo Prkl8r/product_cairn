@@ -25,10 +25,62 @@ Gates are guardrails, not a prison. The PM can skip ahead (`fast-track`) or step
 
 ## The lifecycle
 
+```mermaid
+flowchart LR
+    subgraph Sources["1 · Where input comes from"]
+        direction TB
+        S1["Users and support<br/>tickets, reviews, Slack"]
+        S2["Other teams<br/>sales, partners"]
+        S3["Leadership, legal,<br/>compliance"]
+        S4["Your own team<br/>PM or dev ideas"]
+        S5["Product data<br/>funnels, A/B tests"]
+    end
+
+    subgraph Signals["2 · Signals (intake-signal)"]
+        direction TB
+        F[feedback]
+        R[requirement]
+        M[mandate]
+        I[idea]
+        A[analytics]
+    end
+
+    S1 --> F
+    S2 --> R
+    S3 --> M
+    S4 --> I
+    S5 --> A
+
+    subgraph Bundle["3 · Threads (one, or several bundled)"]
+        direction TB
+        T1["Thread A"]
+        T2["Thread B"]
+        T1 -. bundle-threads .- T2
+    end
+
+    F & R & I --> T1
+    M & A --> T2
+
+    subgraph Stages["4 · Each Thread moves through stages"]
+        direction LR
+        E["Exploring<br/>shape-thread"] --> FR["Framing<br/>assess-thread, jury"] --> V["Validating<br/>draft-spec, check-spec"]
+        E -. fast-track .-> V
+    end
+
+    Bundle --> E
+
+    subgraph Out["5 · Specs out"]
+        direction TB
+        SP1["Spec 1"]
+        SP2["Spec 2"]
+    end
+
+    V --> SP1 & SP2
+    SP1 & SP2 --> H(["cairn handoff<br/>to engineering"])
+    H -. kickback .-> V
 ```
-signal(s) ──► Exploring ──► Framing ──► Validating ──► Spec
-                 └────────── Thread ──────────┘   (outbound_refs)
-```
+
+Read it left to right: any source becomes a typed **signal**; one or more signals start a **Thread** (a signal can feed several Threads, and related Threads can be bundled); the Thread gets sharper at each **stage**; and it leaves Validating as one or more **Specs**, each handed off on its own. If engineering sends a Spec back, it returns to Validating to be revised.
 
 **Stages** measure fidelity. Each name says what's happening now; each gate is what must be true to leave it.
 
