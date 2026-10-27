@@ -4,6 +4,8 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Thread size, user-configured** — Done: optional `size` on Threads and planned Specs (S/M/L, T-shirt, points, days, or custom); feeds RICE effort; shown next to priority
+- [x] 2026-10-27 **Thread priority, user-configured** — Done: optional `priority` with built-in (HML, P0–P3, MoSCoW, RICE, ICE) or custom schemes; ledger, snapshot and whats-next sort by it; doctor checks values
 - [x] 2026-10-27 **Cross-repo library refs** — Done: `repos:` in config names other repos; `lib:<repo>/<path>` resolves locally (checked) or by URL (warned)
 - [x] 2026-10-27 **Deferred-risk follow-up** — Done: deferred edge cases can carry `needs_decision` and `resurface_at`; whats-next raises them when due and check-spec C29 warns until decided
 - [x] 2026-10-27 **Default review_ttl** — Done: overviews.review_ttl in config (default 180d), used by C16 when an overview has none and written into stubs

@@ -70,3 +70,18 @@ overviews:
 repos: {}
 #  compliance: ../compliance-library
 #  design-system: https://github.com/acme/design-system/blob/main
+
+# Optional Thread priority and size: a sorting aid for busy weeks, not a backlog tool. Threads without
+# them just sort last. `ledger`, `snapshot` and `whats-next` sort by priority, highest first.
+priority:
+  # hml (High/Medium/Low, default) | p-levels (P0-P3) | moscow (Must/Should/Could/Won't)
+  # rice (reach * impact * confidence / effort) | ice (impact * confidence * ease)
+  # Or your own: `scheme: {levels: [Now, Next, Later]}`, or named score fields plus a formula:
+  #   scheme: {fields: [value, risk, cost], formula: "value * risk / cost"}   (+ - * / and brackets only)
+  # Level values go on the Thread as `priority: High`; score values as `priority: {reach: 500, ...}`.
+  scheme: hml
+size:
+  # sml (Small/Medium/Large, default) | tshirt (XS-XL) | points (1, 2, 3, 5, 8, 13) | days (any number)
+  # Or your own ordered list: `scheme: {levels: [Tiny, Normal, Huge]}`. With rice, a missing `effort`
+  # defaults from size (its position in the list, or the number itself).
+  scheme: sml

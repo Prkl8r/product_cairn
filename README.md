@@ -21,6 +21,8 @@ Cairn is a Markdown-and-YAML workflow for turning raw product signal (feedback, 
 
 Every Thread and Spec body opens with a lineage line, e.g. `**Lineage:** feedback:FDBK-001 → THRD-007 → SPEC-012`, so you can see where a file sits without opening the others.
 
+**Priority and size (optional).** A Thread can carry a `priority` and a rough `size`, so on a busy week `cairn ledger`, `cairn snapshot` and `whats-next` can list what to work on next, highest priority first. It's a sorting aid, not a backlog tool: both are optional and a Thread without them just sorts last. Pick the schemes in `.cairn/config.yaml`. Priority: High/Medium/Low (default), P0–P3, MoSCoW, RICE, ICE, your own ordered levels, or your own score fields plus a formula. Size: Small/Medium/Large (default), T-shirt (XS–XL), story points or ideal days, or your own list. With RICE, a missing `effort` defaults from size. `shape-thread` asks for both when you decide to proceed, `draft-spec` offers to revise size once slices exist, and `cairn doctor` warns about values that don't fit the scheme.
+
 Gates are guardrails, not a prison. The PM can skip ahead (`fast-track`) or step around a check; the system never silently blocks, it tells you what you're skipping and what to verify.
 
 ---

@@ -34,6 +34,10 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 6. Mark everything you write as agent-drafted.
 7. No open questions remain unresolved at handoff: each is `answered`, `deferred` (with reason and owner), or `out_of_scope`.
 
+## Size, once slices exist
+
+If the Thread has a `size` (or its `planned_specs` entries do), show the PM the slice count next to it after drafting and ask once whether to revise it, using the size scheme from `.cairn/config.yaml`. With several planned Specs, a size can go on each `planned_specs` entry. Don't ask when no size was ever set.
+
 ## Drafting one of several planned Specs
 
 When the Thread's `planned_specs` has more than one entry:

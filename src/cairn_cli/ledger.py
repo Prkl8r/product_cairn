@@ -12,6 +12,8 @@ from pathlib import Path
 
 import yaml
 
+from . import rank as _rank
+
 STAGES = ["Exploring", "Framing", "Validating"]  # fidelity order; a Thread's last stage hands off to a Spec
 STATUSES = ["Active", "Parked", "Rejected", "Specified", "Handed off"]
 # Threads written before stage/status existed carry a single `state`; read it as (stage, status).
@@ -315,7 +317,7 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
             out["kickback_category"] = kb.get("category")
     if doc.broken:
         out["broken_refs"] = doc.broken
-    for k in ("type", "revision", "spec_status", "owner", "readiness",
+    for k in ("type", "revision", "spec_status", "owner", "readiness", "priority", "size",
               "bundle", "pickup_when", "reject_category"):
         if doc.meta.get(k) is not None:
             out[k] = doc.meta[k]
@@ -345,7 +347,7 @@ def snapshot(docs: dict[str, Doc], root: Path) -> dict:
     by = lambda k: [as_dict(d, docs, root) for d in docs.values() if d.kind == k]
     return {
         "signals": by("signal"),
-        "threads": by("thread"),
+        "threads": _rank.annotate(root, by("thread"), {d.id: d.meta for d in docs.values()}),
         "specs": [dict(x, sent=x["id"] in shipped) for x in by("spec")],
         "reference": [as_dict(d, docs, root) for d in docs.values() if d.kind in REFERENCE_KINDS],
         "broken_refs": {d.id: d.broken for d in docs.values() if d.broken},
@@ -364,12 +366,13 @@ def status_markdown(snap: dict) -> str:
     loose = [s for s in snap["signals"] if s["state"] == "no thread"]
     lines.append(f"**{len(snap['signals'])} asks**, {len(loose)} not yet picked up. **Threads:** "
                  + (", ".join(f"{n} {k}" for k, n in sorted(states.items())) or "none") + ".")
-    lines += ["", "## Threads", "", "| Thread | Stage | Updated | Signals | Specs |", "|---|---|---|---|---|"]
+    lines += ["", "## Threads", "", "| Thread | Stage | Priority · size | Updated | Signals | Specs |",
+              "|---|---|---|---|---|---|"]
     ids = {x["id"]: x for x in snap["signals"] + snap["specs"]}
     for t in snap["threads"]:
         sig = ", ".join(l for l in t["links"] if ids.get(l, {}).get("kind") == "signal") or "-"
         spc = ", ".join(l for l in t["links"] if ids.get(l, {}).get("kind") == "spec") or "-"
-        lines.append(f"| {t['id']} | {t['state']} | {t['updated']} | {sig} | {spc} |")
+        lines.append(f"| {t['id']} | {t['state']} | {_rank.label(t)} | {t['updated']} | {sig} | {spc} |")
     lines += ["", "## Sent to engineering", ""]
     sent_specs = [s for s in snap["specs"] if s["sent"]]
     lines += [f"- {s['id']} rev {s.get('revision', 1)} (updated {s['updated']})" for s in sent_specs] or ["- nothing yet"]

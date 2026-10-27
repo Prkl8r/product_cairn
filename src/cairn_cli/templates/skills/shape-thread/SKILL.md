@@ -40,6 +40,7 @@ Before drafting, run `cairn find "<a few key words from the signal>"` (a single 
 4. Ask the PM to decide: **proceed**, **hold**, or **drop**. Never decide this yourself.
 5. **On proceed:** check every system in `touches` has an overview file with a named owner (mirrors `check-spec`'s C17). Missing coverage is an Error on the `team` profile, a Warn on `solo`. Record the decision, set `stage: Framing`, and tell the PM this Thread is ready for `assess-thread` — Framing is when they bring others in. Before you finish, make two checks and offer what they find in one line each, without running anything unasked:
    - **Related Threads.** Run `cairn ledger --json` and look for other Active or Parked Threads that share a signal in `inbound_refs` or a theme in `themes`, or whose problem reads like the same one. Name them and offer `bundle-threads`.
+   - **Priority and size (optional).** Read `priority.scheme` and `size.scheme` from `.cairn/config.yaml` (High/Medium/Low and Small/Medium/Large if unset) and ask once, in one question, for a priority and a rough size. For a level scheme, offer its levels as choices. For a score scheme (RICE, ICE or custom), ask for each field; with RICE, leave `effort` out when a size is given, since it defaults from size. Accept "skip" without pushing: both are a sorting aid, not a requirement.
    - **User-facing flow.** If the charter has `ui_presence: true` and the brief changes something a user does (a screen, a step, a notification), offer `map-journey` now, so the jury in Framing has concrete steps to attack.
 6. **On hold:** set `status: Parked` (stage stays Exploring), record `reason` and `pickup_when`, the same fields `park-or-reject` writes.
 7. **On drop:** set `status: Rejected` (stage stays Exploring), record `reason` and `reject_category`. This is searchable later so a dropped idea isn't re-argued from scratch.
@@ -105,6 +106,8 @@ status: Active       # or Parked / Rejected
 signal_refs: [...]
 signal_types: [...]
 validated_by: <name>       # requirement | mandate | idea signals
+priority: <value>          # optional, per the scheme in .cairn/config.yaml (High/Medium/Low by default)
+size: <value>              # optional first guess, per the size scheme (Small/Medium/Large by default)
 themes: [...]              # feedback signals only
 touches: [...]
 overview_coverage: ok | "warn: <systems missing an overview>"

@@ -27,12 +27,3 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Commercial context for monetisation work** — give the charter or Thread a place for pricing, tiers and store billing constraints (App Store / Play)
   The premium mandate had no home for these; the jury found payment/sync edge cases with nothing to trace them to.
 - [ ] **Separate PM in test runs** — rerun the end-to-end test with a human or a separate agent as PM, so Review Brief acknowledgement and PM decisions are real
-- [ ] **Thread priority, user-configured** — add an optional `priority` on Threads, scored by a scheme the user picks in `.cairn/config.yaml`; `ledger`, `whats-next` and `snapshot` sort by it
-  Keep it light: a sorting aid for busy weeks, not a Jira-style backlog tool. Default scheme: High/Medium/Low.
-  Built-in schemes: High/Medium/Low, levels (P0–P3), MoSCoW (Must/Should/Could/Won't), RICE (Reach × Impact × Confidence ÷ Effort) and ICE (Impact × Confidence × Ease).
-  Custom: the config can define its own ordered levels, or named score fields plus a formula. `shape-thread` asks for it at the proceed decision; `doctor` warns when a value doesn't fit the configured scheme.
-  Found in the Haiku test run: with 7 signals and 4 Threads, nothing said what to work on next.
-- [ ] **Thread size, user-configured** — add an optional `size` on Threads (or per planned Spec), with the scheme picked in `.cairn/config.yaml`; `ledger` and `snapshot` show it next to priority
-  Same light touch as priority: a rough signal for busy weeks, not estimation tooling. Default scheme: Small/Medium/Large.
-  Built-in schemes: Small/Medium/Large, T-shirt (XS–XL), story points (Fibonacci 1–13) and ideal days. Custom: the config lists its own ordered values.
-  When the priority scheme is RICE, its Effort can default from size instead of being asked twice. `shape-thread` asks for a first guess; `draft-spec` lets the PM revise it once slices exist.

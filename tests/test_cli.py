@@ -99,3 +99,14 @@ def test_snapshot_writes_status_files(repo):
 def test_ledger_json_lists_untriaged_signals(repo):
     snap = json.loads(runner.invoke(app, ["ledger", "--path", str(repo), "--json", "--include-restricted"]).output)
     assert snap["untriaged"] == ["FDBK-001"]
+
+
+def test_ledger_sorts_threads_by_priority_and_doctor_flags_bad_values(repo):
+    (repo / "threads/THRD-002.md").write_text(THREAD.replace("THRD-001", "THRD-002")
+                                              .replace("status: Active", "status: Active\npriority: High\nsize: Small"))
+    (repo / "threads/THRD-001.md").write_text(THREAD.replace("status: Active", "status: Active\npriority: Urgent"))
+    out = runner.invoke(app, ["ledger", "--path", str(repo)]).output
+    assert out.index("THRD-002") < out.index("THRD-001") and "High · Small" in out
+    snap = json.loads(runner.invoke(app, ["ledger", "--path", str(repo), "--json"]).output)
+    assert [t["id"] for t in snap["threads"]] == ["THRD-002", "THRD-001"]
+    assert "THRD-001: priority `Urgent` isn't one of High, Medium, Low" in runner.invoke(app, ["doctor", str(repo)]).output

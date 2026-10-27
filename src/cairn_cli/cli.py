@@ -19,6 +19,7 @@ from . import compile as _compile
 from . import handoff as _handoff
 from . import jury as _jury
 from . import ledger as _ledger
+from . import rank as _rank
 
 app = typer.Typer(
     name="cairn",
@@ -387,12 +388,20 @@ def doctor(
 
     config = (yaml.safe_load(config_path.read_text()) or {}) if config_path.exists() else {}
     extra = set(config.get("extra_keys") or [])
+    for field, built_in in (("priority", _rank.PRIORITY_SCHEMES), ("size", _rank.SIZE_SCHEMES)):
+        name = (config.get(field) or {}).get("scheme")
+        if isinstance(name, str) and name.lower() not in built_in:
+            typer.secho(f"  WARN    {CONFIG_FILE}: {field} scheme `{name}` isn't built in "
+                        f"({', '.join(built_in)}); using {_rank.DEFAULTS[field]}", fg=typer.colors.YELLOW)
     for d in _ledger.load(target).values():
         for key in _ledger.unknown_keys(d, extra):
             close = difflib.get_close_matches(key, _ledger.KNOWN_KEYS, n=1)
             hint = f" (did you mean `{close[0]}`?)" if close else ""
             typer.secho(f"  WARN    {d.id} has unknown key `{key}`{hint}. Add it to extra_keys in "
                         f"{CONFIG_FILE} if it's yours.", fg=typer.colors.YELLOW)
+        if d.kind == "thread":
+            for problem in _rank.problems(target, d.meta):
+                typer.secho(f"  WARN    {d.id}: {problem}", fg=typer.colors.YELLOW)
         if d.broken:
             typer.secho(f"  WARN    {d.id} references missing files: {', '.join(d.broken)}", fg=typer.colors.YELLOW)
 
@@ -416,7 +425,9 @@ def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: 
         return
 
     signals = [d for d in docs.values() if d.kind == "signal"]
-    threads = [d for d in docs.values() if d.kind == "thread"]
+    order = [t["id"] for t in _rank.annotate(root, [{"id": d.id} for d in docs.values() if d.kind == "thread"],
+                                              {d.id: d.meta for d in docs.values()})]
+    threads = [docs[i] for i in order]
     specs = [d for d in docs.values() if d.kind == "spec"]
     sent = _ledger.sent(docs)
     lock = lambda d: " [restricted]" if d.restricted else ""
@@ -429,7 +440,8 @@ def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: 
     typer.secho(f"\nThreads — {len(threads)}", bold=True)
     for t in threads:
         sig = ", ".join(sorted(l for l in t.links if docs[l].kind == "signal")) or "-"
-        typer.echo(f"  {t.id:<16} {_ledger.thread_label(t.meta):<22} {t.updated}  signals: {sig}{lock(t)}")
+        typer.echo(f"  {t.id:<16} {_ledger.thread_label(t.meta):<22} {_rank.label(t.meta):<14} {t.updated}  "
+                   f"signals: {sig}{lock(t)}")
 
     typer.secho("\nSent to engineering", bold=True)
     for s in sent:
