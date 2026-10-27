@@ -4,7 +4,7 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
-- [x] 2026-10-27 **Self-sourced signal type** — Done: decided on a new `internal` type (see the item it became)
+- [x] 2026-10-27 **Self-sourced signal type** — Done: new `internal` signal type (INT- ids) whose Exploring gate is the PM's written cost of not doing it; idea now means a championed proposal
 - [x] 2026-10-27 **Deferred questions vs. starting work** — Won't do: Cairn's part ends at handoff; the receiving process decides what deferrals block
 - [x] 2026-10-27 **Suggest bundle and journey at the right moment** — Done: shape-thread offers bundle-threads for Threads sharing signals/themes and map-journey for user-facing changes on proceed; assess-thread offers map-journey before the jury
 - [x] 2026-10-27 **Record which jury seats ran** — Done: jury-duty returns `jury_seats` and the transcript, assess-thread saves them and refuses without a Judge, and `cairn check` C28 fails the Spec
