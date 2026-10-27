@@ -18,7 +18,9 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 1. The Thread file — must be `stage: Validating`, `status: Active`, with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. API specs (`api:` refs) must be OpenAPI 3.1: check for `openapi: 3.1.x` at the document root, and if it's another version or format, tell the PM rather than drafting against it. Endpoints, fields and limits in criteria may then trace to that document. If missing, stop and point the PM at `assess-thread` first.
 2. `charter.yaml`.
 3. Every signal file and `architecture/<system>/overview.md` the Thread references.
-4. If this Thread is part of a Bundle (`bundle_id` set), read every sibling Thread in `thread_ids` too — each needs its own slice(s) in the Spec(s) this produces.
+4. Every journey in `outbound_refs` (`journey:<id>`, from `map-journey`). Trace criteria to its steps (`journey:JRN-001#step-2`), and draw `error_states` and `empty_states` from the steps' failure and empty cases. Cover each step with a criterion or list it in `out_of_scope` (C26).
+5. The Thread's `## Q&A`, `use_cases` and `candidate_criteria` (from `ask-me`). Turn each candidate into a real criterion, tracing it to its `qa-NN` entry (`thread:THRD-001#qa-07`) with `basis: decided` and `decided_by` set to the PM. Every in-scope use case needs at least one criterion.
+6. If this Thread is part of a Bundle (`bundle_id` set), read every sibling Thread in `thread_ids` too — each needs its own slice(s) in the Spec(s) this produces.
 
 ## Rules (do not deviate)
 

@@ -66,7 +66,7 @@ cd /path/to/your-product-repo
 cairn init --here                       # or: cairn init <new-project-name>
 ```
 
-This copies the `.claude/skills/` into the target repo, creates the `signals/`, `threads/`, `specs/`, `architecture/`, `library/` skeleton, writes a `charter.yaml` template, and pins the installed version in `.cairn/package.lock`. It's idempotent — rerunning `cairn init` never overwrites `charter.yaml` or anything you've already written; pass `--force` to refresh the skill files themselves after an update. Run `cairn doctor` any time to check the install is complete.
+This copies the `.claude/skills/` into the target repo, creates the `signals/`, `threads/`, `specs/`, `journeys/`, `architecture/`, `library/` skeleton, writes a `charter.yaml` template, and pins the installed version in `.cairn/package.lock`. It's idempotent — rerunning `cairn init` never overwrites `charter.yaml` or anything you've already written; pass `--force` to refresh the skill files themselves after an update. Run `cairn doctor` any time to check the install is complete.
 
 **Or install the skills as a Claude Code plugin.** They then show up namespaced as `/cairn:<skill>` (for example `/cairn:whats-next`) in every repo, with no copies to keep in sync:
 
@@ -151,6 +151,10 @@ Four skills, run in order, cover the normal track end to end:
 
 **The jury**: **`jury-duty`** runs the Advocate/Skeptic/Judge critique that `assess-thread` calls, and a PM can run it alone to pressure-test anything. In Claude Code each seat is its own agent (`jury-advocate`, `jury-skeptic`, `jury-judge`), with the Skeptic on a different model from the other two. Each juror returns a short, fixed-format result, so the debate doesn't flood the conversation. Other agents play the three seats inline, and the verdict records `jury_mode: inline` so you know the Skeptic shared a model. Set each seat's model under `jury.models` in `.cairn/config.yaml`.
 
+**The interview**: **`ask-me`** fills in a Thread by asking the PM three questions at a time, multiple choice or free form, aimed at whatever its stage is missing: problem and evidence in Exploring, use cases in Framing, acceptance criteria, thresholds and error states in Validating. Answers go in the Thread's `## Q&A` (`qa-01`, `qa-02`, …) and into `use_cases` and `candidate_criteria`, so `draft-spec` can trace criteria to the PM's own decisions (`basis: decided`). Run it any time; it never moves the Thread on.
+
+**The journey**: **`map-journey`** maps the user journey a Thread changes, step by step: the user's goal, what they do, what the system does, and the error and empty cases. Each step is traced to a signal or overview or tagged `inferred`. Run it in Framing so the jury attacks concrete steps, or in Validating so the Spec can trace criteria to steps (`journey:JRN-001#step-2`). It's written to `journeys/<id>.md`, linked in `outbound_refs`, and copied into the handoff package. `check-spec` C26 warns about steps no criterion covers.
+
 **Housekeeping**: **`bundle-threads`** ties related Threads together (same problem, a duplicate, or work that should ship together) so they show as one group in the ledger and in lookups; it never merges them or changes their stage. **`park-or-reject`** parks, resumes or rejects a Thread at any stage.
 
 **The navigator**: **`whats-next`** is a lookup, not a gate. Point it at a Thread (or nothing, for the most recently touched one) and it names the one thing to do next — so nobody has to memorize this table.
@@ -173,6 +177,7 @@ signals/<type>/raw/<id>.*        # git-ignored raw copy
 threads/<id>.md                  # one Thread per unit of work
 specs/<id>.md                    # compiled output, one or more per Thread
 specs/<id>.compile_report.md     # check-spec's output for that Spec
+journeys/<id>.md                 # user journeys from map-journey (optional)
 architecture/<system>/overview.md  # one per system a Thread can `touches`
 library/                         # historical specs, compliance docs (optional)
 .claude/skills/                  # the skills documented above
@@ -208,4 +213,4 @@ Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills
 
 Run the tests with `pip install pytest && pytest tests`.
 
-See the docs above for the full design behind all of this, including the check-spec rule table (C01–C25) and the install/update/packaging model.
+See the docs above for the full design behind all of this, including the check-spec rule table (C01–C26) and the install/update/packaging model.

@@ -54,6 +54,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C23 | Every `trace` entry has a `basis` (`direct`, `interpreted`, `inferred`, `decided`) with its required field: `direct` needs a `quote`, `inferred` needs an `assumption` id that exists on the Thread or in the Review Brief, `decided` needs `decided_by`. Warn when every trace on a criterion is `inferred` | Error; Warn for all-inferred |
 | C24 | Every system in the Thread's `touches` has an overview at `readiness: L2` with `verified: true`. Any other overview (L1, L0, or past its `review_ttl`) never blocks: it produces this Warn, worded exactly as below | Warn (mandatory, can't be acknowledged) |
 | C25 | Every trace to an `analytics` signal points at a snapshot with `metric`, `value`, `unit`, `period`, `pulled_on` and `query` set (`unknown` counts as set for `query`, but is listed). A `threshold` criterion that cites an analytics snapshot names the same metric and unit | Error; Warn when `query` is `unknown` or `comparison` is `none` |
+| C26 | Every step in a journey this Spec traces to (`journey:<id>#<step>`) is covered by at least one criterion or listed in `out_of_scope`. A `direct` trace never points at a step tagged `origin: inferred` | Warn; Error for a `direct` trace to an inferred step |
 
 For C24, write one line per system, in this exact form, so it reads the same in every report and in the handoff package:
 

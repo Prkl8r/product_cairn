@@ -4,7 +4,7 @@ Open follow-up items for the Cairn product repo.
 
 ## Open
 
-- [ ] **Deterministic compile-check** — build `cairn compile <spec-id>` so the C01–C25 rules run as code instead of by hand
+- [ ] **Deterministic compile-check** — build `cairn compile <spec-id>` so the C01–C26 rules run as code instead of by hand
   Running all 22 checks by hand was the heaviest step in the first fast-track run. `cairn handoff` already trusts the compile report's verdict, so the gate should come from code.
 - [ ] **Deferred questions vs. starting work** — decide whether deferred open questions block starting implementation or only finishing a slice
   An engineer reading a Spec cold couldn't tell if `brief_ack` plus outstanding deferrals meant "go". Write the rule into the Spec template and check-spec.

@@ -23,7 +23,7 @@ app = typer.Typer(
     add_completion=False,
 )
 
-SKELETON_DIRS = ["signals", "threads", "specs", "architecture", "library"]
+SKELETON_DIRS = ["signals", "threads", "specs", "journeys", "architecture", "library"]
 
 GITIGNORE_ENTRIES = [
     "signals/*/raw/",
@@ -446,7 +446,7 @@ def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: 
 @app.command()
 def find(
     query: str = typer.Argument(..., help="Words to search for, or an exact id to show everything linked to it."),
-    kind: Optional[str] = typer.Option(None, "--kind", help="Limit to signal, thread, spec, library, or architecture."),
+    kind: Optional[str] = typer.Option(None, "--kind", help="Limit to signal, thread, spec, journey, library, or architecture."),
     path: Path = PATH_OPT,
     as_json: bool = JSON_OPT,
     include_restricted: bool = RESTRICTED_OPT,

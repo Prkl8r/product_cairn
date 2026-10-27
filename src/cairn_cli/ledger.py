@@ -29,7 +29,7 @@ REFERENCE_KINDS = {"library", "architecture"}
 
 @dataclass
 class Doc:
-    kind: str  # signal | thread | spec | library | architecture
+    kind: str  # signal | thread | spec | journey | library | architecture
     id: str
     path: Path
     meta: dict
@@ -64,7 +64,8 @@ def load(root: Path) -> dict[str, Doc]:
     docs: dict[str, Doc] = {}
     for kind, folder, key in (("signal", "signals", "signal_id"),
                               ("thread", "threads", "thread_id"),
-                              ("spec", "specs", "spec_id")):
+                              ("spec", "specs", "spec_id"),
+                              ("journey", "journeys", "journey_id")):
         base = root / folder
         if not base.is_dir():
             continue
@@ -120,7 +121,7 @@ def _git_dates(root: Path) -> dict[str, str]:
     """Last commit date per file, from one git call. Empty outside a git repo."""
     try:
         out = subprocess.run(["git", "log", "--format=@%cs", "--name-only", "--", "signals", "threads",
-                              "specs", "library", "architecture"],
+                              "specs", "journeys", "library", "architecture"],
                              cwd=root, capture_output=True, text=True, timeout=30).stdout
     except (OSError, subprocess.SubprocessError):
         return {}
@@ -208,7 +209,7 @@ def lineage(docs: dict[str, Doc], doc_id: str) -> list[Doc]:
         # Reference docs are shared by many Threads: list them, but only walk through the one asked about.
         if docs[cur].kind not in REFERENCE_KINDS or cur == doc_id:
             stack.extend(sorted(docs[cur].links))
-    order = {"signal": 0, "thread": 1, "spec": 2, "library": 3, "architecture": 4}
+    order = {"signal": 0, "thread": 1, "spec": 2, "journey": 3, "library": 4, "architecture": 5}
     return sorted((docs[i] for i in seen), key=lambda d: (order[d.kind], d.id))
 
 

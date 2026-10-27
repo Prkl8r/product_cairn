@@ -184,3 +184,13 @@ def test_unverified_architecture_warns_but_hands_off(repo):
 def test_no_touches_adds_no_warning(repo):
     assert run(repo, "SPEC-001", "--to", "in_place").exit_code == 0
     assert "unverified_architecture" not in frontmatter(repo / ".cairn/handoff/SPEC-001/spec.md")
+
+
+def test_journey_ref_by_id_is_copied(repo):
+    (repo / "journeys").mkdir()
+    (repo / "journeys/JRN-001.md").write_text("---\njourney_id: JRN-001\nthread_id: THRD-001\n---\n1. Step.\n")
+    thread = repo / "threads/THRD-001.md"
+    thread.write_text(thread.read_text().replace("  - spec:SPEC-001\n", "  - spec:SPEC-001\n  - journey:JRN-001\n"))
+    res = run(repo, "SPEC-001", "--to", "in_place", "--dry-run")
+    assert res.exit_code == 0, res.output
+    assert (repo / ".cairn/handoff/SPEC-001/addendum/journey/JRN-001.md").exists()

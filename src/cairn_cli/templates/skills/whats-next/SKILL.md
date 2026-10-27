@@ -48,6 +48,8 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Exploring, Active | — | brief drafted, no decision | `shape-thread` wasn't finished — resume it; the PM still owes a proceed/hold/drop call |
 | Framing, Active | normal | no `verdict_ref` | `assess-thread` — and this is the stage to talk it through with others |
 | Framing, Active | normal | `verdict_ref` present, edge cases unmapped | finish `assess-thread`; it moves the Thread to Validating |
+| any, Active | any | brief has `unknown`s, no `use_cases`, or no `candidate_criteria` in Validating | suggest `ask-me` to fill the gaps three questions at a time |
+| Framing or Validating, Active | any | user-facing flow, no `journey:` in `outbound_refs` | suggest `map-journey` (optional): in Framing it gives the jury concrete steps to attack; in Validating the Spec traces to it |
 | Validating, Active | normal | supporting artifacts or reviews still open | get everyone on board: list the open artifacts and review reminders from `## Open items`. Reviews never block |
 | Validating, Active | normal | no Spec in `outbound_refs` | `draft-spec` |
 | Validating, Active | normal | Spec drafted, not compiled | `check-spec` |
@@ -62,7 +64,7 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Rejected | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
 | any | — | PM wants to stop or pause it | `park-or-reject` |
 | any | — | looks related to another Thread, or PM says "these go together" | `bundle-threads` |
-| any | — | PM asked for something off the core flow | name the matching optional skill (`bundle-threads`, `intake-signal`, `jury-duty`, `onboard`, `park-or-reject`). `readiness-check`, `record-approval` and `theme-extractor` aren't built yet: say so, and do the work inline if the PM wants it |
+| any | — | PM asked for something off the core flow | name the matching optional skill (`ask-me`, `bundle-threads`, `intake-signal`, `jury-duty`, `map-journey`, `onboard`, `park-or-reject`). `readiness-check`, `record-approval` and `theme-extractor` aren't built yet: say so, and do the work inline if the PM wants it |
 
 Threads written before stages existed may still carry a single `state` field. Read it as: Signal/Shape → Exploring; Feasibility → Framing; Contract/Launched → Handed off; Parked/Rejected → that status. Mention once that the Thread uses the old field.
 

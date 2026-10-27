@@ -97,6 +97,8 @@ def _copy_ref(root: Path, ref: str, dest: Path, notes: list[str], warnings: list
         _check_api(kind, folder / name, ref, warnings)
         return
     src = (root / target).resolve()
+    if not src.exists() and kind == "journey":  # journey:JRN-001 -> journeys/JRN-001.md
+        src = (root / "journeys" / f"{target.split('#', 1)[0]}.md").resolve()
     if not src.exists():
         notes.append(f"- `{ref}`: not found in this repo")
         warnings.append(f"{ref} not found; listed in addendum/LINKS.md")
