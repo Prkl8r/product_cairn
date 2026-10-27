@@ -149,10 +149,10 @@ handoff:
   targets:
     speckit:
       integration: speckit
-      # skill: my-specify     # optional: override the skill or its args
+      # skill: speckit.specify   # if your spec-kit version or agent names the skill differently
 ```
 
-The skill runs `speckit-specify` on the packaged Spec. Spec-kit's own template is used unchanged: its `**Input**` line reads `Cairn Spec SPEC-001 (revision 1, Thread THRD-001)`, and the spec keeps the Spec's `AC-NNN` ids, slices, out-of-scope list, error and empty states, and open questions. Then run `/speckit-plan` yourself.
+The skill runs `speckit-specify` on the packaged Spec. Spec-kit's own template is used unchanged: its `**Input**` line starts `Cairn Spec SPEC-001 (revision 1, Thread THRD-001)`, the folder is named for what the Spec builds, the Spec's deferred open questions stay open questions instead of being asked again, and the spec keeps the Spec's `AC-NNN` ids, slices, out-of-scope list, error and empty states, and open questions. Then run `/speckit-plan` yourself.
 
 **Your own spec template.** The skill fills the template's sections from the Spec only. Anything the Spec doesn't cover is marked as not covered, never invented.
 

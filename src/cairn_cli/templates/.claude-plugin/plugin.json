@@ -1,6 +1,6 @@
 {
   "name": "cairn",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Turn product signal into engineering-ready Specs: Threads move through Exploring, Framing and Validating, then hand off a Spec.",
   "author": { "name": "Prkl8r" },
   "license": "GPL-3.0-only",
