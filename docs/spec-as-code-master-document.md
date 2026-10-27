@@ -67,7 +67,7 @@ Cairn uses lightweight MCP servers to handle all deterministic actions and state
 ## 5. Agentic Skills (The LLM Layer)
 Skills are context-aware prompts designed for *generative* and *qualitative* tasks.
 *   **`skill: theme_extractor`**: For feedback signals. Deterministic clustering groups feedback, and the LLM only names and summarizes the clusters. Requirement, mandate, and idea signals use a structured intake step instead (problem, sponsor, constraints, success target).
-*   **`skill: jury-duty`**: Runs a 3-round adversarial debate (Advocate vs. Skeptic, with the Skeptic on a different model; in Claude Code each seat is its own agent, `jury-advocate`, `jury-skeptic`, `jury-judge`, with models set under `jury.models` in `.cairn/config.yaml`) to output a "Judge's Verdict" of concrete edge cases.
+*   **`skill: jury-duty`**: Runs a 3-round adversarial debate (Advocate vs. Skeptic on different models; in Claude Code each seat is its own agent, `jury-advocate`, `jury-skeptic`, `jury-judge`. The Judge is fixed on one model and `cairn jury-draw` flips a coin for which debater gets which model, so neither side always has the stronger one; settings live under `jury` in `.cairn/config.yaml`) to output a "Judge's Verdict" of concrete edge cases.
 *   **`skill: draft-spec`**: Reads `charter.yaml` and applies strict modality constraints to generate binary or thresholded Acceptance Criteria, each with a trace link and a slice.
 *   **`skill: fast-track`**: On the PM's request, backfills skipped stages and writes the Review Brief.
 *   **Readiness check (on demand):** "Is this ready for engineering?" reviews a Spec for what the compiler cannot see: ambiguity, contradictions, missing scenarios, and anything an engineer would have to guess.

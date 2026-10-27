@@ -18,7 +18,7 @@ The one place the jury critique is defined. `assess-thread` calls it for the Fra
 1. The Thread file (or the draft the PM pointed at).
 2. `charter.yaml`.
 3. Every signal file the Thread references, and every `architecture/<system>/overview.md` for systems in `touches`.
-4. `.cairn/config.yaml`, if it exists: `jury.models` sets the model for each seat.
+4. `.cairn/config.yaml`, if it exists: `jury.draw`, `jury.debate_models` and `jury.models` decide each seat's model (read through `cairn jury-draw`, below).
 
 Collect these as **paths**. The jurors read the files themselves.
 
@@ -26,9 +26,11 @@ Collect these as **paths**. The jurors read the files themselves.
 
 ### Claude Code: separate agents
 
-Use the `jury-advocate`, `jury-skeptic` and `jury-judge` agents (namespaced `cairn:` when Cairn is installed as a plugin). The Skeptic runs on a different model from the Advocate and Judge; that separation is the point of the jury.
+Use the `jury-advocate`, `jury-skeptic` and `jury-judge` agents (namespaced `cairn:` when Cairn is installed as a plugin). The Advocate and Skeptic run on different models; that separation is the point of the jury.
 
-**Models:** for each seat with a value under `jury.models` in `.cairn/config.yaml`, pass it as the model override on every call to that agent. A blank or missing seat uses the agent file's default (Advocate `opus`, Skeptic `sonnet`, Judge `opus`). If the resolved Skeptic model matches the Advocate's or the Judge's, warn the PM before round 1 and record `jury_mode: agents (same model)` in place of `agents`.
+**Models:** before round 1, run `cairn jury-draw` once and use its result for the whole jury. It prints JSON like `{"advocate": "sonnet", "skeptic": "opus", "judge": "opus", "draw": "coin", "seed": 41723, "warnings": []}`. Pass each seat's model as the model override on every call to that agent. Never pick or flip the models yourself: the draw has to come from the script so it's actually random. The Judge stays on one model while a coin flip decides which debater gets which model, so the Judge shares a model with the Advocate half the time and with the Skeptic the other half, and the stronger model doesn't always argue for the proposal. Seats pinned under `jury.models` skip the draw, and `jury.draw: fixed` turns it off.
+
+If `cairn` isn't installed, say so and use the agent files' defaults (Advocate `opus`, Skeptic `sonnet`, Judge `opus`), recording `draw: fixed`. If the result has a warning (Advocate and Skeptic on the same model), show it to the PM before round 1 and record `jury_mode: agents (same model)` in place of `agents`.
 
 1. **Round 1:** run `jury-advocate` and `jury-skeptic` in parallel, each given only the input paths. Neither sees the other's opening.
 2. **Round 2:** give `jury-advocate` the Skeptic's round-1 output; then give `jury-skeptic` the Advocate's round-2 responses.
@@ -45,7 +47,7 @@ No separate agents are available. Play the three seats in turn in this conversat
 
 Show the PM the Judge's verdict, not the transcript: the verdict line, the summary, the standing edge cases with their mapping or deferral, what was dismissed and why, and any unverified overviews. Offer the full round-by-round transcript if they want it.
 
-Return to the caller (`assess-thread`) the Judge's YAML as-is, plus `jury_mode: agents | agents (same model) | inline` and the model each seat ran on (`jury_models: {advocate, skeptic, judge}`).
+Return to the caller (`assess-thread`) the Judge's YAML as-is, plus `jury_mode: agents | agents (same model) | inline` and the model each seat ran on, with how they were chosen (`jury_models: {advocate, skeptic, judge, draw, seed}`). Recording the draw lets the PM check later whether verdicts follow whichever side drew the stronger model.
 
 ## What you must not do
 

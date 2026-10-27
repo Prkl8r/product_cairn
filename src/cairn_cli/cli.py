@@ -15,6 +15,7 @@ import yaml
 
 from . import __version__
 from . import handoff as _handoff
+from . import jury as _jury
 from . import ledger as _ledger
 
 app = typer.Typer(
@@ -55,7 +56,6 @@ AGENT_SKILL_DIRS = {
 }
 CLAUDE_AGENTS_DIR = Path(".claude/agents")
 CONFIG_FILE = Path(".cairn/config.yaml")
-JURY_DEFAULT_MODELS = {"advocate": "opus", "skeptic": "sonnet", "judge": "opus"}
 AGENT_LABELS = {
     "claude": "Claude Code",
     "vscode": "VS Code / Copilot",
@@ -370,11 +370,13 @@ def doctor(
 
     config_path = target / CONFIG_FILE
     if config_path.exists():
-        models = ((yaml.safe_load(config_path.read_text()) or {}).get("jury") or {}).get("models") or {}
-        seats = {**JURY_DEFAULT_MODELS, **{k: v for k, v in models.items() if v}}
-        if seats["skeptic"] in (seats["advocate"], seats["judge"]):
-            typer.secho(f"  WARN    {CONFIG_FILE}: the jury Skeptic uses the same model as another seat "
-                        f"({seats['skeptic']}), so its critique isn't independent.", fg=typer.colors.YELLOW)
+        result = _jury.draw(_jury.settings(config_path), seed=0)
+        warnings = result["warnings"]
+        if not warnings and result["draw"] == "config" and (result["advocate"], result["skeptic"]) == ("opus", "sonnet"):
+            warnings = ["the Advocate and Skeptic are pinned to opus/sonnet (the pre-0.4 defaults), so the coin "
+                        "flip never runs. Blank them under jury.models to use it, or set jury.draw: fixed to keep this."]
+        if warnings:
+            typer.secho(f"  WARN    {CONFIG_FILE}: {warnings[0]}", fg=typer.colors.YELLOW)
         else:
             typer.secho(f"  OK      {CONFIG_FILE}", fg=typer.colors.GREEN)
     else:
@@ -510,6 +512,16 @@ def handoff(
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
     typer.secho(f"{thread.id} is Handed off ({spec.id} -> {to}{' ' + where if where else ''}).", fg=typer.colors.GREEN)
+
+
+@app.command("jury-draw")
+def jury_draw(
+    seed: Optional[int] = typer.Option(None, "--seed", help="Repeat an earlier draw (the seed is in its output)."),
+    path: Path = PATH_OPT,
+):
+    """Pick the jury's models: the Judge is fixed, a coin flip decides which debater gets which model."""
+    result = _jury.draw(_jury.settings(path.resolve() / CONFIG_FILE), seed)
+    typer.echo(json.dumps(result))
 
 
 @app.command()

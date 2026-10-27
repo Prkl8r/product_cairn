@@ -195,7 +195,7 @@ One entry point, `onboard`, with two paths. Both end in the same state: a ratifi
 - Compile step (Part 2) is the enforcement point.
 - Readiness check (on demand, advisory): the PM asks "is this ready for engineering?" and the agent reviews the Spec for what the compiler cannot see: ambiguous wording, criteria that contradict each other or the charter, missing scenarios, and anything an engineer would have to guess. The output is a short ranked list. It replaces the static Definition of Ready list, whose deterministic items are now compiler checks.
 - Eval harness: golden set of 10 to 20 past Threads with known-good Specs. Runs on any change to a skill, the charter, or the model. Tracks criterion recall, orphan-claim rate, and kickback proxy.
-- Jury: Skeptic runs on a different model than Advocate and Judge. Output must be concrete edge cases, each mapped to an acceptance criterion or a deferral.
+- Jury: Advocate and Skeptic run on different models, assigned by a coin flip (`cairn jury-draw`) while the Judge stays fixed, so neither side always gets the stronger model. Output must be concrete edge cases, each mapped to an acceptance criterion or a deferral.
 
 ### 9. Data Handling and Security
 - Data classification field on each Thread (`public`, `internal`, `restricted`) drives model routing, not per-skill rules.

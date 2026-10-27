@@ -1,11 +1,17 @@
 # Cairn project settings. Yours to edit; `cairn init --force` never overwrites this file.
 
 jury:
-  # Model for each jury seat, used by jury-duty in Claude Code.
-  # Any model Claude Code accepts: opus, sonnet, haiku, fable, or a full model id.
-  # Keep the Skeptic on a different model from the other two: that's what makes the critique independent.
-  # Leave a seat blank to use the default in its agent file (opus / sonnet / opus).
+  # How the debaters get their models, used by jury-duty in Claude Code.
+  #   coin  (default): `cairn jury-draw` flips a coin before each jury to decide which of the
+  #         Advocate and Skeptic runs on which of `debate_models`, so the stronger model doesn't
+  #         always argue for the proposal. The draw is recorded in the verdict's `jury_models`.
+  #   fixed: Advocate opus, Skeptic sonnet, every time.
+  draw: coin
+  debate_models: [opus, sonnet]
+  # Pin a seat here to skip the draw for it. Any model Claude Code accepts: opus, sonnet, haiku,
+  # or a full model id. Keep the Advocate and Skeptic on different models: that's what makes the
+  # critique independent. The Judge defaults to opus.
   models:
-    advocate: opus
-    skeptic: sonnet
-    judge: opus
+    advocate:
+    skeptic:
+    judge:
