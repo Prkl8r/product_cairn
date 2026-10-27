@@ -4,6 +4,8 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Self-sourced signal type** — Done: decided on a new `internal` type (see the item it became)
+- [x] 2026-10-27 **Deferred questions vs. starting work** — Won't do: Cairn's part ends at handoff; the receiving process decides what deferrals block
 - [x] 2026-10-27 **Suggest bundle and journey at the right moment** — Done: shape-thread offers bundle-threads for Threads sharing signals/themes and map-journey for user-facing changes on proceed; assess-thread offers map-journey before the jury
 - [x] 2026-10-27 **Record which jury seats ran** — Done: jury-duty returns `jury_seats` and the transcript, assess-thread saves them and refuses without a Judge, and `cairn check` C28 fails the Spec
 - [x] 2026-10-27 **Enforce the scope check** — Done: scope_decision is always recorded (new `single` value); draft-spec refuses without it and `cairn check` C27 fails the Spec

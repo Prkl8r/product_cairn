@@ -1,6 +1,6 @@
 ---
 name: "intake-signal"
-description: "Capture a raw input — a quote, directive, bug report, proposal, or analytics number — as a committed signal file under /signals/<type>/, so shape-thread and fast-track have something real to point a Thread's inbound_refs at. The entry point for getting a signal into Cairn before any Thread exists."
+description: "Capture a raw input — a quote, directive, bug report, proposal, analytics number, or something the team noticed itself — as a committed signal file under /signals/<type>/, so shape-thread and fast-track have something real to point a Thread's inbound_refs at. The entry point for getting a signal into Cairn before any Thread exists."
 argument-hint: "raw text, a pasted quote or ticket, a file/path to import from, or several of these in one call"
 metadata:
   product: cairn
@@ -21,12 +21,13 @@ This is the step before a Thread exists. It never creates or touches a Thread �
 2. `charter.yaml`, for `data_class_default`. If it doesn't exist or is still the unfilled stub (see `onboard`), ask which product/repo this signal belongs to rather than guessing a location — don't write into a repo that hasn't been onboarded.
 3. Existing files under `signals/<type>/` for each type touched, to pick the next free id without colliding.
 
-## Classifying type (feedback | requirement | mandate | idea | analytics)
+## Classifying type (feedback | requirement | mandate | idea | analytics | internal)
 
 - **feedback** — came from a user, a support channel, an app-store review, or a crash/crash-analytics report: something happening *to* users, reported after the fact. Bug and crash reports don't have a cleaner home in this enum — treat them as feedback and say so in the body (see below).
 - **requirement** — a scoped ask from a business team, partner, or upstream group outside the PM's own team (sales wants local ads, partnerships wants a roster import, support wants a merge tool). It comes with a named sponsor who can be asked to validate it.
 - **mandate** — a directive from leadership, legal, compliance, or an executive. The PM isn't being asked, they're being told, usually with a deadline or a hard constraint (monetization directives, legal/compliance requirements, a competitive response leadership wants shipped).
-- **idea** — self-sourced: a dev noticed something, a PM had a thought, an internal proposal nobody outside the team asked for. Tech-debt call-outs the engineering team raises on its own belong here even when they read like requirements — the test is "did anyone outside ask for this, or did the team originate it itself?"
+- **idea** — a proposal for something new that someone will champion: a feature pitch, a product bet, a "what if we…" with a person behind it who can be asked to validate it. It needs a named sponsor to leave Exploring, like a requirement.
+- **internal** — something the team noticed about its own product, with nobody outside asking: a PM's note, a dev spotting a problem, tech debt, an ops pain, a workaround everyone uses. Tech-debt call-outs belong here even when they read like requirements. The test is "did anyone outside ask for this, or did the team originate it itself?" If the team originated it and it's a fix or cleanup rather than a new bet, it's internal. Record who noticed it in `source`.
 - **analytics** — a number from product data: a funnel drop-off, a conversion or retention rate, an A/B test result, usage telemetry ("Mixpanel shows 40% drop-off at step 3"). It shows *what* users do, not *why*. A crash count belongs here only when the number itself is the point; a single crash report is still feedback.
 - When nothing fits cleanly (the recurring case is a bug/crash report), pick the closest type and say explicitly in the body which type was chosen and why, so a later reader isn't misled into thinking it was a clean fit.
 - If the choice is genuinely ambiguous and changes which Exploring exit gate later applies (a named sponsor vs. a theme threshold), ask the PM once per batch, not once per item.
@@ -34,7 +35,7 @@ This is the step before a Thread exists. It never creates or touches a Thread �
 ## Generating signal_id
 
 - If the raw source already has a natural, stable id (a ticket number, a doc id, a backlog item number), use it as-is (e.g. `ZD-88421`, `TODO-11`).
-- Otherwise generate `<PREFIX>-<NNN>`, prefix by type: `FDBK` (feedback), `REQ` (requirement), `MANDATE` (mandate), `IDEA` (idea), `ANLY` (analytics). Find the highest existing `NNN` for that prefix under `signals/<type>/` and increment; start at `001` if none exist.
+- Otherwise generate `<PREFIX>-<NNN>`, prefix by type: `FDBK` (feedback), `REQ` (requirement), `MANDATE` (mandate), `IDEA` (idea), `ANLY` (analytics), `INT` (internal). Find the highest existing `NNN` for that prefix under `signals/<type>/` and increment; start at `001` if none exist.
 - Never reuse or renumber an id, even for a file later deleted or rejected.
 
 ## Analytics snapshots
@@ -61,7 +62,7 @@ For each input, write:
 ```yaml
 ---
 signal_id: <id>
-type: feedback | requirement | mandate | idea | analytics
+type: feedback | requirement | mandate | idea | analytics | internal
 source: <where this came from, as specific as the PM gave you>
 captured_on: <today's date>
 data_class: public | internal | restricted

@@ -8,9 +8,6 @@ Open follow-up items for the Cairn product repo.
   Running all 22 checks by hand was the heaviest step in the first fast-track run. `cairn handoff` already trusts the compile report's verdict, so the gate should come from code.
   The 2026-10-27 Haiku test run confirmed it: `cairn check` later found 14 errors in two Specs the agent had passed.
   Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23, C27, C28); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
-- [ ] **Deferred questions vs. starting work** — decide whether deferred open questions block starting implementation or only finishing a slice
-  An engineer reading a Spec cold couldn't tell if `brief_ack` plus outstanding deferrals meant "go". Write the rule into the Spec template and check-spec.
-- [ ] **Self-sourced signal type** — decide whether internal notes and dev-noticed items need their own signal type or clearer guidance under `idea`
 - [ ] **Overview depth on fast track** — add a time-box or a "stop when you can answer these questions" rule for stub L1 overviews
 - [ ] **Cross-repo library refs** — define how a `trace.ref` points at a library file in another repo (C05 currently warns)
 - [ ] **Default review_ttl** — decide whether stub overviews get a default `review_ttl` so C16 has something to check

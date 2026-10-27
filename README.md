@@ -2,7 +2,7 @@
 
 *Threading the needle: just-in-time requirements, from signal to Spec.*
 
-Cairn is a Markdown-and-YAML workflow for turning raw product signal (feedback, requirement docs, mandates, ideas, analytics) into an engineering-ready Spec, without the LLM hallucinating claims no one can check. A cairn is a trail marker — it shows the way without walking it for you. The PM drives, the agent drafts and critiques, and nothing runs unless the PM asks for it.
+Cairn is a Markdown-and-YAML workflow for turning raw product signal (feedback, requirement docs, mandates, ideas, analytics, things the team noticed itself) into an engineering-ready Spec, without the LLM hallucinating claims no one can check. A cairn is a trail marker — it shows the way without walking it for you. The PM drives, the agent drafts and critiques, and nothing runs unless the PM asks for it.
 
 **Flow: Signals → Threads → Specs.** One or more signals feed a Thread. The PM creates a Thread from one or more signals, and it moves through three stages of rising fidelity (Exploring, Framing, Validating) until it hands off one or more Specs that engineering (or a coding agent) picks up.
 
@@ -12,7 +12,7 @@ Cairn is a Markdown-and-YAML workflow for turning raw product signal (feedback, 
 
 | Term | What it is |
 |---|---|
-| **Signal** | An artifact, never a stage: raw input that feeds a Thread: `feedback` (tickets, Slack), `requirement` (a doc from another team), `mandate` (a compliance/exec directive), `idea`, or `analytics` (a dated snapshot of a product metric: the number, period, sample size, comparison and the query behind it, never just a dashboard link). Lives at `signals/<type>/<id>.md`. |
+| **Signal** | An artifact, never a stage: raw input that feeds a Thread: `feedback` (tickets, Slack), `requirement` (a doc from another team), `mandate` (a compliance/exec directive), `idea` (a proposal someone will champion), `internal` (something your own team noticed: a PM note, a dev's find, tech debt), or `analytics` (a dated snapshot of a product metric: the number, period, sample size, comparison and the query behind it, never just a dashboard link). Lives at `signals/<type>/<id>.md`. |
 | **Thread** | The unit of work. Begins when the PM decides one or more signals are worth pursuing; links to them in `inbound_refs` (signals aren't consumed, so one can feed several Threads) and to what it produced in `outbound_refs`. Has a `stage` (how far the thinking has got) and a `status` (whether it's being worked on). Lives at `threads/<id>.md`. Required frontmatter is only `thread_id`, `stage`, `status`, `owner` — a Thread can be one signal and a paragraph. |
 | **Spec** | What a Thread hands off when it leaves Validating — from then on, the artifact engineering works from. Listed in the Thread's `outbound_refs`. One Thread can produce more than one Spec: split Specs when the parts ship separately, and split Threads only when the parts need separate decisions (one could be parked or rejected alone, or has a different sponsor). The scope check in `shape-thread`, `assess-thread` and `draft-spec` asks which, defaulting to one Thread with several Specs, and records the answer as `scope_decision` (`single`, `multi_spec` or `split`). `draft-spec` won't start without it and `cairn check` fails a Spec whose Thread has none. Lives at `specs/<id>.md`. |
 | **Charter** (`charter.yaml`) | The product's root boundaries: modality, UI presence, profile (`solo`/`team`), write authority, data classification, org rules. Constrains a Thread; never starts one. |
@@ -34,8 +34,9 @@ flowchart LR
         S1["Users and support<br/>tickets, reviews, Slack"]
         S2["Other teams<br/>sales, partners"]
         S3["Leadership, legal,<br/>compliance"]
-        S4["Your own team<br/>PM or dev ideas"]
+        S4["Champions<br/>feature pitches"]
         S5["Product data<br/>funnels, A/B tests"]
+        S6["Your own team<br/>notes, tech debt"]
     end
 
     subgraph Signals["2 · Signals (intake-signal)"]
@@ -45,6 +46,7 @@ flowchart LR
         M[mandate]
         I[idea]
         A[analytics]
+        N[internal]
     end
 
     S1 --> F
@@ -52,6 +54,7 @@ flowchart LR
     S3 --> M
     S4 --> I
     S5 --> A
+    S6 --> N
 
     subgraph Bundle["3 · Threads (one, or several bundled)"]
         direction TB
@@ -61,7 +64,7 @@ flowchart LR
     end
 
     F & R & I --> T1
-    M & A --> T2
+    M & A & N --> T2
 
     subgraph Stages["4 · Each Thread moves through stages"]
         direction LR
@@ -88,7 +91,7 @@ Read it left to right: any source becomes a typed **signal**; one or more signal
 
 | Stage | What's happening | Exit gate | Skill |
 |---|---|---|---|
-| **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Analytics: the number has a comparison and a known sample size. Problem-and-impact brief written (evidence, alternatives, why now, expected outcome); PM decides **proceed**. | `shape-thread` |
+| **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Analytics: the number has a comparison and a known sample size. Internal: the brief states the cost of not doing it. Problem-and-impact brief written (evidence, alternatives, why now, expected outcome); PM decides **proceed**. | `shape-thread` |
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
 | **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), adds it to the Thread's `## Open items`, flags any owner still `TBD`, and never blocks on it. | `draft-spec` → `check-spec` |
 
