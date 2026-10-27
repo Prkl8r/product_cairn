@@ -22,7 +22,7 @@ It's optional. A Thread with no user-facing flow (a back-end job, an API-only ch
 
 ## Required inputs
 
-1. The Thread file. Any stage up to Validating with `status: Active`; for a Thread that's Specified or Handed off, stop and point at `record-kickback`/`revise-spec`, since changing the journey changes the Spec.
+1. The Thread file. Any stage up to Validating with `status: Active`; for a Thread that's Specified or Handed off, stop and point at `record-kickback`/`revise-spec`, since changing the journey changes the Spec. On a Thread with several planned Specs, check the Spec the journey serves instead: if that one is `specified` or `handed_off`, stop the same way; if it's still planned or drafted, carry on even though the Thread has other Specs out.
 2. `charter.yaml`, for `modality` and `ui_presence`. If `ui_presence: false`, the journey is the API consumer's (the calls a client makes, in order), not screens.
 3. Every signal in the Thread's `inbound_refs`, and the overview for each system in `touches`.
 4. Any supporting artifacts already in `outbound_refs` (UX mocks, an API spec). Reference them from steps; don't restate their detail.
@@ -86,5 +86,5 @@ Then, on the Thread:
 
 - Do not change the Thread's stage or status.
 - Do not draft acceptance criteria; that's `draft-spec`'s job. A step says what happens, not how to test it.
-- Do not edit a journey on a Specified or Handed-off Thread without the PM starting a revision.
+- Do not edit a journey whose Spec is specified or handed off (or, for a single-Spec Thread, a Specified or Handed-off Thread) without the PM starting a revision.
 - Do not write to `signals/*/raw/`, and never fabricate a source.

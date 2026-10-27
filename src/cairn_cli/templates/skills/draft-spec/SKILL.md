@@ -1,7 +1,7 @@
 ---
 name: "draft-spec"
-description: "Draft the Spec a Thread hands off, from a Thread already in Validating, using its full jury verdict and linked supporting artifacts — the normal-track equivalent of what fast-track does in light form."
-argument-hint: "thread id to draft a Spec for"
+description: "Draft the Spec, or one of the several planned Specs, a Thread hands off, from a Thread already in Validating, using its full jury verdict and linked supporting artifacts — the normal-track equivalent of what fast-track does in light form."
+argument-hint: "thread id, and optionally which planned Spec (its key) to draft"
 metadata:
   product: cairn
   source: "docs/spec-as-code-revision.md Part 1 section 7 (Components, Skills) and Part 2 (Spec Frontmatter Contract)"
@@ -11,7 +11,7 @@ disable-model-invocation: false
 
 ## What this does
 
-Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add each new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). A Thread can hand off several Specs: draft one per entry in `planned_specs` (see `shape-thread`'s Scope check), each with its own `spec_id`, and note in each Spec which other Specs it depends on (from `depends_on`). Write each new `spec_id` back into its `planned_specs` entry and the `## Planned Specs` table. If the PM asks for only some parts now, draft those and leave the rest with `spec_id: null`. This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
+Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `stage: Validating` with a recorded jury verdict (from `assess-thread`). This is where everything gets put together: the verdict and the supporting artifacts (UX mocks, an API spec) linked in `outbound_refs` — reference them, don't re-invent their detail. Add each new Spec to the Thread's `outbound_refs` (`spec:SPEC-NNN`). A Thread can hand off several Specs: draft one per entry in `planned_specs` (see `shape-thread`'s Scope check), each with its own `spec_id`, and note in each Spec which other Specs it depends on (from `depends_on`). Write each new `spec_id` back into its `planned_specs` entry and the `## Planned Specs` table. See "Drafting one of several planned Specs" below. This is the **normal-track** sibling of `fast-track`'s Spec draft — same output contract, but built from a full jury verdict instead of a backfilled single-pass critique, and with no Review Brief or `brief_ack` checkpoint (those are fast-track-only).
 
 ## Required inputs
 
@@ -34,6 +34,16 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 6. Mark everything you write as agent-drafted.
 7. No open questions remain unresolved at handoff: each is `answered`, `deferred` (with reason and owner), or `out_of_scope`.
 
+## Drafting one of several planned Specs
+
+When the Thread's `planned_specs` has more than one entry:
+
+1. **Pick which to draft.** Use the key the PM named. Otherwise propose the next one in ship order that has no `spec_id` yet and whose `depends_on` Specs are at least drafted, and confirm with the PM. Draft one Spec per run unless the PM asks for more.
+2. **Assign the shared material before drafting.** The jury's edge cases, `use_cases`, `candidate_criteria`, journey steps and Q&A entries belong to the whole Thread. Give each to one planned Spec, using each entry's `outcome` and `covers`, and record it on the item as `planned_spec: <key>` (in a journey file, `planned_spec` on the journey covers all its steps, and a step can override it). Only items with no `planned_spec` yet need assigning. List your proposed assignment in one short table and ask the PM to confirm it, flagging anything that fits two parts or none. An item that fits none is a sign of a missing part: say so rather than forcing it in.
+3. **This Spec covers only its own items.** Required inputs 4 and 5 and rule 3 apply to the items assigned to this Spec. Every other item goes in this Spec's `out_of_scope` with a pointer to where it lives: `covered by planned Spec refine-and-share` (or `by SPEC-002` once drafted). `check-spec` counts those pointers as covered (C11, C26).
+4. **Read the existing Specs, never edit them.** Read every Spec already drafted for this Thread. Don't duplicate their criteria, and don't contradict what they promise, especially one that's `specified` or `handed_off`. If this part needs one of them changed, stop and say so: that's a `revise-spec` on that Spec, which the PM starts.
+5. **Record what this Spec depends on.** List `depends_on` Specs in `sections.dependencies` by `spec_id`, or by key if they aren't drafted yet.
+
 ## Output
 
 Same frontmatter contract as `fast-track` (`docs/spec-as-code-revision.md` Part 2), with these differences:
@@ -41,6 +51,7 @@ Same frontmatter contract as `fast-track` (`docs/spec-as-code-revision.md` Part 
 ```yaml
 spec_id: SPEC-NNN
 spec_status: drafted       # drafted | specified | handed_off; see shape-thread
+planned_spec: <key>        # which planned_specs entry this is; omit for a single-Spec Thread
 thread_id: THRD-NNN        # or bundle_id: BUNDLE-NNN, see bundle-threads
 charter_version: <from charter.yaml>
 generated_by:

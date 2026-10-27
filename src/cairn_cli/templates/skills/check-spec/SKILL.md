@@ -56,6 +56,8 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C25 | Every trace to an `analytics` signal points at a snapshot with `metric`, `value`, `unit`, `period`, `pulled_on` and `query` set (`unknown` counts as set for `query`, but is listed). A `threshold` criterion that cites an analytics snapshot names the same metric and unit | Error; Warn when `query` is `unknown` or `comparison` is `none` |
 | C26 | Every step in a journey this Spec traces to (`journey:<id>#<step>`) is covered by at least one criterion or listed in `out_of_scope`. A `direct` trace never points at a step tagged `origin: inferred` | Warn; Error for a `direct` trace to an inferred step |
 
+**Several planned Specs.** When the Thread plans more than one Spec, C13 counts a signal as cited if any of the Thread's Specs cites it, and C11 and C26 apply only to the items assigned to this Spec (`planned_spec: <key>` matching this Spec's `planned_spec`). An item assigned to another planned Spec counts as covered when this Spec's `out_of_scope` points to it (`covered by planned Spec <key>` or `by SPEC-NNN`); without the pointer, Warn. An item with no `planned_spec` at all is still checked here as before. Also Warn when a criterion here repeats or contradicts one in another Spec of the same Thread.
+
 For C24, write one line per system, in this exact form, so it reads the same in every report and in the handoff package:
 
 > Warning: Spec relies on unverified L1 Architecture [<system>]. Engineering must verify constraints during estimation.

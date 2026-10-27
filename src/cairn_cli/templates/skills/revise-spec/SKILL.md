@@ -26,7 +26,8 @@ disable-model-invocation: false
 3. Bump `revision` (starts at 1 on first draft, so a first revision is `revision: 2`).
 4. Write a short "what changed and why" note, tied directly to this Spec's latest entry in the Thread's `kickbacks` (`reason`, `category`; older Threads use flat `kickback_reason`/`kickback_category`) — this is what a reviewer reads first.
 5. Same drafting rules as `draft-spec`: every criterion traces to a real source with a `basis` on each trace (add one to carried-forward traces that lack it, without changing anything else), no invented values, binary-or-threshold typing, agent-drafted labeling.
-6. If the kickback reveals an edge case the original jury verdict missed, add it to the Thread's edge-case list (retroactively) so the record stays honest about what was missed and why.
+6. **On a Thread with several Specs, revise only this one.** Read the sibling Specs so the revision doesn't duplicate or contradict them, but never edit them. If the fix belongs in a sibling, stop and say so. Update this Spec's Status in the `## Planned Specs` table to `drafted`.
+7. If the kickback reveals an edge case the original jury verdict missed, add it to the Thread's edge-case list (retroactively) so the record stays honest about what was missed and why.
 
 ## Output
 

@@ -27,14 +27,14 @@ If any of these are missing and the user hasn't pointed you at them, ask for the
 
 ## Rules (do not deviate)
 
-0. If the Thread covers two or more outcomes that could each ship on its own, run `shape-thread`'s Scope check first and draft per the PM's choice (by default, one Thread handing off several Specs). Then, if the Thread changes a user-facing flow and has no journey yet, offer `map-journey` in light form (happy path plus the error states the signal names). Skip it if the PM declines; note the skip in the Review Brief.
+0. If the Thread covers two or more outcomes that could each ship on its own, run `shape-thread`'s Scope check first and draft per the PM's choice (by default, one Thread handing off several Specs, drafted one at a time as `draft-spec`'s "Drafting one of several planned Specs" describes). Then, if the Thread changes a user-facing flow and has no journey yet, offer `map-journey` in light form (happy path plus the error states the signal names). Skip it if the PM declines; note the skip in the Review Brief.
 1. Before drafting, ask up to 3 questions — only ones whose answers would change the Spec. Ask and record them the way `ask-me` does (multiple choice or free form, answers in `## Q&A`). If none are needed, say so and proceed.
 2. Backfill the skipped stages in light form:
    - **Exploring → Framing:** a short problem-and-impact brief drafted from the signal, using `shape-thread`'s headings (problem, evidence with a strength rating, alternatives, why now, expected outcome), one or two lines each. If evidence is `thin` or the outcome is unknown, say so in the caution flag.
    - **Framing:** a single-pass critique (not a full jury debate) listing the top edge cases and risks, each mapped to a criterion or deferred with a reason.
    - **Validating:** no supporting artifacts (mocks, API spec) are made and nobody has reviewed the draft yet. List the artifacts the normal track would have needed as skipped, and add a review reminder (sponsor, owners of systems in `touches`) to `## Open items`.
 
-   Then set the Thread to `stage: Validating`, add `light_stages: [Framing, Validating]`, and add the Spec to its `outbound_refs`. Leave `status: Active`.
+   Then set the Thread to `stage: Validating`, add `light_stages: [Framing, Validating]`, and add the Spec to its `outbound_refs`. Leave `status: Active`. With several planned Specs, draft one per run as `draft-spec` describes; the backfilled brief and critique cover the whole Thread and are written once.
 3. Every acceptance criterion is `binary` or carries a `threshold` (metric, operator, number, unit), and has at least one `trace` entry pointing to a real file. Quote the source where you can — never quote the raw/git-ignored copy. Give each trace a `basis`: `direct` (the source says it, quote it), `interpreted` (your restatement of it), `inferred` (your reasoning; point `assumption` at the Review Brief entry), or `decided` (the PM's call; set `decided_by`). Never mark something `direct` that the source doesn't actually say.
 4. Group criteria into ordered slices. Each slice gets a one-line `verify` note.
 5. Never invent numbers, endpoints, field names, or limits. If a value has no source, ask the PM or list it as an open question — do not default it silently.
@@ -53,6 +53,8 @@ Write `specs/<spec-id>.md` using this frontmatter contract exactly (see `docs/sp
 ```yaml
 ---
 spec_id: SPEC-NNN
+spec_status: drafted          # see shape-thread's "Each Spec has its own status"
+planned_spec: <key>           # only with several planned Specs
 thread_id: THRD-NNN
 charter_version: <from charter.yaml>
 generated_by:
@@ -94,7 +96,7 @@ brief_ack: null                # the PM sets this, never you
 
 ## Output: the Review Brief
 
-Place this at the top of the Thread file (and mirror the structured version into `review_brief` in the Spec frontmatter):
+Place this at the top of the Thread file (and mirror the structured version into `review_brief` in the Spec frontmatter). With several planned Specs, write one Review Brief per Spec under a `## Review Brief: <spec_id>` heading, each with its own `brief_ack`:
 
 - **Verify first:** the 3 to 5 items most likely to be wrong or most costly if wrong.
 - **Assumptions:** every assumption you made, each tagged with its origin — `signal`, `overview`, `library`, or `inferred`.
@@ -108,6 +110,6 @@ If a **Verify first** item needs an outside action rather than just a read-throu
 
 ## What you must not do
 
-- Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `check-spec`'s job, not yours, and only the PM sets `status: Specified`, after a passing `check-spec`.
+- Do not mark the Thread or Spec as compiled, passed, or ready for engineering — that is `check-spec`'s job, not yours, and only the PM sets `status: Specified` (or `spec_status: specified` on one of several planned Specs), after a passing `check-spec`.
 - Do not write to `signals/*/raw/`.
 - Do not fabricate trace targets to satisfy the "every criterion needs a trace" rule — an uncovered claim is an open question, not a reason to invent a source.

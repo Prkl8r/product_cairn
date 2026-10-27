@@ -22,7 +22,7 @@ Usable at any stage, on its own or between steps of the core flow. It never move
 3. The signals in `inbound_refs` and the overviews for systems in `touches`, so you don't ask what they already answer.
 4. `charter.yaml`, so you don't ask what the charter settles (modality, UI presence, data class).
 
-If the PM gave a focus, ask about that first.
+If the PM gave a focus, ask about that first. If the Thread has `planned_specs`, the focus can be one of them ("ask me about refine-and-share"); otherwise work on the next planned Spec that isn't drafted yet, and say which.
 
 ## Choosing what to ask
 
@@ -35,7 +35,7 @@ What usually matters, by stage:
 | **Exploring** | Who's affected and how often; how strong the evidence is; workarounds people use today; why now; what outcome would show this worked, and how it's measured |
 | **Framing** | Use cases: who, in what situation, wanting what; which use cases are in and out of scope; constraints from other teams or systems; risks the PM already suspects |
 | **Validating** | Acceptance criteria: what must be true for each use case, pass/fail or with a number (metric, operator, value, unit); error and empty states; limits and volumes; what's explicitly out of scope; open questions blocking a criterion (C20) |
-| **Specified / Handed off** | Only what a kickback or a reviewer raised |
+| **Specified / Handed off** | Only what a kickback or a reviewer raised. On a Thread with several Specs, go by each Spec's `spec_status`: a Spec that's `handed_off` gets only kickback questions, while a `planned` one is asked about as in Validating |
 
 Also look at what other skills have already flagged: unmapped edge cases, inferred journey steps, `unknown` in the brief, deferred open questions with no owner.
 
@@ -76,9 +76,11 @@ use_cases:                 # from Framing answers
     situation: "..."
     wants: "..."
     in_scope: true
+    planned_spec: <key>    # only when the Thread has planned_specs
     source: thread:THRD-001#qa-03
 candidate_criteria:        # from Validating answers; draft-spec turns these into real criteria
   - use_case: UC-01
+    planned_spec: <key>    # same as its use case
     text: "..."
     type: binary | threshold
     threshold: {metric: ..., operator: ..., value: ..., unit: ...}   # threshold only, from the PM's answer

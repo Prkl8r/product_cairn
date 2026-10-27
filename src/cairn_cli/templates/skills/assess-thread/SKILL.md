@@ -47,9 +47,12 @@ edge_cases:
     deferred: true
     reason: "..."
     origin: signal | overview | library | inferred
+    planned_spec: <key>      # only when the Thread has planned_specs: which part this edge case belongs to
 ```
 
 Plus the verdict body: the edge cases found, each tagged with its origin.
+
+If the Thread has `planned_specs`, propose which planned Spec each edge case belongs to (from each part's `outcome` and `covers`) and let the PM confirm, so `draft-spec` doesn't have to sort them out later. An edge case that fits no part goes to the PM as a possible missing part.
 
 If the verdict shows who should review the draft, or which supporting artifacts (UX mocks, an API spec) Validating will need, propose them as lines in the Thread's `## Open items`.
 
