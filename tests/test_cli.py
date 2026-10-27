@@ -94,3 +94,8 @@ def test_snapshot_writes_status_files(repo):
     snap = json.loads((repo / "STATUS.json").read_text())
     assert [t["id"] for t in snap["threads"]] == ["THRD-001"]
     assert "FDBK-001" not in (repo / "STATUS.md").read_text()
+
+
+def test_ledger_json_lists_untriaged_signals(repo):
+    snap = json.loads(runner.invoke(app, ["ledger", "--path", str(repo), "--json", "--include-restricted"]).output)
+    assert snap["untriaged"] == ["FDBK-001"]

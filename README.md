@@ -160,7 +160,7 @@ cairn find "roster csv"   # keyword search across signals, threads, specs, libra
 cairn find ZD-88421       # an exact id shows its full lineage: signals -> thread -> specs -> referenced docs
 ```
 
-Add `--json` to either command for compact output that scripts, CI, or another agent can read without opening the repo's files. The skills use the same commands to keep their token use down.
+Add `--json` to either command for compact output that scripts, CI, or another agent can read without opening the repo's files. The skills use the same commands to keep their token use down. The JSON includes an `untriaged` list of signals no Thread has picked up yet, which `whats-next` (with no id) lists with a nudge for each.
 
 For people who don't have Cairn installed, `cairn snapshot` writes `STATUS.md` (a readable table) and `STATUS.json` at the repo root. Commit them, and anyone with read access can check status. To keep them current on every commit, add the pre-commit hook. This works on a new or an existing install, and it leaves any hook you already have in place:
 

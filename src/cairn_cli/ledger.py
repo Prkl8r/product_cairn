@@ -313,6 +313,9 @@ def snapshot(docs: dict[str, Doc], root: Path) -> dict:
         "specs": [dict(x, sent=x["id"] in shipped) for x in by("spec")],
         "reference": [as_dict(d, docs, root) for d in docs.values() if d.kind in REFERENCE_KINDS],
         "broken_refs": {d.id: d.broken for d in docs.values() if d.broken},
+        # Signals no Thread has picked up yet, oldest first, so whats-next can nudge on each one.
+        "untriaged": [d.id for d in sorted(docs.values(), key=lambda d: str(d.updated))
+                      if d.kind == "signal" and not any(docs[l].kind == "thread" for l in d.links)],
     }
 
 
