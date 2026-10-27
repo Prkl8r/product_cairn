@@ -4,6 +4,7 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Suggest bundle and journey at the right moment** — Done: shape-thread offers bundle-threads for Threads sharing signals/themes and map-journey for user-facing changes on proceed; assess-thread offers map-journey before the jury
 - [x] 2026-10-27 **Record which jury seats ran** — Done: jury-duty returns `jury_seats` and the transcript, assess-thread saves them and refuses without a Judge, and `cairn check` C28 fails the Spec
 - [x] 2026-10-27 **Enforce the scope check** — Done: scope_decision is always recorded (new `single` value); draft-spec refuses without it and `cairn check` C27 fails the Spec
 - [x] 2026-10-27 **Lineage line** — Done: shape-thread, draft-spec and fast-track open Thread and Spec bodies with a `**Lineage:**` line

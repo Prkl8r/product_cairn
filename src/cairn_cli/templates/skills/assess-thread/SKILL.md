@@ -29,8 +29,9 @@ When every edge case is mapped or deferred and the PM accepts the verdict, set `
 3. Never invent risks that aren't grounded in the signal, overview, or library content — label anything inferred as `inferred`, the same origin-tagging `fast-track` uses for assumptions.
 4. If an overview a system in `touches` depends on is missing or unverified (`verified: false`), say so as part of the verdict — don't silently assess against unverified material.
 5. **Scope check.** If the Thread now covers two or more outcomes that could each ship on its own and has no `scope_decision`, or has grown since one was recorded, or recorded `deferred`, run the scope check from `shape-thread`'s Scope check section: name the parts and offer the same three choices, defaulting to one Thread that hands off several Specs. Ask the Judge to give a view on scope as part of the verdict when it's `deferred`, and get the PM to resolve `deferred` to `single`, `multi_spec` or `split` before the Thread moves to Validating: draft-spec won't start without it.
-6. Mark everything you write as agent-drafted.
-7. **The Judge must have run.** Save jury-duty's transcript and the Judge's YAML to `threads/<thread_id>-verdict.md` and copy its `jury_seats` onto the Thread. If `jury_seats` has no `judge` entry, the gate stays shut: don't move the Thread to Validating and don't write a verdict yourself. Rerun `jury-duty`. `cairn check` fails a normal-track Spec whose Thread lacks the Judge seat or the verdict file (C28).
+6. **Before the jury runs**, if the Thread changes a user-facing flow and has no `journey:` in `outbound_refs`, offer `map-journey` once: a journey gives the Skeptic concrete steps and failure points to attack. If the PM declines, carry on. If the jury turns up another Thread with the same problem, offer `bundle-threads`.
+7. Mark everything you write as agent-drafted.
+8. **The Judge must have run.** Save jury-duty's transcript and the Judge's YAML to `threads/<thread_id>-verdict.md` and copy its `jury_seats` onto the Thread. If `jury_seats` has no `judge` entry, the gate stays shut: don't move the Thread to Validating and don't write a verdict yourself. Rerun `jury-duty`. `cairn check` fails a normal-track Spec whose Thread lacks the Judge seat or the verdict file (C28).
 
 ## Output
 

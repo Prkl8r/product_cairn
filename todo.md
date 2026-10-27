@@ -31,8 +31,6 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Overview L1 → L2 promotion** — add a skill or command to name an owner and mark an overview verified
   Jury and check-spec both warned about all-L1 overviews, but there's no step to fix it.
 - [ ] **Recurring-theme gate support** — count/link signals sharing a theme so the feedback exit gate isn't judged by eye
-- [ ] **Suggest bundle and journey at the right moment** — prompt `bundle-threads` when new Threads share signals/themes, and `map-journey` in Framing for user-facing changes
-  Neither skill was used in the test run even though rain-next-hour and rain-history clearly relate.
 - [ ] **Commercial context for monetisation work** — give the charter or Thread a place for pricing, tiers and store billing constraints (App Store / Play)
   The premium mandate had no home for these; the jury found payment/sync edge cases with nothing to trace them to.
 - [ ] **Separate PM in test runs** — rerun the end-to-end test with a human or a separate agent as PM, so Review Brief acknowledgement and PM decisions are real
