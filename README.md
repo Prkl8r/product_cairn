@@ -92,7 +92,7 @@ Read it left to right: any source becomes a typed **signal**; one or more signal
 | Stage | What's happening | Exit gate | Skill |
 |---|---|---|---|
 | **Exploring** | The PM, alone, fleshing out an idea. | Feedback: recurring theme met. Requirement/mandate/idea: a named sponsor validated it. Analytics: the number has a comparison and a known sample size. Internal: the brief states the cost of not doing it. Problem-and-impact brief written (evidence, alternatives, why now, expected outcome); PM decides **proceed**. | `shape-thread` |
-| **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
+| **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. A deferral that still needs a call later can carry `needs_decision` and `resurface_at` (Validating, handoff or a date), and `whats-next` and `check-spec` raise it again then. | `assess-thread` |
 | **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), adds it to the Thread's `## Open items`, flags any owner still `TBD`, and never blocks on it. | `draft-spec` → `check-spec` |
 
 Leaving Validating takes two steps. Once the Spec compiles clean, the PM marks it ready; when it goes out, it's handed off.
@@ -359,4 +359,4 @@ Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills
 
 Run the tests with `pip install pytest && pytest tests`.
 
-See the docs above for the full design behind all of this, including the check-spec rule table (C01–C28) and the install/update/packaging model.
+See the docs above for the full design behind all of this, including the check-spec rule table (C01–C29) and the install/update/packaging model.

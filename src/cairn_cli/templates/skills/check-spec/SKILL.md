@@ -27,7 +27,7 @@ Read, in full:
 
 Run `cairn check <spec-id> --markdown`. It runs C01, C02, C04–C10, C20, C21, C23, C27 and C28 as code and prints a row for each. Copy those rows into the report as they are: don't re-derive, soften or override them. Any Fail there is a Fail in the report, and `cairn handoff` refuses the Spec until `cairn check` passes, whatever the report says. If `cairn` isn't installed, run those rules by hand and say so in the report.
 
-Then do the rest by reading: C03, C11–C19, C22 and C24–C26.
+Then do the rest by reading: C03, C11–C19, C22, C24–C26 and C29.
 
 ## Checks
 
@@ -63,6 +63,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C26 | Every step in a journey this Spec traces to (`journey:<id>#<step>`) is covered by at least one criterion or listed in `out_of_scope`. A `direct` trace never points at a step tagged `origin: inferred` | Warn; Error for a `direct` trace to an inferred step |
 | C27 | The parent Thread records a `scope_decision` of `single`, `multi_spec` or `split` (`deferred` or missing fails). Warns when it's `single` and the Spec has four or more slices | Error |
 | C28 | Normal track: the parent Thread's `jury_seats` includes a `judge` entry and `verdict_ref` is a file in the repo (warns if the Advocate or Skeptic is missing). Fast track is exempt | Error |
+| C29 | Every edge case on the Thread with `needs_decision: true` and `resurface_at: Validating` or `handoff` has a `decision` recorded. A dated one past its date warns too | Warn |
 
 **Several planned Specs.** When the Thread plans more than one Spec, C13 counts a signal as cited if any of the Thread's Specs cites it, and C11 and C26 apply only to the items assigned to this Spec (`planned_spec: <key>` matching this Spec's `planned_spec`). An item assigned to another planned Spec counts as covered when this Spec's `out_of_scope` points to it (`covered by planned Spec <key>` or `by SPEC-NNN`); without the pointer, Warn. An item with no `planned_spec` at all is still checked here as before. Also Warn when a criterion here repeats or contradicts one in another Spec of the same Thread.
 

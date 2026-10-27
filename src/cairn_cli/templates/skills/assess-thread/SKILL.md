@@ -25,7 +25,7 @@ When every edge case is mapped or deferred and the PM accepts the verdict, set `
 ## Rules
 
 1. **Default mechanism is the jury**, run via `jury-duty`: Advocate argues the case, Skeptic (on a different model from the Advocate; a coin flip from `cairn jury-draw` decides which gets which) attacks it for concrete edge cases, Judge renders a verdict. Do not reimplement the critique here — call `jury-duty` so the standalone and in-flow uses never drift apart. In Claude Code it runs the jurors as separate agents; elsewhere it plays the seats inline and says so.
-2. Every edge case the jury raises gets mapped to a future criterion (named, not yet fully drafted — that's `draft-spec`'s job) or explicitly deferred with a reason. An edge case with neither is not allowed to close out.
+2. Every edge case the jury raises gets mapped to a future criterion (named, not yet fully drafted — that's `draft-spec`'s job) or explicitly deferred with a reason. An edge case with neither is not allowed to close out. When a deferral still needs someone to make a call later (an accessibility level, a legal review, a pricing choice), ask the PM whether to mark it `needs_decision: true` with a `resurface_at`, so it comes back instead of being forgotten.
 3. Never invent risks that aren't grounded in the signal, overview, or library content — label anything inferred as `inferred`, the same origin-tagging `fast-track` uses for assumptions.
 4. If an overview a system in `touches` depends on is missing or unverified (`verified: false`), say so as part of the verdict — don't silently assess against unverified material.
 5. **Scope check.** If the Thread now covers two or more outcomes that could each ship on its own and has no `scope_decision`, or has grown since one was recorded, or recorded `deferred`, run the scope check from `shape-thread`'s Scope check section: name the parts and offer the same three choices, defaulting to one Thread that hands off several Specs. Ask the Judge to give a view on scope as part of the verdict when it's `deferred`, and get the PM to resolve `deferred` to `single`, `multi_spec` or `split` before the Thread moves to Validating: draft-spec won't start without it.
@@ -49,6 +49,9 @@ edge_cases:
     mapped_to: <planned criterion name>   # or:
     deferred: true
     reason: "..."
+    needs_decision: true     # optional: deferred, but someone still has to decide it (e.g. accessibility level)
+    resurface_at: Validating | handoff | <YYYY-MM-DD>   # required with needs_decision: when to raise it again
+    decision: null           # filled when decided: what was decided, by whom, on what date
     origin: signal | overview | library | inferred
     planned_spec: <key>      # only when the Thread has planned_specs: which part this edge case belongs to
 ```
