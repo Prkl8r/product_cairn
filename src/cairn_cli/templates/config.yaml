@@ -57,3 +57,8 @@ handoff:
 # Your own frontmatter keys on signals, Threads, Specs or journeys. `cairn doctor` warns about any key
 # no Cairn skill writes (usually a typo, like `fast_track: true` for `track: fast`); list yours here.
 extra_keys: []
+
+overviews:
+  # How long an overview stays trusted after `last_verified` before check-spec (C16, C24) treats it as
+  # stale. Used when an overview has no `review_ttl` of its own, and written into new stub overviews.
+  review_ttl: 180d

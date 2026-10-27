@@ -8,9 +8,7 @@ Open follow-up items for the Cairn product repo.
   Running all 22 checks by hand was the heaviest step in the first fast-track run. `cairn handoff` already trusts the compile report's verdict, so the gate should come from code.
   The 2026-10-27 Haiku test run confirmed it: `cairn check` later found 14 errors in two Specs the agent had passed.
   Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23, C27, C28); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
-- [ ] **Overview depth on fast track** — add a time-box or a "stop when you can answer these questions" rule for stub L1 overviews
 - [ ] **Cross-repo library refs** — define how a `trace.ref` points at a library file in another repo (C05 currently warns)
-- [ ] **Default review_ttl** — decide whether stub overviews get a default `review_ttl` so C16 has something to check
 - [ ] **Deferred-risk follow-up** — let a deferred risk (e.g. accessibility) carry `needs_decision` and a re-surface point so it doesn't get forgotten
 - [ ] **Front end for non-technical PMs** — P2: a web or IDE front end that hides the `cairn` commands, YAML and git behind forms and a Thread board
   Wider adoption needs it, but it's a separate product. Decide first who the audience is; the plugin only removes the install step.

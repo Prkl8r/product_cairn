@@ -4,6 +4,8 @@ Resolved follow-up items for the Cairn product repo.
 
 ## Done
 
+- [x] 2026-10-27 **Default review_ttl** — Done: overviews.review_ttl in config (default 180d), used by C16 when an overview has none and written into stubs
+- [x] 2026-10-27 **Overview depth on fast track** — Done: fast-track's stub overviews stop at four questions (purpose, boundaries, interfaces touched, constraints), the rest TBD
 - [x] 2026-10-27 **Self-sourced signal type** — Done: new `internal` signal type (INT- ids) whose Exploring gate is the PM's written cost of not doing it; idea now means a championed proposal
 - [x] 2026-10-27 **Deferred questions vs. starting work** — Won't do: Cairn's part ends at handoff; the receiving process decides what deferrals block
 - [x] 2026-10-27 **Suggest bundle and journey at the right moment** — Done: shape-thread offers bundle-threads for Threads sharing signals/themes and map-journey for user-facing changes on proceed; assess-thread offers map-journey before the jury

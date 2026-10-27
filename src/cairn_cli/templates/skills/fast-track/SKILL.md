@@ -19,7 +19,13 @@ You are acting on the PM's Thread. You own none of it — you draft, the PM deci
 
 Before drafting, locate and read:
 1. `charter.yaml` — product modality, UI presence, profile (`solo`/`team`), write authority, org rules.
-2. Every `architecture/<system>/overview.md` the work touches. If one doesn't exist, note it — do not invent its content.
+2. Every `architecture/<system>/overview.md` the work touches. If one doesn't exist, note it — do not invent its content. If you can read the system itself (its code, schema or API docs), offer to write a **stub overview** and stop when these four questions are answered, from what you read and nothing else:
+   1. **Purpose:** what the system is for, in two sentences.
+   2. **Boundaries:** what it owns and what it doesn't, as far as this work cares.
+   3. **Interfaces touched:** the endpoints, events or screens this Thread changes.
+   4. **Known constraints:** limits, rules or quirks this work has to respect.
+
+   Use onboard's overview template; answer those four in sections 1, 3, 4 and 7, and write `TBD` in every other section. Set `readiness: L1`, `verified: false`, `owner: TBD` unless you know it, and `review_ttl` from `overviews.review_ttl` in `.cairn/config.yaml` (180d if unset). Don't research beyond these four. A deeper overview is onboard's job, and L2 needs a named owner.
 3. The signal file(s) under `signals/<type>/<signal-id>.md` (the committed, redacted version — never the raw copy under `signals/*/raw/`).
 4. The Thread file under `threads/<thread-id>.md`, if it exists. If it doesn't, create it with minimal frontmatter (`thread_id`, `stage: Exploring`, `status: Active`, `owner`, `inbound_refs`, `touches`) plus the one-paragraph description, before proceeding.
 

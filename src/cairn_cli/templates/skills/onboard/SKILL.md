@@ -106,7 +106,7 @@ source: interview | import | generated-from-schema
 verified: false
 verified_by: null
 last_verified: null
-review_ttl: 180d
+review_ttl: 180d          # from overviews.review_ttl in .cairn/config.yaml; 180d if unset
 readiness: L1
 ---
 ```

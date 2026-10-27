@@ -50,7 +50,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C13 | Validated signals attached to the Thread but cited by no criterion | Warn |
 | C14 | Criterion text overlaps heavily with an out-of-scope item | Warn |
 | C15 | Skill/charter versions match what's pinned (Warn instead of Error if no lock file exists yet) | Error/Warn |
-| C16 | Every cited `/library` or `/architecture` file has `verified: true` and is inside its `review_ttl` | Error if Thread `data_class` is `restricted`, else Warn |
+| C16 | Every cited `/library` or `/architecture` file has `verified: true` and is inside its `review_ttl` (a file with none uses `overviews.review_ttl` from `.cairn/config.yaml`, 180d if unset) | Error if Thread `data_class` is `restricted`, else Warn |
 | C17 | Every system in the Thread's `touches` has an overview file with a named owner, and the product overview exists | Error normally; **Warn** if `track: fast` or `profile: solo` |
 | C18 | Fast track only: Review Brief exists with skipped gates, ranked verify-first items, every assumption tagged with an origin; `brief_ack` is set | Error on `team` profile, Warn on `solo` |
 | C19 | Fast track only: Thread matches no org rule for a skipped gate | Warn by default, Error only if that rule sets `enforcement: block` |
