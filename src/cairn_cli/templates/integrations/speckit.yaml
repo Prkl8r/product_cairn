@@ -5,11 +5,9 @@ skill: speckit-specify
 expects: .specify
 # A different spec-kit version or agent may name the skill differently (e.g. speckit.specify);
 # override `skill:` on the target.
+# speckit-specify copies this text into its Input line, so it's kept short; the first sentence is
+# the Cairn reference.
 args: >-
-  Cairn Spec {spec_id} (revision {revision}, Thread {thread_id}). Build the spec-kit spec from the
-  Cairn Spec at {spec}, using spec-kit's template unchanged; its Input line is this text's first
-  sentence. Take the feature short name from what the Spec builds (its problem and slices), not from
-  these instructions. Keep its acceptance-criterion ids (AC-NNN), slices, out-of-scope list, error
-  and empty states, and open questions; cite its source link; add no requirements it doesn't contain.
-  Its open questions were deferred on purpose: carry them over as open questions, not as
-  [NEEDS CLARIFICATION] markers, unless one leaves a requirement impossible to write.
+  Cairn Spec {spec_id} (revision {revision}, Thread {thread_id}), at {spec}. Build only from it:
+  keep its AC ids, slices, out-of-scope, error and empty states; name the feature for what it
+  builds; keep its open questions as open questions, not clarification markers.
