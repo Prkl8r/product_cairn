@@ -79,6 +79,8 @@ Transitions outside the normal order:
 | Kickback: Handed off → Active, stage stays Validating | Engineering sends the Spec back | `kickback_reason`, `kickback_category` |
 | Fast track: Exploring → a drafted Spec at Validating | PM invokes `fast-track`; Review Brief acknowledged; compiler errors cleared | `track: fast`, `light_stages`, `brief_ack` |
 
+When a Thread plans several Specs, each carries its own `spec_status` (`drafted`, `specified`, `handed_off`) and moves on its own. The Thread stays Active until every planned Spec is ready (then Specified) or out (then Handed off), and a kickback reopens only the Spec that came back. A single-Spec Thread uses the Thread's status alone.
+
 Handoff ends Cairn's part. Whoever receives the Spec tracks build and launch.
 
 Kickback categories (feed the kickback-rate metric): missing edge case, ambiguous criterion, wrong constraint, scope change.

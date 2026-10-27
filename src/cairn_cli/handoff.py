@@ -197,9 +197,17 @@ def check(root: Path, spec_id: str, to: str, where: str | None) -> tuple[_ledger
     if not thread or thread.kind != "thread":
         raise HandoffError(f"{spec_id} has no parent Thread (thread_id: {spec.meta.get('thread_id')})")
     status = _ledger.stage_status(thread.meta)[1]
-    if status != "Specified":
-        raise HandoffError(f"{thread.id} is {status}, not Specified. Set status: Specified once the Spec "
-                           "compiles clean, then hand off.")
+    spec_status = spec.meta.get("spec_status")
+    if spec_status is None:  # a Thread with one Spec and no spec_status: the Thread's status stands for it
+        if status != "Specified":
+            raise HandoffError(f"{thread.id} is {status}, not Specified. Set status: Specified (or "
+                               f"spec_status: specified on {spec_id}) once the Spec compiles clean, then hand off.")
+    else:
+        if status not in ("Active", "Specified", "Handed off"):
+            raise HandoffError(f"{thread.id} is {status}; resume it before handing off its Specs.")
+        if spec_status != "specified":
+            raise HandoffError(f"{spec_id} is spec_status: {spec_status}, not specified. Set spec_status: "
+                               "specified once it compiles clean, then hand off.")
     verdict = compile_verdict(spec.path.with_name(f"{spec_id}.compile_report.md"))
     if verdict != "Pass":
         raise HandoffError(f"{spec_id}'s compile report " + ("is missing" if verdict is None else "says Fail")
@@ -219,11 +227,44 @@ def run_script(root: Path, pkg: Path, to: str, where: str | None) -> None:
         raise HandoffError(f"{SCRIPT} exited with code {r.returncode}; the Thread was not marked Handed off.")
 
 
-def mark_handed_off(thread: _ledger.Doc, spec: _ledger.Doc, to: str, where: str | None) -> None:
+def thread_spec_ids(thread: _ledger.Doc) -> list[str | None]:
+    """Every Spec the Thread has or plans, in order; None for a planned Spec not drafted yet."""
+    ids = [str(r).split(":", 1)[1] for r in thread.meta.get("outbound_refs") or [] if str(r).startswith("spec:")]
+    for p in thread.meta.get("planned_specs") or []:
+        sid = p.get("spec_id") if isinstance(p, dict) else None
+        if sid is None or sid not in ids:
+            ids.append(sid)
+    return ids
+
+
+def mark_handed_off(root: Path, thread: _ledger.Doc, spec: _ledger.Doc, to: str, where: str | None) -> str:
+    """Record the handoff on the Spec and the Thread. Returns the Thread's status afterwards."""
     record = {"to": to}
     if where:
         record["where"] = where
     record.update({"on": _dt.date.today().isoformat(), "spec_id": spec.id,
                    "revision": spec.meta.get("revision", 1)})
-    text = thread.path.read_text(encoding="utf-8")
-    thread.path.write_text(set_keys(text, {"status": "Handed off", "handoff": record}), encoding="utf-8")
+    keys: dict = {}
+    if spec.meta.get("spec_status") is not None or len(thread_spec_ids(thread)) > 1:
+        spec.path.write_text(set_keys(spec.path.read_text(encoding="utf-8"), {"spec_status": "handed_off"}),
+                             encoding="utf-8")
+        spec.meta["spec_status"] = "handed_off"
+    # One entry per Spec sent; an older single `handoff` record becomes the first entry.
+    old = thread.meta.get("handoffs") or ([thread.meta["handoff"]] if thread.meta.get("handoff") else [])
+    keys["handoffs"] = [h for h in old if h.get("spec_id") != spec.id or h.get("revision") != record["revision"]] + [record]
+    keys["handoff"] = None
+    status = _ledger.stage_status(thread.meta)[1]
+    if all(sid and _sent(root, sid, spec) for sid in thread_spec_ids(thread)):
+        status = "Handed off"
+    keys["status"] = status
+    text = set_keys(thread.path.read_text(encoding="utf-8"), keys)
+    text = re.sub(r"^handoff: null\n", "", text, flags=re.M)
+    thread.path.write_text(text, encoding="utf-8")
+    return status
+
+
+def _sent(root: Path, spec_id: str, current: _ledger.Doc) -> bool:
+    if spec_id == current.id:
+        return True
+    path = root / "specs" / f"{spec_id}.md"
+    return path.exists() and _ledger._split(path)[0].get("spec_status") == "handed_off"

@@ -80,8 +80,8 @@ def test_export_builds_package_and_marks_thread(repo):
     thread = (repo / "threads/THRD-001.md").read_text()
     meta = frontmatter(repo / "threads/THRD-001.md")
     assert meta["status"] == "Handed off"
-    assert meta["handoff"]["to"] == "export" and meta["handoff"]["where"] == "platform team"
-    assert meta["handoff"]["spec_id"] == "SPEC-001"
+    assert meta["handoffs"][0]["to"] == "export" and meta["handoffs"][0]["where"] == "platform team"
+    assert meta["handoffs"][0]["spec_id"] == "SPEC-001"
     assert meta["outbound_refs"][0] == "spec:SPEC-001"
     assert thread.endswith("Body stays put.\n")
     # The Spec in this repo is untouched; only the package copy gets a source link.
@@ -101,7 +101,7 @@ def test_repo_copies_into_target_checkout(repo, tmp_path_factory):
 def test_in_place_needs_no_where(repo):
     r = run(repo, "SPEC-001", "--to", "in_place")
     assert r.exit_code == 0, r.output
-    assert frontmatter(repo / "threads/THRD-001.md")["handoff"] == {
+    assert frontmatter(repo / "threads/THRD-001.md")["handoffs"][0] == {
         "to": "in_place", "on": h._dt.date.today().isoformat(), "spec_id": "SPEC-001", "revision": 2}
 
 
@@ -194,3 +194,49 @@ def test_journey_ref_by_id_is_copied(repo):
     res = run(repo, "SPEC-001", "--to", "in_place", "--dry-run")
     assert res.exit_code == 0, res.output
     assert (repo / ".cairn/handoff/SPEC-001/addendum/journey/JRN-001.md").exists()
+
+
+def multi_spec(repo, spec_status="specified"):
+    """THRD-001 with SPEC-001 drafted and one planned Spec not drafted yet."""
+    thread = repo / "threads/THRD-001.md"
+    thread.write_text(THREAD.format(status="Active").replace(
+        "---\n\nBody", "planned_specs:\n  - key: core\n    spec_id: SPEC-001\n  - key: refine\n    spec_id: null\n---\n\nBody"))
+    spec = repo / "specs/SPEC-001.md"
+    spec.write_text(SPEC.replace("revision: 2\n", f"revision: 2\nspec_status: {spec_status}\n"))
+    return thread, spec
+
+
+def test_one_spec_of_several_hands_off_and_thread_stays_active(repo):
+    thread, spec = multi_spec(repo)
+    r = run(repo, "SPEC-001", "--to", "in_place")
+    assert r.exit_code == 0, r.output
+    assert "stays Active" in r.output and "(not drafted)" in r.output
+    meta = frontmatter(thread)
+    assert meta["status"] == "Active" and "handoff" not in meta
+    assert [h["spec_id"] for h in meta["handoffs"]] == ["SPEC-001"]
+    assert frontmatter(spec)["spec_status"] == "handed_off"
+
+
+def test_last_spec_hands_off_the_thread(repo):
+    thread, _ = multi_spec(repo)
+    (repo / "specs/SPEC-002.md").write_text("---\nspec_id: SPEC-002\nthread_id: THRD-001\nspec_status: specified\n---\nx\n")
+    (repo / "specs/SPEC-002.compile_report.md").write_text("## Verdict: Pass\n")
+    thread.write_text(thread.read_text().replace("    spec_id: null", "    spec_id: SPEC-002"))
+    assert run(repo, "SPEC-001", "--to", "in_place").exit_code == 0
+    assert frontmatter(thread)["status"] == "Active"
+    assert run(repo, "SPEC-002", "--to", "in_place").exit_code == 0
+    meta = frontmatter(thread)
+    assert meta["status"] == "Handed off" and len(meta["handoffs"]) == 2
+
+
+def test_refuses_spec_not_specified(repo):
+    multi_spec(repo, spec_status="drafted")
+    r = run(repo, "SPEC-001", "--to", "in_place")
+    assert r.exit_code == 1 and "not specified" in r.output
+
+
+def test_old_single_handoff_record_is_kept(repo):
+    thread, _ = multi_spec(repo)
+    thread.write_text(thread.read_text().replace("planned_specs:", "handoff:\n  to: export\n  spec_id: SPEC-000\n  revision: 1\nplanned_specs:"))
+    assert run(repo, "SPEC-001", "--to", "in_place").exit_code == 0
+    assert [h["spec_id"] for h in frontmatter(thread)["handoffs"]] == ["SPEC-000", "SPEC-001"]

@@ -426,8 +426,9 @@ def ledger(path: Path = PATH_OPT, as_json: bool = JSON_OPT, include_restricted: 
     for s in sent:
         t = next(docs[l] for l in s.links if docs[l].kind == "thread")
         line = f"  {s.id:<16} rev {s.meta.get('revision', 1):<3} {t.id} {s.updated}"
-        if t.meta.get("kickback_reason"):
-            line += f"  last kickback: {t.meta.get('kickback_category') or 'pm'}"
+        kb = _ledger.last_kickback(t.meta, s.id)
+        if kb:
+            line += f"  last kickback: {kb.get('category') or 'pm'}"
         typer.echo(line)
     if not sent:
         typer.echo("  nothing yet")
@@ -495,7 +496,7 @@ def handoff(
     dry_run: bool = typer.Option(False, "--dry-run", help="Build the package only: don't run the delivery script or change the Thread."),
     path: Path = PATH_OPT,
 ):
-    """Hand a Specified Spec off: package it with its supporting artifacts, deliver it, mark the Thread Handed off."""
+    """Hand a Spec off: package it with its supporting artifacts, deliver it, and record it on the Spec and Thread."""
     root = path.resolve()
     try:
         spec, thread = _handoff.check(root, spec_id, to, where)
@@ -507,11 +508,17 @@ def handoff(
             typer.echo("Dry run: nothing delivered, Thread unchanged.")
             return
         _handoff.run_script(root, pkg, to, where)
-        _handoff.mark_handed_off(thread, spec, to, where)
+        thread_status = _handoff.mark_handed_off(root, thread, spec, to, where)
     except _handoff.HandoffError as e:
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
-    typer.secho(f"{thread.id} is Handed off ({spec.id} -> {to}{' ' + where if where else ''}).", fg=typer.colors.GREEN)
+    sent = f"{spec.id} -> {to}{' ' + where if where else ''}"
+    if thread_status == "Handed off":
+        typer.secho(f"{thread.id} is Handed off ({sent}).", fg=typer.colors.GREEN)
+    else:
+        pending = [s or "(not drafted)" for s in _handoff.thread_spec_ids(thread) if s != spec.id]
+        typer.secho(f"Handed off {sent}. {thread.id} stays {thread_status}; still to go: {', '.join(pending)}.",
+                    fg=typer.colors.GREEN)
 
 
 @app.command("jury-draw")

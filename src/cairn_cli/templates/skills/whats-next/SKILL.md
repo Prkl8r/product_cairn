@@ -53,13 +53,14 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Validating, Active | normal | supporting artifacts or reviews still open | get everyone on board: list the open artifacts and review reminders from `## Open items`. Reviews never block |
 | Validating, Active | normal | no Spec in `outbound_refs` | `draft-spec` |
 | Validating, Active | normal | Spec drafted, not compiled | `check-spec` |
-| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say the PM can set `status: Specified` |
-| Specified | — | — | ready to hand off with `cairn handoff <spec-id> --to export\|repo\|in_place` (export to a team, send to another repo, or leave in place for spec-kit). It packages the Spec with its supporting artifacts, sets `status: Handed off` and records `handoff` |
+| Validating, Active | any | compiled clean | remind the PM once to have the draft reviewed if that item is unchecked, then say the PM can set `spec_status: specified` on that Spec (several planned Specs) or `status: Specified` on the Thread (one Spec) |
+| Validating, Active | any | several planned Specs | report progress across them from the `## Planned Specs` table, e.g. "1 of 3 handed off, 1 drafted, 1 planned", then give the next step for the first one not out: hand off a `specified` one with `cairn handoff`, `check-spec` a `drafted` one, `draft-spec` a `planned` one. The Thread stays Active throughout |
+| Specified | — | — | ready to hand off with `cairn handoff <spec-id> --to export\|repo\|in_place` (export to a team, send to another repo, or leave in place for spec-kit). It packages the Spec with its supporting artifacts, records it under `handoffs`, and sets `status: Handed off` once every planned Spec has gone out |
 | any, Active | fast | no Review Brief yet | `fast-track` |
 | any, Active | fast | Review Brief exists, `brief_ack` unset | `ack-brief` |
 | any, Active | fast | `brief_ack` set, not compiled | `check-spec` |
-| Handed off | — | kicked back by eng | `record-kickback`, then `revise-spec` |
-| Handed off | — | nothing pending | say where (`handoff`). Build and launch belong to whoever received it, not Cairn |
+| Handed off, or Active with a Spec `handed_off` | — | kicked back by eng | `record-kickback` for that Spec, then `revise-spec` |
+| Handed off | — | nothing pending | say where each Spec went (`handoffs`; older Threads have a single `handoff`). Build and launch belong to whoever received it, not Cairn |
 | Parked | — | — | say what it's waiting on (`pickup_when`). If that has happened, or the PM wants it back, `park-or-reject` resumes it |
 | Rejected | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
 | any | — | PM wants to stop or pause it | `park-or-reject` |

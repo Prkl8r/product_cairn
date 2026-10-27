@@ -71,6 +71,26 @@ Write `compile_report.md` next to the Spec (e.g. `specs/<spec-id>.compile_report
 - A one-line verdict, written as a heading `## Verdict: Pass` or `## Verdict: Fail` (`cairn handoff` reads this line). **Pass**: no Errors; Warnings may remain but must be listed. **Fail**: lists exactly what to fix, nothing else implied.
 - A count of trace entries by `basis`, so a reader sees at a glance how much of the Spec rests on sources versus inference and decisions. A Pass means every claim has a recorded source; it does not mean the claims are true.
 - C24 warnings in their own section, `## Unverified architecture`, listed even when everything else passes.
-- Unacknowledged Warnings listed separately so the PM can add `ack: [C12:AC-003 "reason"]` style entries if they choose to proceed anyway.
+- Unacknowledged Warnings listed separately. On later runs, Warnings with a matching `ack` entry are listed as acknowledged, with their reason, not as open.
 
-Do not change the Thread's `stage` or `status` yourself. Report the verdict; on a Pass, the PM may set `status: Specified` (the Spec is ready); it becomes `Handed off` when it goes out.
+## Walking through the warnings
+
+After writing the report, if any Warning is unacknowledged, offer to go through them: "4 warnings are open. Go through them now? For each one you can acknowledge it or edit the Spec." If the PM says no, stop; the warnings stay listed as open, which never blocks.
+
+C24 is never offered: it can't be acknowledged, only cleared by getting the overview to L2. Say so in one line if any C24 warnings exist.
+
+For each open Warning, in report order, up to three per round:
+1. Show what it is in plain words, the offending text (the criterion, quote or number), and why the rule flags it. One or two lines, no rule jargon beyond the id.
+2. Offer three choices. In Claude Code, use the question tool (up to three warnings per call):
+   - **Acknowledge.** Propose a one-line reason from what you know ("threshold comes from the PM's answer in qa-07, not a source"), which the PM can accept or reword. Never invent one the files don't support; if you have none, ask for it.
+   - **Edit.** Propose the specific change to the Spec that would clear it (reword the criterion, add the trace, move the item out of scope). Make the change only after the PM approves the wording.
+   - **Leave open.** Nothing changes; it stays on the report.
+3. Record acknowledgements in the Spec's frontmatter as `ack: ["C12:AC-003 \"<reason>\""]`, one entry per warning and offending id, appending to any existing list. Never acknowledge a warning the PM didn't explicitly accept.
+
+After each round, say how many are left and ask whether to keep going. When done, re-run the checks touched by any edit (an edit can raise a new Error or Warning) and update the report: the verdict, the open list, and the acknowledged list.
+
+Do not change the Thread's `stage` or `status`, or the Spec's `spec_status`, yourself. Report the verdict. On a Pass, say what the PM can set next:
+- **The Thread plans more than one Spec:** `spec_status: specified` on this Spec. It can then be handed off on its own while the Thread stays Active for the rest. Only once every planned Spec is specified or handed off does the Thread become Specified.
+- **One Spec:** `status: Specified` on the Thread, as before.
+
+Either way, the Spec becomes handed off when `cairn handoff` sends it.

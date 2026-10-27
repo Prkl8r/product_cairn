@@ -15,7 +15,7 @@ Step 3 of the core flow. Drafts `specs/<spec_id>.md` from a Thread already in `s
 
 ## Required inputs
 
-1. The Thread file — must be `stage: Validating`, `status: Active`, with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. API specs (`api:` refs) must be OpenAPI 3.1: check for `openapi: 3.1.x` at the document root, and if it's another version or format, tell the PM rather than drafting against it. Endpoints, fields and limits in criteria may then trace to that document. If missing, stop and point the PM at `assess-thread` first.
+1. The Thread file — must be `stage: Validating`, `status: Active` (it stays Active while any planned Spec is undrafted, even after another has been handed off), with a `verdict_ref` present (from `assess-thread`). Read every supporting artifact in `outbound_refs` that resolves to a file; for a link outside the repo, cite it but don't guess its contents. API specs (`api:` refs) must be OpenAPI 3.1: check for `openapi: 3.1.x` at the document root, and if it's another version or format, tell the PM rather than drafting against it. Endpoints, fields and limits in criteria may then trace to that document. If missing, stop and point the PM at `assess-thread` first.
 2. `charter.yaml`.
 3. Every signal file and `architecture/<system>/overview.md` the Thread references.
 4. Every journey in `outbound_refs` (`journey:<id>`, from `map-journey`). Trace criteria to its steps (`journey:JRN-001#step-2`), and draw `error_states` and `empty_states` from the steps' failure and empty cases. Cover each step with a criterion or list it in `out_of_scope` (C26).
@@ -40,6 +40,7 @@ Same frontmatter contract as `fast-track` (`docs/spec-as-code-revision.md` Part 
 
 ```yaml
 spec_id: SPEC-NNN
+spec_status: drafted       # drafted | specified | handed_off; see shape-thread
 thread_id: THRD-NNN        # or bundle_id: BUNDLE-NNN, see bundle-threads
 charter_version: <from charter.yaml>
 generated_by:
@@ -60,6 +61,6 @@ After drafting, add a review reminder to the Thread's `## Open items` if one isn
 ## What you must not do
 
 - Do not mark the Spec as compiled or ready — that's `check-spec`'s job.
-- Do not set `status: Specified` yourself.
+- Do not set `status: Specified` or `spec_status: specified` yourself. Each Spec you draft gets `spec_status: drafted`; the Thread stays `Active` (see `shape-thread`'s "Each Spec has its own status").
 - Do not draft without a recorded jury verdict unless the Thread is explicitly `track: fast` (in which case use `fast-track`, not this skill).
 - Do not write to `signals/*/raw/`, and never fabricate a trace target.

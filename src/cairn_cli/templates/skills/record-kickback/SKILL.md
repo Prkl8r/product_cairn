@@ -11,11 +11,11 @@ disable-model-invocation: false
 
 ## What this does
 
-Records a fact: engineering (or the PM) sent a compiled Spec back for rework. Sets the Thread's `status` from `Handed off` back to `Active` (its stage stays `Validating`) and logs why, so `revise-spec` has a reason to work from and the kickback-rate metric (segmented by track, per the docs) stays accurate.
+Records a fact: engineering (or the PM) sent a compiled Spec back for rework. Reopens the Spec that came back and logs why. On a Thread with several Specs, only that Spec goes back to `spec_status: drafted`; the others keep theirs. The Thread's `status` returns to `Active` (its stage stays `Validating`) if it was Specified or Handed off, and stays Active if it already was, so `revise-spec` has a reason to work from and the kickback-rate metric (segmented by track, per the docs) stays accurate.
 
 ## Required inputs
 
-1. The Thread file — should be `status: Handed off`.
+1. The Thread file, and which Spec came back (ask if the Thread has more than one). That Spec should be `spec_status: handed_off`, or the Thread `status: Handed off` for a single-Spec Thread.
 2. The kickback reason, in the PM's own words, and which category it falls into: **missing edge case**, **ambiguous criterion**, **wrong constraint**, or **scope change**. Ask if the PM doesn't specify one.
 
 ## Rules
@@ -30,12 +30,16 @@ Update the Thread file:
 
 ```yaml
 status: Active             # stage stays Validating
-kickback_reason: "..."
-kickback_category: missing_edge_case | ambiguous_criterion | wrong_constraint | scope_change | null
-kickback_date: <date>
+kickbacks:                 # one entry per kickback, newest last
+  - spec_id: SPEC-NNN
+    reason: "..."
+    category: missing_edge_case | ambiguous_criterion | wrong_constraint | scope_change | null
+    date: <date>
 ```
+
+and set `spec_status: drafted` in that Spec's frontmatter (the only change this skill makes to a Spec). An older Thread with flat `kickback_reason`/`kickback_category`/`kickback_date` keys: move them into the first `kickbacks` entry.
 
 ## What you must not do
 
-- Do not touch the Spec file itself — that's `revise-spec`'s job.
+- Do not touch the Spec beyond setting `spec_status: drafted`; redrafting is `revise-spec`'s job.
 - Do not set `status: Specified` or `Handed off` back — Specified follows a fresh passing `check-spec`, and Handed off follows a new handoff.

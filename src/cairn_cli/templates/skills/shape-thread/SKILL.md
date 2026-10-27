@@ -68,13 +68,24 @@ Also show the breakdown in the Thread body, so the PM can read and edit it witho
 ```markdown
 ## Planned Specs
 
-| # | Spec | Delivers | Covers | Ships after |
-|---|---|---|---|---|
-| 1 | core | ... | ... | — |
-| 2 | refine-and-share | ... | ... | 1 |
+| # | Spec | Delivers | Covers | Ships after | Status |
+|---|---|---|---|---|---|
+| 1 | core (SPEC-001) | ... | ... | — | handed_off |
+| 2 | refine-and-share | ... | ... | 1 | planned |
 ```
 
 Keep the table and `planned_specs` in step: if the PM edits the table, update the YAML to match. A Thread with one outcome needs neither.
+
+### Each Spec has its own status
+
+When a Thread plans more than one Spec, each Spec moves on its own, and the Thread's status follows from them:
+
+- **A Spec's status** is `spec_status` in its own frontmatter: `drafted` (by `draft-spec` or `revise-spec`), `specified` (set by the PM after a passing `check-spec`), `handed_off` (set by `cairn handoff`). A planned Spec with no file yet is `planned`. The table's Status column mirrors these.
+- **The Thread stays `Active`** while any planned Spec is planned, drafted or kicked back. Handing off one Spec never needs the Thread set to Specified, and drafting the next never means setting it back.
+- **The Thread becomes `Specified`** when every planned Spec is specified or handed off and at least one isn't out yet. The PM sets it, as before.
+- **The Thread becomes `Handed off`** when every planned Spec has gone out. `cairn handoff` sets this itself when the last one goes, and records each Spec it sends under the Thread's `handoffs` list.
+
+A Thread with a single Spec can skip `spec_status` and use the Thread's status as before.
 
 Never split a Thread or create new ones without the PM choosing option 2. `assess-thread` and `draft-spec` run this same check (see this section) if the Thread has grown since it was last made.
 

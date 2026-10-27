@@ -24,7 +24,7 @@ disable-model-invocation: false
 1. **Never allocate a new `spec_id`.** This is the one invariant that keeps a kicked-back Spec reading as an update. If you don't have the original `spec_id` to hand, stop and ask for it rather than guessing.
 2. Identify exactly which slices/criteria the kickback reason touches. Redraft only those. Everything else — slices, criteria, traces, open questions — carries forward untouched.
 3. Bump `revision` (starts at 1 on first draft, so a first revision is `revision: 2`).
-4. Write a short "what changed and why" note, tied directly to the `kickback_reason`/`kickback_category` — this is what a reviewer reads first.
+4. Write a short "what changed and why" note, tied directly to this Spec's latest entry in the Thread's `kickbacks` (`reason`, `category`; older Threads use flat `kickback_reason`/`kickback_category`) — this is what a reviewer reads first.
 5. Same drafting rules as `draft-spec`: every criterion traces to a real source with a `basis` on each trace (add one to carried-forward traces that lack it, without changing anything else), no invented values, binary-or-threshold typing, agent-drafted labeling.
 6. If the kickback reveals an edge case the original jury verdict missed, add it to the Thread's edge-case list (retroactively) so the record stays honest about what was missed and why.
 
@@ -35,7 +35,7 @@ Same Spec file, same `spec_id`, updated frontmatter:
 ```yaml
 spec_id: SPEC-042          # unchanged
 revision: 2
-revised_from_kickback: "<kickback_reason, or the PM's stated reason>"
+revised_from_kickback: "<the kickback reason, or the PM's stated reason>"
 changelog:
   - revision: 2
     date: <date>
@@ -51,4 +51,4 @@ changelog:
 - Do not create a new `spec_id` or a new file — same Spec, new revision.
 - Do not touch slices/criteria the kickback reason doesn't mention.
 - Do not mark it compiled — send it back through `check-spec` before it goes to engineering again.
-- Do not set `status: Specified` yourself — that follows `check-spec`'s pass, applied by the PM.
+- Do not set `status: Specified` or `spec_status: specified` yourself — that follows `check-spec`'s pass, applied by the PM. The revised Spec keeps `spec_status: drafted`.

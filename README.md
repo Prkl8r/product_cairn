@@ -38,7 +38,18 @@ signal(s) ──► Exploring ──► Framing ──► Validating ──► S
 | **Framing** | Talking to others to find what needs thinking about. The jury runs here. | Jury verdict recorded; every edge case mapped to a criterion or deferred. | `assess-thread` |
 | **Validating** | Getting everyone on board; UX mocks, an API spec (OpenAPI 3.1) and other supporting artifacts get made. | The Spec compiles clean. No sign-off is required: Cairn reminds the PM who should review the draft (the sponsor, owners of systems in `touches`), and never blocks on it. | `draft-spec` → `check-spec` |
 
-Leaving Validating takes two steps. Once the Spec compiles clean, the PM sets `status: Specified`: the Spec exists and is ready. When it goes out, the status becomes `Handed off`.
+Leaving Validating takes two steps. Once the Spec compiles clean, the PM marks it ready; when it goes out, it's handed off.
+
+**One Thread, several Specs.** When a Thread plans more than one Spec (the `## Planned Specs` table from the scope check), each Spec moves on its own and the Thread's status follows them:
+
+| | Spec (`spec_status` in the Spec) | Thread (`status`) |
+|---|---|---|
+| Drafting | `drafted` | Active |
+| Compiles clean, PM marks it ready | `specified` | stays Active while any other planned Spec isn't ready |
+| `cairn handoff` sends it | `handed_off` | stays Active; becomes **Handed off** when the last planned Spec goes out |
+| Engineering sends it back | back to `drafted` | Active |
+
+So you can hand off the first Spec as soon as it's ready and keep drafting the rest, with no stepping the Thread back. The Thread is **Specified** only when every planned Spec is ready or out. A Thread with a single Spec can skip `spec_status`: the PM sets the Thread to Specified, and `cairn handoff` sets it to Handed off.
 
 **Status** is separate from stage, so a Thread keeps its stage when it stops:
 
@@ -47,12 +58,12 @@ Leaving Validating takes two steps. Once the Spec compiles clean, the PM sets `s
 | **Active** | Being worked on (default). | — |
 | **Parked** | On hold, with what has to happen first (`pickup_when`). | `park-or-reject` |
 | **Rejected** | Dropped, with a reason and category. | `park-or-reject` |
-| **Specified** | The Spec exists and compiles clean; not sent anywhere yet. | PM, after a passing `check-spec` |
-| **Handed off** | The Spec went out: exported to a team, sent to another repo, or left in place for spec-kit. | PM, recording `handoff` |
+| **Specified** | Every planned Spec compiles clean and is ready; at least one hasn't been sent yet. | PM, after a passing `check-spec` |
+| **Handed off** | Every planned Spec went out: exported to a team, sent to another repo, or left in place for spec-kit. | `cairn handoff`, when the last Spec goes |
 
-- **Kickback**: engineering sends the Spec back. Status returns from Handed off to Active at Validating; `record-kickback` → `revise-spec` updates the same Spec.
+- **Kickback**: engineering sends a Spec back. That Spec returns to `drafted` and the Thread to Active at Validating, while the Thread's other Specs keep their status; `record-kickback` → `revise-spec` updates the same Spec.
 - **Fast track**: `fast-track` goes from Exploring to a drafted Spec, backfilling Framing and Validating lightly (`light_stages`), with a Review Brief and one acknowledgement.
-- **Handoff** ends Cairn's part: `cairn handoff` exports the Spec to a team, sends it to another repo, or leaves it in place for spec-kit to pick up, and records where in the Thread's `handoff`. Whoever receives it tracks build and launch.
+- **Handoff** ends Cairn's part: `cairn handoff` exports the Spec to a team, sends it to another repo, or leaves it in place for spec-kit to pick up, and records each Spec sent in the Thread's `handoffs` list. Whoever receives it tracks build and launch.
 
 ---
 
@@ -107,7 +118,7 @@ cairn init --here --status-hook
 
 The hook does nothing on machines where `cairn` isn't installed, so it won't block a teammate's commits.
 
-When a Thread is Specified, hand its Spec off:
+When a Spec is ready (`spec_status: specified`, or a Specified Thread for a single Spec), hand it off:
 
 ```bash
 cairn handoff SPEC-001 --to export --where "platform team"   # zip a package for a team
@@ -115,7 +126,7 @@ cairn handoff SPEC-001 --to repo --where ../other-repo        # copy into anothe
 cairn handoff SPEC-001 --to in_place                          # leave it here for spec-kit
 ```
 
-It refuses unless the Thread is Specified and the Spec's compile report says `## Verdict: Pass`. It then builds `.cairn/handoff/<spec-id>/`: the Spec with a `source` link back to this repo and Thread, plus an `addendum/` holding copies of every supporting artifact in the Thread's `outbound_refs`. Files in the repo are copied, downloadable URLs are fetched, and anything else is listed in `addendum/LINKS.md`. API specs that aren't OpenAPI 3.1 get a warning. Delivery is done by `.cairn/handoff.py`, a script `cairn init` installs once and never overwrites, so each team can change how export and repo work. If it succeeds, the Thread becomes Handed off. `--dry-run` builds the package and stops.
+It refuses unless the Spec is ready and its compile report says `## Verdict: Pass`. On a Thread with several Specs, the Thread may still be Active. It then builds `.cairn/handoff/<spec-id>/`: the Spec with a `source` link back to this repo and Thread, plus an `addendum/` holding copies of every supporting artifact in the Thread's `outbound_refs`. Files in the repo are copied, downloadable URLs are fetched, and anything else is listed in `addendum/LINKS.md`. API specs that aren't OpenAPI 3.1 get a warning. Delivery is done by `.cairn/handoff.py`, a script `cairn init` installs once and never overwrites, so each team can change how export and repo work. If it succeeds, the Spec becomes `handed_off` and the handoff is added to the Thread's `handoffs`. The Thread becomes Handed off once all its planned Specs have gone; until then the command says which are still to go. `--dry-run` builds the package and stops.
 
 `--json` and `snapshot` leave out anything marked `data_class: restricted`, including the ids of restricted signals, unless you pass `--include-restricted`. Plain terminal output shows everything and tags restricted items. Every output lists broken references (a Thread or Spec pointing at a signal, Thread, or library file that doesn't exist), and `cairn doctor` warns about them.
 
@@ -143,7 +154,7 @@ Four skills, run in order, cover the normal track end to end:
 1. **`shape-thread`** — Exploring → Framing (or Parked/Rejected). Checks the entry gate, drafts a problem-and-impact brief that asks whether the problem is worth solving (evidence strength, alternatives, why now, expected outcome), gets the PM's proceed/hold/drop call.
 2. **`assess-thread`** — The Framing-stage critique, then Framing → Validating. Runs the Advocate/Skeptic/Judge jury, maps every edge case to a future criterion or a deferral, records the verdict.
 3. **`draft-spec`** — Drafts the Spec from a Validating Thread's jury verdict: binary-or-thresholded criteria, each traced to a real source, grouped into verifiable slices.
-4. **`check-spec`** — The deterministic gate. Checks structure, traceability, criteria quality, slices, and that no open question is left hanging — by hand, standing in for the `mcp-spec-compiler` server that doesn't exist yet. No LLM judgment calls on correctness, only well-formedness.
+4. **`check-spec`** — The deterministic gate. Checks structure, traceability, criteria quality, slices, and that no open question is left hanging — by hand, standing in for the `mcp-spec-compiler` server that doesn't exist yet. No LLM judgment calls on correctness, only well-formedness. Afterwards it offers to walk through any open warnings, up to three at a time: acknowledge each (it records an `ack` line with the reason), edit the Spec to clear it, or leave it open. C24 warnings about unverified architecture can't be acknowledged.
 
 **The loop-back**, for when engineering sends a Spec back: **`record-kickback`** logs why and sets the Thread's status back to Active (it stays in Validating); **`revise-spec`** redrafts only the affected slices under the *same* `spec_id` at a bumped `revision`, so it reads as an update, not a new document.
 

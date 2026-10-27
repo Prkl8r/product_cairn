@@ -225,18 +225,33 @@ def as_dict(doc: Doc, docs: dict[str, Doc], root: Path) -> dict:
            "updated": doc.updated, "links": sorted(doc.links)}
     if doc.kind == "thread":
         out["stage"], out["status"] = stage_status(doc.meta)
+        kb = last_kickback(doc.meta)
+        if kb:
+            out["kickback_category"] = kb.get("category")
     if doc.broken:
         out["broken_refs"] = doc.broken
-    for k in ("type", "revision", "kickback_category", "owner", "readiness",
+    for k in ("type", "revision", "spec_status", "owner", "readiness",
               "bundle", "pickup_when", "reject_category"):
         if doc.meta.get(k) is not None:
             out[k] = doc.meta[k]
     return out
 
 
+def last_kickback(thread_meta: dict, spec_id: str | None = None) -> dict | None:
+    """The newest kickback (for one Spec, if given), from `kickbacks` or the older flat keys."""
+    entries = [k for k in thread_meta.get("kickbacks") or [] if isinstance(k, dict)]
+    if not entries and thread_meta.get("kickback_reason"):
+        entries = [{"reason": thread_meta["kickback_reason"], "category": thread_meta.get("kickback_category")}]
+    if spec_id:
+        entries = [k for k in entries if k.get("spec_id") in (None, spec_id)]
+    return entries[-1] if entries else None
+
+
 def sent(docs: dict[str, Doc]) -> list[Doc]:
-    return [s for s in docs.values() if s.kind == "spec" and any(
-        docs[l].kind == "thread" and stage_status(docs[l].meta)[1] == "Handed off" for l in s.links)]
+    """Specs that went out: spec_status handed_off, or (one-Spec Threads) a Handed-off parent Thread."""
+    return [s for s in docs.values() if s.kind == "spec" and (
+        s.meta.get("spec_status") == "handed_off" or (s.meta.get("spec_status") is None and any(
+            docs[l].kind == "thread" and stage_status(docs[l].meta)[1] == "Handed off" for l in s.links)))]
 
 
 def snapshot(docs: dict[str, Doc], root: Path) -> dict:
