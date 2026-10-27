@@ -16,7 +16,6 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Cross-repo library refs** — define how a `trace.ref` points at a library file in another repo (C05 currently warns)
 - [ ] **Default review_ttl** — decide whether stub overviews get a default `review_ttl` so C16 has something to check
 - [ ] **Deferred-risk follow-up** — let a deferred risk (e.g. accessibility) carry `needs_decision` and a re-surface point so it doesn't get forgotten
-- [ ] **CLI test coverage** — add tests for `ledger`, `find`, `snapshot`, `init` and `doctor`
 - [ ] **Front end for non-technical PMs** — P2: a web or IDE front end that hides the `cairn` commands, YAML and git behind forms and a Thread board
   Wider adoption needs it, but it's a separate product. Decide first who the audience is; the plugin only removes the install step.
 - [ ] **Track-comparison metrics** — P2: report kickback rate by track (fast vs normal) and assumption burn-down by stage
@@ -28,8 +27,6 @@ Open follow-up items for the Cairn product repo.
 - [ ] **Experiment as Thread output** — P3: note in the master doc that a Thread could produce a hypothesis-and-test artifact instead of a Spec
   A known gap, not a build item yet.
 - [ ] **Change impact drives enablement** — P3: derive enablement work from what a change affects (support, sales, docs, training) instead of a checklist on the Spec
-- [ ] **Unknown frontmatter keys** — warn on keys not in the schema in `doctor`/check-spec
-  The agent invented `fast_track: true` on a Thread instead of `track: fast`; nothing noticed.
 - [ ] **Enforce the scope check** — require a recorded scope-check answer (one Spec, or a `## Planned Specs` table) before draft-spec proceeds
   The premium mandate (paywall + rain history) went out as one 5-slice Spec with no scope decision recorded.
 - [ ] **Record which jury seats ran** — store each seat's model and output in the verdict; fail the gate if the Judge didn't run

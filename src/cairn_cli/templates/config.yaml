@@ -53,3 +53,7 @@ handoff:
     #   kind: agent
     #   agent: general-purpose
     #   prompt: "Read {spec} and its addendum in {package}, then ..."
+
+# Your own frontmatter keys on signals, Threads, Specs or journeys. `cairn doctor` warns about any key
+# no Cairn skill writes (usually a typo, like `fast_track: true` for `track: fast`); list yours here.
+extra_keys: []

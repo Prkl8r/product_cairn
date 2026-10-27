@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as _dt
+import difflib
 import json
 import shutil
 import stat
@@ -384,7 +385,14 @@ def doctor(
         typer.secho(f"  WARN    {CONFIG_FILE} missing; the jury uses its default models. Run `cairn init --here`.",
                     fg=typer.colors.YELLOW)
 
+    config = (yaml.safe_load(config_path.read_text()) or {}) if config_path.exists() else {}
+    extra = set(config.get("extra_keys") or [])
     for d in _ledger.load(target).values():
+        for key in _ledger.unknown_keys(d, extra):
+            close = difflib.get_close_matches(key, _ledger.KNOWN_KEYS, n=1)
+            hint = f" (did you mean `{close[0]}`?)" if close else ""
+            typer.secho(f"  WARN    {d.id} has unknown key `{key}`{hint}. Add it to extra_keys in "
+                        f"{CONFIG_FILE} if it's yours.", fg=typer.colors.YELLOW)
         if d.broken:
             typer.secho(f"  WARN    {d.id} references missing files: {', '.join(d.broken)}", fg=typer.colors.YELLOW)
 

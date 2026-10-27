@@ -25,6 +25,29 @@ LEGACY_STATES = {
     "Rejected": (None, "Rejected"),
 }
 REFERENCE_KINDS = {"library", "architecture"}
+# Top-level frontmatter keys the skills write on signals, Threads, Specs and journeys. Anything else is
+# likely a typo or an invented field (`fast_track: true` instead of `track: fast`), so `doctor` warns.
+# A team that adds its own fields lists them under `extra_keys` in .cairn/config.yaml.
+KNOWN_KEYS = set("""
+signal_id type source captured_on data_class metric value unit period query comparison sample_size segment
+pulled_on tool themes summary title
+thread_id stage status state legacy owner track inbound_refs signal_refs outbound_refs touches bundle bundled_with
+see_thread light_stages skipped_gates review_brief brief_ack agent_drafted shape_decision evidence_strength
+expected_outcome scope_decision planned_specs planned_spec readiness verdict verdict_ref jury_mode jury_models
+edge_cases candidate_criteria overview_coverage unverified_overviews suggested_reviewers approvals handoff handoffs
+kickbacks kickback_reason kickback_category parked_on pickup_when revisit_date rejected_on reject_category reason
+validated_by accepted_by priority size
+spec_id spec_status revision revised_from_kickback changelog sections slices criteria open_questions
+generated_by charter_version
+journey_id goal persona use_cases steps variant
+""".split())
+
+
+def unknown_keys(doc: "Doc", extra: set[str] = frozenset()) -> list[str]:
+    """Top-level keys on a signal, Thread, Spec or journey that no skill writes."""
+    if doc.kind in REFERENCE_KINDS:
+        return []
+    return sorted(k for k in doc.meta if isinstance(k, str) and k not in KNOWN_KEYS | extra)
 
 
 @dataclass

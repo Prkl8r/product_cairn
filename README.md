@@ -77,7 +77,7 @@ cd /path/to/your-product-repo
 cairn init --here                       # or: cairn init <new-project-name>
 ```
 
-This copies the `.claude/skills/` into the target repo, creates the `signals/`, `threads/`, `specs/`, `journeys/`, `architecture/`, `library/` skeleton, writes a `charter.yaml` template, and pins the installed version in `.cairn/package.lock`. It's idempotent — rerunning `cairn init` never overwrites `charter.yaml` or anything you've already written; pass `--force` to refresh the skill files themselves after an update. Run `cairn doctor` any time to check the install is complete.
+This copies the `.claude/skills/` into the target repo, creates the `signals/`, `threads/`, `specs/`, `journeys/`, `architecture/`, `library/` skeleton, writes a `charter.yaml` template, and pins the installed version in `.cairn/package.lock`. It's idempotent — rerunning `cairn init` never overwrites `charter.yaml` or anything you've already written; pass `--force` to refresh the skill files themselves after an update. Run `cairn doctor` any time to check the install is complete. It also warns about frontmatter keys no skill writes, usually a typo like `fast_track: true` for `track: fast`. List your own fields under `extra_keys` in `.cairn/config.yaml`.
 
 **Or install the skills as a Claude Code plugin.** They then show up namespaced as `/cairn:<skill>` (for example `/cairn:whats-next`) in every repo, with no copies to keep in sync:
 
