@@ -157,3 +157,17 @@ def test_ledger_links_path_form_refs(repo):
     docs = ledger.load(repo)
     assert docs["SPEC-001"].broken == []
     assert "api/overview" in docs["SPEC-001"].links
+
+
+@pytest.mark.parametrize("text", ["Shows the banner within or in place of the card.",
+                                  "Either shows a toast or logs the error.", "Retries and/or alerts."])
+def test_either_or_wording_fails(repo, text):
+    meta = spec_meta()
+    meta["criteria"][0]["text"] = text
+    assert rules(repo, meta) == {("C08", "AC-001")}
+
+
+def test_plain_or_passes(repo):
+    meta = spec_meta()
+    meta["criteria"][0]["text"] = "Shows rain or snow icons."
+    assert rules(repo, meta) == set()

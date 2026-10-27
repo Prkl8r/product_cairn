@@ -42,7 +42,7 @@ Run every check below against the Spec. For each, record **Pass**, **Fail**, or 
 | C05 | Every `trace.ref` resolves to an existing committed file and anchor — never a raw signal copy | Error |
 | C06 | Every `quote`, if present, appears verbatim (whitespace/case normalized) in the referenced committed file | Error |
 | C07 | Criterion `modality` is allowed by the charter (e.g. no `web` criteria when `ui_presence: false`) | Error |
-| C08 | `binary` criteria contain no vague terms (fast, intuitive, user-friendly, appropriate, robust, "should", etc.) | Error |
+| C08 | `binary` criteria contain no vague terms (fast, intuitive, user-friendly, appropriate, robust, "should", etc.) and no either/or wording ("either … or", "within or in place of", "and/or") that lets two different outcomes both pass | Error |
 | C09 | `threshold` criteria have metric, operator, numeric value, and unit, all present | Error |
 | C10 | Required sections are non-empty: `problem`, `out_of_scope`, `error_states`, `empty_states`, `enablement_deps` (or `n/a: <reason>`) | Error |
 | C11 | Every edge case from the Framing critique (full jury verdict, or fast-track single-pass critique) is mapped to a criterion or deferred with a reason | Error |

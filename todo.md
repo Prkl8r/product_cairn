@@ -10,7 +10,6 @@ Open follow-up items for the Cairn product repo.
   Mechanical half shipped as `cairn check` (C01, C02, C04–C10, C20, C21, C23); handoff now refuses on its Errors. Still by hand: C03, C11–C19, C22, C24–C26.
 - [ ] **Deferred questions vs. starting work** — decide whether deferred open questions block starting implementation or only finishing a slice
   An engineer reading a Spec cold couldn't tell if `brief_ack` plus outstanding deferrals meant "go". Write the rule into the Spec template and check-spec.
-- [ ] **Either/or criterion wording** — add a C08-style lint against "either/or" phrasing ("within or in place of") in criterion text
 - [ ] **Lineage line** — render Signal → Thread → Spec ids in the Thread and Spec templates so the hierarchy reads without the design doc
 - [ ] **Self-sourced signal type** — decide whether internal notes and dev-noticed items need their own signal type or clearer guidance under `idea`
 - [ ] **Overview depth on fast track** — add a time-box or a "stop when you can answer these questions" rule for stub L1 overviews

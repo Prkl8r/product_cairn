@@ -19,6 +19,7 @@ REQUIRED_KEYS = {"spec_id": str, "thread_id": str, "sections": dict, "slices": l
 SECTIONS = ["problem", "out_of_scope", "error_states", "empty_states", "enablement_deps"]
 VAGUE = ["fast", "intuitive", "user-friendly", "appropriate", "robust", "should"]  # check-spec C08
 BASES = {"direct": "quote", "interpreted": None, "inferred": "assumption", "decided": "decided_by"}
+EITHER_OR = [r"\beither\b.+\bor\b", r"\b(\w+) or in place of\b", r"\band/or\b"]  # C08: two outcomes, can't fail
 QUESTION_STATUSES = {"answered", "deferred", "out_of_scope"}
 
 
@@ -116,6 +117,8 @@ def check(root: Path, spec_id: str, docs: dict[str, _ledger.Doc] | None = None) 
             hits = [w for w in VAGUE if re.search(rf"\b{re.escape(w)}\b", str(c.get("text", "")), re.I)]
             if hits:
                 err("C08", cid, f"vague term(s): {', '.join(hits)}")
+            if any(re.search(p, str(c.get("text", "")), re.I) for p in EITHER_OR):
+                err("C08", cid, "either/or wording; pick one outcome or split into two criteria")
         # C09: threshold criteria are complete.
         if c.get("type") == "threshold":
             th = c.get("threshold") if isinstance(c.get("threshold"), dict) else c
