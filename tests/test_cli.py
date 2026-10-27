@@ -115,7 +115,10 @@ def test_ledger_sorts_threads_by_priority_and_doctor_flags_bad_values(repo):
 def test_doctor_lists_gate_gaps_and_fixes_scope(repo):
     (repo / "threads/THRD-001.md").write_text(THREAD.replace("stage: Framing", "stage: Validating"))
     out = runner.invoke(app, ["doctor", str(repo)]).output
-    assert "THRD-001: no scope_decision (C27)" in out and "THRD-001: no record that the jury's Judge ran (C28)" in out
+    assert "THRD-001: no scope_decision" in out and "THRD-001: no record that the jury's Judge ran" in out
+    assert "Run the `upgrade` skill" in out
+    gaps = json.loads(runner.invoke(app, ["doctor", str(repo), "--gaps-json"]).output)["gaps"]
+    assert [(g["rule"], g["kind"]) for g in gaps] == [("C27", "fixable"), ("C28", "ask_jury")]
     out = runner.invoke(app, ["doctor", str(repo), "--fix"]).output
     assert "FIXED   THRD-001: recorded scope_decision: single" in out
     text = (repo / "threads/THRD-001.md").read_text()

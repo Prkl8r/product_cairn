@@ -38,7 +38,7 @@ see_thread light_stages skipped_gates review_brief brief_ack agent_drafted shape
 expected_outcome scope_decision planned_specs planned_spec readiness verdict verdict_ref jury_mode jury_models jury_seats
 edge_cases candidate_criteria overview_coverage unverified_overviews suggested_reviewers approvals handoff handoffs
 kickbacks kickback_reason kickback_category parked_on pickup_when revisit_date rejected_on reject_category reason
-validated_by accepted_by priority size
+validated_by accepted_by priority size resumed_on reopened_on reopen_reason
 spec_id spec_status revision revised_from_kickback changelog sections slices criteria open_questions
 generated_by charter_version
 journey_id goal persona use_cases steps variant

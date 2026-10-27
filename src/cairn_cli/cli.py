@@ -303,9 +303,15 @@ def doctor(
     path: Path = typer.Argument(Path("."), help="Product repo to check. Defaults to the current directory."),
     fix: bool = typer.Option(False, "--fix", help="Apply safe fixes: record `scope_decision: single` on "
                                                   "Validating Threads with at most one Spec. Never touches jury records."),
+    gaps_json: bool = typer.Option(False, "--gaps-json", help="Print only the Threads `cairn check` will fail on "
+                                                              "C27/C28, as JSON, for the upgrade skill."),
 ):
     """Check that a product repo's Cairn install is complete and consistent."""
     target = path.resolve()
+    if gaps_json:
+        docs = _ledger.load(target).values()
+        typer.echo(json.dumps({"gaps": [g for d in docs if d.kind == "thread" for g in _gate_gaps(target, d, fix)]}))
+        return
     ok = True
 
     lock_path = target / ".cairn" / "package.lock"
@@ -317,7 +323,7 @@ def doctor(
     typer.echo(f"Installed package version: {lock_data.get('package_version', 'unknown')}")
     if lock_data.get("package_version") != __version__:
         typer.secho(
-            f"  note: installed CLI is {__version__}, repo was initialized with {lock_data.get('package_version')}. Run `cairn init --force` to update skills.",
+            f"  note: installed CLI is {__version__}, repo was initialized with {lock_data.get('package_version')}. Run the `upgrade` skill (or `cairn init --here --force`) to update.",
             fg=typer.colors.YELLOW,
         )
 
@@ -395,10 +401,14 @@ def doctor(
         if isinstance(name, str) and name.lower() not in built_in:
             typer.secho(f"  WARN    {CONFIG_FILE}: {field} scheme `{name}` isn't built in "
                         f"({', '.join(built_in)}); using {_rank.DEFAULTS[field]}", fg=typer.colors.YELLOW)
+    gaps = []
     for d in _ledger.load(target).values():
         if d.kind == "thread":
-            for line in _gate_gaps(target, d, fix):
-                typer.secho(f"  {line}", fg=typer.colors.GREEN if line.startswith("FIXED") else typer.colors.YELLOW)
+            for g in _gate_gaps(target, d, fix):
+                gaps.append(g)
+                fixed = g["kind"] == "fixed"
+                typer.secho(f"  {'FIXED  ' if fixed else 'WARN   '} {g['thread']}: {g['message']} ({g['rule']})",
+                            fg=typer.colors.GREEN if fixed else typer.colors.YELLOW)
         for key in _ledger.unknown_keys(d, extra):
             close = difflib.get_close_matches(key, _ledger.KNOWN_KEYS, n=1)
             hint = f" (did you mean `{close[0]}`?)" if close else ""
@@ -410,43 +420,41 @@ def doctor(
         if d.broken:
             typer.secho(f"  WARN    {d.id} references missing files: {', '.join(d.broken)}", fg=typer.colors.YELLOW)
 
+    if any(g["kind"] != "fixed" for g in gaps):
+        typer.secho("  Run the `upgrade` skill to fix these: it asks you only what it can't work out.",
+                    fg=typer.colors.YELLOW)
     if not ok:
         raise typer.Exit(1)
     typer.secho("Cairn install looks healthy.", fg=typer.colors.GREEN)
 
 
-def _gate_gaps(root: Path, thread: _ledger.Doc, fix: bool) -> list[str]:
+def _gate_gaps(root: Path, thread: _ledger.Doc, fix: bool) -> list[dict]:
     """Threads at Validating that `cairn check` will fail on C27 (scope decision) or C28 (jury record),
     each with how to fix it. With `fix`, records `scope_decision: single` where that's the only answer."""
     stage, status = _ledger.stage_status(thread.meta)
     if stage != "Validating" or status in ("Rejected", "Handed off"):
         return []
     out = []
+    gap = lambda rule, kind, msg, **kw: out.append(dict(thread=thread.id, rule=rule, kind=kind, message=msg, **kw))
     scope = thread.meta.get("scope_decision")
-    specs = [r for r in thread.meta.get("outbound_refs") or [] if str(r).startswith("spec:")]
+    specs = [_ledger.ref_id(r) for r in thread.meta.get("outbound_refs") or [] if str(r).startswith("spec:")]
     if scope not in _compile.SCOPE_DECISIONS:
         if scope is None and not thread.meta.get("planned_specs") and len(specs) <= 1:
             if fix and _add_frontmatter_line(thread.path, "scope_decision: single"):
-                out.append(f"FIXED   {thread.id}: recorded scope_decision: single (one Spec, no planned Specs)")
+                gap("C27", "fixed", "recorded scope_decision: single (one Spec, no planned Specs)")
             else:
-                out.append(f"WARN    {thread.id}: no scope_decision (C27). It has one Spec, so "
-                           f"`cairn doctor --fix` can record `single`.")
+                gap("C27", "fixable", "no scope_decision; it has one Spec, so `cairn doctor --fix` can record `single`")
         else:
-            why = f"`{scope}`" if scope else "none"
-            out.append(f"WARN    {thread.id}: scope_decision is {why} (C27) and it has "
-                       f"{len(specs)} Spec(s). Run the scope check in assess-thread or draft-spec to record one.")
+            gap("C27", "ask_scope", f"scope_decision is {f'`{scope}`' if scope else 'none'} and it has "
+                                    f"{len(specs)} Spec(s); the PM picks single, multi_spec or split", specs=specs)
     if thread.meta.get("track", "normal") != "fast":
         seats = {x.get("seat") for x in thread.meta.get("jury_seats") or [] if isinstance(x, dict)}
         ref = str(thread.meta.get("verdict_ref") or "")
         if "judge" not in seats or not ref or not (root / ref).is_file():
-            if ref and not (root / ref).is_file() and len(ref) > 60:
-                hint = (f"verdict_ref holds the verdict text. If the jury really ran, move it to "
-                        f"threads/{thread.id}-verdict.md and add jury_seats (jury_models lists the models); "
-                        f"otherwise rerun assess-thread")
-            else:
-                hint = ("if the jury really ran and you have the transcript, save it as the verdict file and add "
-                        "jury_seats; otherwise rerun assess-thread")
-            out.append(f"WARN    {thread.id}: no record that the jury's Judge ran (C28): {hint}.")
+            inline = bool(ref) and not (root / ref).is_file() and len(ref) > 60
+            gap("C28", "ask_jury", "no record that the jury's Judge ran; ask whether it did and where the "
+                                   "transcript is, or rerun assess-thread",
+                inline_verdict=inline, jury_models=thread.meta.get("jury_models"))
     return out
 
 

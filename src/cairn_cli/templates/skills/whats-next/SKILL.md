@@ -25,6 +25,7 @@ With no Thread id given, it also opens with a **project status snapshot** — th
 
 ## Project status snapshot (no Thread id given)
 
+0. If `cairn doctor` says the repo was set up with an older Cairn version, or lists Threads `cairn check` will fail on, say so first in one line and point at the `upgrade` skill.
 1. Run `cairn ledger --json` rather than opening every file under `threads/` — it returns each Thread's stage, status, linked signals, and which Specs went to engineering in one compact call. Group Active Threads by `stage` and the rest by `status`, and report the counts (e.g. "3 Framing, 1 Validating, 1 Specified, 1 Handed off, 2 Parked"). Then list every signal in the JSON's `untriaged` array (no Thread has picked it up yet, oldest first) by id, type and date, with a one-line nudge for each: start a Thread with `shape-thread` (or `fast-track` if it's small), add it to an existing Thread's `inbound_refs` if it belongs there, or leave it if it's waiting for a theme to recur. Say "no untriaged signals" when the list is empty, so the PM knows it was checked. Only open a Thread file itself when you need its `## Open items`. If `cairn` isn't installed, fall back to reading the files.
 2. If any Thread has a `priority`, list the Active ones in the order `cairn ledger --json` returns them (highest priority first, unset last), with their priority and `size`, as "what to work on next". Skip this when none has one; never nag the PM to set them.
 3. Name the most recently modified Thread (by file mtime) and how long ago, and flag any Thread untouched for an unusually long time if one stands out — don't manufacture urgency where there isn't any.
@@ -66,7 +67,7 @@ This skill only reads and reports these — it never checks an item off or adds 
 | Rejected | — | — | nothing pending; mention the recorded reason and `reject_category` so it isn't argued again from scratch |
 | any | — | PM wants to stop or pause it | `park-or-reject` |
 | any | — | looks related to another Thread, or PM says "these go together" | `bundle-threads` |
-| any | — | PM asked for something off the core flow | name the matching optional skill (`ask-me`, `bundle-threads`, `intake-signal`, `jury-duty`, `map-journey`, `onboard`, `park-or-reject`). `readiness-check`, `record-approval` and `theme-extractor` aren't built yet: say so, and do the work inline if the PM wants it |
+| any | — | PM asked for something off the core flow | name the matching optional skill (`ask-me`, `bundle-threads`, `intake-signal`, `upgrade`, `jury-duty`, `map-journey`, `onboard`, `park-or-reject`). `readiness-check`, `record-approval` and `theme-extractor` aren't built yet: say so, and do the work inline if the PM wants it |
 
 Threads written before stages existed may still carry a single `state` field. Read it as: Signal/Shape → Exploring; Feasibility → Framing; Contract/Launched → Handed off; Parked/Rejected → that status. Mention once that the Thread uses the old field.
 
