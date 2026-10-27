@@ -19,8 +19,17 @@ import yaml
 from . import ledger as _ledger
 
 DESTINATIONS = ("export", "repo", "in_place")
+# Named targets in .cairn/config.yaml `handoff.targets`. A target names an integration (built in
+# under templates/integrations, or the project's .cairn/integrations/<name>.yaml) or sets a kind
+# itself. `script` runs from the CLI; the others are delivered by the hand-off skill in the agent
+# session, which then records them with --delivered.
+TARGET_KINDS = ("script", "skill", "agent", "template")
+AGENT_KINDS = ("skill", "agent", "template")
+KIND_NEEDS = {"script": ["run"], "skill": ["skill"], "agent": ["agent"], "template": ["template", "out"]}
+CONFIG = Path(".cairn") / "config.yaml"
 SCRIPT = Path(".cairn") / "handoff.py"
 PACKAGES = Path(".cairn") / "handoff"
+INTEGRATIONS = Path(".cairn") / "integrations"
 
 
 class HandoffError(Exception):
@@ -57,22 +66,26 @@ def _frontmatter_bounds(text: str) -> tuple[int, int]:
 
 
 def set_keys(text: str, values: dict) -> str:
-    """Replace or append top-level frontmatter keys, leaving every other line as written."""
+    """Replace top-level frontmatter keys where they stand (keeping a trailing comment on a one-line
+    value), or append new ones, leaving every other line as written."""
     lines = text.split("\n")
     _, end = _frontmatter_bounds(text)
     head, body = lines[1:end], lines[end:]
     for key, value in values.items():
-        out, skipping = [], False
+        dumped = yaml.safe_dump({key: value}, sort_keys=False, allow_unicode=True, width=1000).rstrip("\n").split("\n")
+        out, skipping, at = [], False, None
         for line in head:
             if re.match(rf"{re.escape(key)}\s*:", line):
-                skipping = True  # drop the key and any indented lines under it
+                skipping, at = True, len(out)  # drop the key and any indented lines under it
+                comment = re.search(r"\s+#[^'\"]*$", line)
+                if comment and len(dumped) == 1:
+                    dumped = [dumped[0] + comment.group(0)]
                 continue
             if skipping and (line.startswith((" ", "\t", "-")) or not line.strip()):
                 continue
             skipping = False
             out.append(line)
-        dumped = yaml.safe_dump({key: value}, sort_keys=False, allow_unicode=True, width=1000).rstrip("\n")
-        head = out + dumped.split("\n")
+        head = out + dumped if at is None else out[:at] + dumped + out[at:]
     return "\n".join(["---"] + head + body)
 
 
@@ -215,6 +228,96 @@ def check(root: Path, spec_id: str, to: str, where: str | None) -> tuple[_ledger
     return spec, thread
 
 
+def targets(root: Path) -> dict:
+    """`handoff:` from .cairn/config.yaml, or {} when there is none."""
+    path = root / CONFIG
+    if not path.exists():
+        return {}
+    return (yaml.safe_load(path.read_text(encoding="utf-8")) or {}).get("handoff") or {}
+
+
+def _builtin_integrations() -> Path:
+    return Path(__file__).parent / "templates" / "integrations"
+
+
+def integrations(root: Path) -> dict:
+    """Every integration by name: the built-ins, then the project's own, which win on a name clash."""
+    found = {}
+    for d in (_builtin_integrations(), root / INTEGRATIONS):
+        for f in sorted(d.glob("*.yaml")) if d.is_dir() else []:
+            found[f.stem] = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+    return found
+
+
+def resolve(root: Path, name: str, target) -> dict:
+    """A target merged over its integration's fields. The old `kind: speckit` means `integration: speckit`."""
+    if not isinstance(target, dict):
+        raise HandoffError(f"handoff target '{name}' in {CONFIG} is not a mapping")
+    target = dict(target)
+    if target.get("kind") == "speckit":
+        del target["kind"]
+        target["integration"] = "speckit"
+    if "integration" in target:
+        known = integrations(root)
+        base = known.get(target["integration"])
+        if base is None:
+            raise HandoffError(f"handoff target '{name}' uses integration '{target['integration']}', which isn't "
+                               f"built in or in {INTEGRATIONS}/ (known: {', '.join(known) or 'none'})")
+        target = {**{k: v for k, v in base.items() if k != "needs"}, **target,
+                  "needs": base.get("needs") or []}
+    return target
+
+
+def target_warnings(root: Path, target: dict) -> list[str]:
+    """Setup the integration expects but the repo doesn't have yet."""
+    exp = target.get("expects")
+    if exp and not (root / exp).exists():
+        return [f"integration '{target.get('integration')}' expects {exp} in this repo; is it set up?"]
+    return []
+
+
+def load_target(root: Path, name: str | None) -> tuple[str, dict]:
+    """(name, target) for a named target, or the configured default when name is None."""
+    conf = targets(root)
+    table = conf.get("targets") or {}
+    name = name or conf.get("default")
+    if not name:
+        raise HandoffError(f"no --target given and no handoff.default in {CONFIG}")
+    if name not in table:
+        known = ", ".join(table) or "none"
+        raise HandoffError(f"no handoff target '{name}' in {CONFIG} (known: {known})")
+    target = resolve(root, name, table[name])
+    kind = target.get("kind")
+    if kind not in TARGET_KINDS:
+        raise HandoffError(f"handoff target '{name}' has kind '{kind}'; use one of: {', '.join(TARGET_KINDS)}, "
+                           "or name an integration")
+    missing = [f for f in KIND_NEEDS[kind] + list(target.get("needs") or []) if not target.get(f)]
+    if missing:
+        raise HandoffError(f"handoff target '{name}' ({kind}) needs: {', '.join(dict.fromkeys(missing))}")
+    if kind == "template" and not (root / str(target["template"])).exists():
+        raise HandoffError(f"handoff target '{name}': template {target['template']} doesn't exist")
+    return name, target
+
+
+def placeholders(root: Path, pkg: Path, spec: _ledger.Doc, thread: _ledger.Doc) -> dict:
+    """Values a target's `run`, `args` or `prompt` can use as {name}."""
+    return {"package": str(pkg), "spec": str(pkg / "spec.md"), "spec_id": spec.id,
+            "revision": str(spec.meta.get("revision", 1)), "thread_id": thread.id, "root": str(root)}
+
+
+def fill(template: str, values: dict) -> str:
+    """Replace {name} for known names only, so other braces in a command survive."""
+    return re.sub(r"\{(\w+)\}", lambda m: values.get(m.group(1), m.group(0)), template)
+
+
+def run_target_script(root: Path, target: dict, values: dict) -> None:
+    # The target's own scalar fields ({repo}, {template}, ...) fill in too; the built-in names win.
+    own = {k: str(v) for k, v in target.items() if isinstance(v, (str, int, float)) and k != "run"}
+    r = subprocess.run(fill(str(target["run"]), {**own, **values}), shell=True, cwd=root)
+    if r.returncode:
+        raise HandoffError(f"the target's command exited with code {r.returncode}; the Thread was not marked Handed off.")
+
+
 def run_script(root: Path, pkg: Path, to: str, where: str | None) -> None:
     script = root / SCRIPT
     if not script.exists():
@@ -237,9 +340,12 @@ def thread_spec_ids(thread: _ledger.Doc) -> list[str | None]:
     return ids
 
 
-def mark_handed_off(root: Path, thread: _ledger.Doc, spec: _ledger.Doc, to: str, where: str | None) -> str:
+def mark_handed_off(root: Path, thread: _ledger.Doc, spec: _ledger.Doc, to: str, where: str | None,
+                    kind: str | None = None) -> str:
     """Record the handoff on the Spec and the Thread. Returns the Thread's status afterwards."""
     record = {"to": to}
+    if kind:
+        record["kind"] = kind
     if where:
         record["where"] = where
     record.update({"on": _dt.date.today().isoformat(), "spec_id": spec.id,

@@ -128,6 +128,82 @@ cairn handoff SPEC-001 --to in_place                          # leave it here fo
 
 It refuses unless the Spec is ready and its compile report says `## Verdict: Pass`. On a Thread with several Specs, the Thread may still be Active. It then builds `.cairn/handoff/<spec-id>/`: the Spec with a `source` link back to this repo and Thread, plus an `addendum/` holding copies of every supporting artifact in the Thread's `outbound_refs`. Files in the repo are copied, downloadable URLs are fetched, and anything else is listed in `addendum/LINKS.md`. API specs that aren't OpenAPI 3.1 get a warning. Delivery is done by `.cairn/handoff.py`, a script `cairn init` installs once and never overwrites, so each team can change how export and repo work. If it succeeds, the Spec becomes `handed_off` and the handoff is added to the Thread's `handoffs`. The Thread becomes Handed off once all its planned Specs have gone; until then the command says which are still to go. `--dry-run` builds the package and stops.
 
+**Named targets, integrations and the `hand-off` skill.** Cairn doesn't assume a build process. Name targets in `.cairn/config.yaml` under `handoff.targets` and run the **`hand-off`** skill (`/cairn:hand-off SPEC-001`, or `SPEC-001 <target>`); with no targets yet, the skill asks how your team works and sets one up. A target names an **integration**: `speckit` (runs `speckit-specify` on the packaged Spec; planning stays with you), `template` (fills your own spec template, set with `template` and `out`), or your own in `.cairn/integrations/<name>.yaml` for any other SDD process. A target can override any integration field, or skip integrations and set a `kind` directly: `skill` (runs `skill` with `args`), `agent` (runs a subagent with `prompt`) or `script` (the CLI runs `run`). `args`, `prompt`, `run` and `out` can use `{package}`, `{spec}`, `{spec_id}`, `{revision}`, `{thread_id}` and `{root}`. The skill builds the package with `cairn handoff <id> --target <name> --dry-run`, delivers it, then records it with `--delivered`. A failed delivery records nothing. `cairn handoff-targets` lists the targets as JSON and `cairn handoff-integrations` lists the integrations. `--to` works as before.
+
+#### Setting up a handoff integration
+
+Run `cairn handoff-integrations` to see what's available, add a target under `handoff.targets` in `.cairn/config.yaml`, then check it without sending anything:
+
+```bash
+cairn handoff-targets                         # the targets, with their integration's fields merged in
+cairn handoff SPEC-001 --target <name> --dry-run
+```
+
+The dry run stops early if the target is missing a field it needs, names an unknown integration, or points at a template that doesn't exist. Or just run the `hand-off` skill with no targets set: it asks how your team turns a Spec into work and writes the target for you.
+
+**spec-kit.** Install spec-kit in the repo first (the integration warns if there's no `.specify/`).
+
+```yaml
+handoff:
+  default: speckit
+  targets:
+    speckit:
+      integration: speckit
+      # skill: my-specify     # optional: override the skill or its args
+```
+
+The skill runs `speckit-specify` on the packaged Spec. Spec-kit's own template is used unchanged: its `**Input**` line reads `Cairn Spec SPEC-001 (revision 1, Thread THRD-001)`, and the spec keeps the Spec's `AC-NNN` ids, slices, out-of-scope list, error and empty states, and open questions. Then run `/speckit-plan` yourself.
+
+**Your own spec template.** The skill fills the template's sections from the Spec only. Anything the Spec doesn't cover is marked as not covered, never invented.
+
+```yaml
+handoff:
+  default: feature-spec
+  targets:
+    feature-spec:
+      integration: template
+      template: docs/templates/feature-spec.md   # must exist
+      out: docs/specs/{spec_id}.md               # not overwritten without asking
+```
+
+**Your own script, e.g. push to another SDD repo.** Write the script, then describe it once as an integration so any target can reuse it. Fields listed under `needs` must be set on the target, and every target field can be used in `run` as `{field}`. The handoff is recorded only if the script exits 0.
+
+```yaml
+# .cairn/integrations/push-spec.yaml
+description: "Fill our template and open a PR in the SDD repo."
+kind: script
+needs: [repo, template]
+run: "python scripts/push_spec.py --spec {spec} --package {package} --template {template} --repo {repo} --id {spec_id}"
+```
+
+```yaml
+# .cairn/config.yaml
+handoff:
+  default: sdd
+  targets:
+    sdd:
+      integration: push-spec
+      repo: git@github.com:acme/sdd-specs.git
+      template: tpl/feature.md
+```
+
+**Another tool with a skill or agent.** No integration file needed:
+
+```yaml
+handoff:
+  targets:
+    build:
+      kind: skill
+      skill: my-plugin:build-from-spec
+      args: "{spec}"
+    review:
+      kind: agent
+      agent: general-purpose
+      prompt: "Read {spec} and its addendum in {package}, then ..."
+```
+
+Every target can use `{package}` (the package folder), `{spec}` (its `spec.md`), `{spec_id}`, `{revision}`, `{thread_id}` and `{root}`. A project integration with the same name as a built-in replaces it. The integration file format is in `src/cairn_cli/templates/integrations/README.md`.
+
 `--json` and `snapshot` leave out anything marked `data_class: restricted`, including the ids of restricted signals, unless you pass `--include-restricted`. Plain terminal output shows everything and tags restricted items. Every output lists broken references (a Thread or Spec pointing at a signal, Thread, or library file that doesn't exist), and `cairn doctor` warns about them.
 
 **1. Onboard the product, once.** Nothing else works without a ratified `charter.yaml` and at least an L1 overview for the systems a Thread will touch:

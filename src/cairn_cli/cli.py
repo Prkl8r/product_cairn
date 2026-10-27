@@ -491,34 +491,81 @@ def snapshot(path: Path = PATH_OPT, include_restricted: bool = RESTRICTED_OPT):
 @app.command()
 def handoff(
     spec_id: str = typer.Argument(..., help="The Spec to hand off, e.g. SPEC-001."),
-    to: str = typer.Option(..., "--to", help="export (to a team), repo (to another repo), or in_place (spec-kit picks it up here)."),
+    to: Optional[str] = typer.Option(None, "--to", help="export (to a team), repo (to another repo), or in_place (spec-kit picks it up here)."),
     where: Optional[str] = typer.Option(None, "--where", help="The team, or the target repo's local checkout. Not needed for in_place."),
+    target: Optional[str] = typer.Option(None, "--target", help="A named target from handoff.targets in .cairn/config.yaml, in place of --to. 'default' uses handoff.default."),
+    delivered: bool = typer.Option(False, "--delivered", help="With --target: the hand-off skill already delivered it; only record the handoff."),
     dry_run: bool = typer.Option(False, "--dry-run", help="Build the package only: don't run the delivery script or change the Thread."),
     path: Path = PATH_OPT,
 ):
     """Hand a Spec off: package it with its supporting artifacts, deliver it, and record it on the Spec and Thread."""
     root = path.resolve()
     try:
-        spec, thread = _handoff.check(root, spec_id, to, where)
+        if (to is None) == (target is None):
+            raise _handoff.HandoffError("give exactly one of --to or --target")
+        if delivered and target is None:
+            raise _handoff.HandoffError("--delivered goes with --target")
+        kind = None
+        if target is not None:
+            target, conf = _handoff.load_target(root, None if target == "default" else target)
+            kind = conf["kind"]
+            if kind in _handoff.AGENT_KINDS and not (dry_run or delivered):
+                raise _handoff.HandoffError(
+                    f"target '{target}' ({kind}) is delivered by the hand-off skill: build with --dry-run, "
+                    "deliver it, then record with --delivered")
+            spec, thread = _handoff.check(root, spec_id, "in_place", None)
+        else:
+            spec, thread = _handoff.check(root, spec_id, to, where)
         pkg, warnings = _handoff.build_package(root, spec, thread)
+        if target is not None:
+            warnings += _handoff.target_warnings(root, conf)
         for w in warnings:
             typer.secho(f"  WARN  {w}", fg=typer.colors.YELLOW)
         typer.echo(f"Package: {pkg.relative_to(root)}")
+        if target is not None:
+            typer.echo(f"Target: {target} ({kind})")
         if dry_run:
             typer.echo("Dry run: nothing delivered, Thread unchanged.")
             return
-        _handoff.run_script(root, pkg, to, where)
-        thread_status = _handoff.mark_handed_off(root, thread, spec, to, where)
+        if target is None:
+            _handoff.run_script(root, pkg, to, where)
+            thread_status = _handoff.mark_handed_off(root, thread, spec, to, where)
+        else:
+            if kind == "script" and not delivered:
+                _handoff.run_target_script(root, conf, _handoff.placeholders(root, pkg, spec, thread))
+            thread_status = _handoff.mark_handed_off(root, thread, spec, target, None, kind)
     except _handoff.HandoffError as e:
         typer.secho(str(e), fg=typer.colors.RED)
         raise typer.Exit(1)
-    sent = f"{spec.id} -> {to}{' ' + where if where else ''}"
+    dest = target if target is not None else to
+    sent = f"{spec.id} -> {dest}{' ' + where if where and target is None else ''}"
     if thread_status == "Handed off":
         typer.secho(f"{thread.id} is Handed off ({sent}).", fg=typer.colors.GREEN)
     else:
         pending = [s or "(not drafted)" for s in _handoff.thread_spec_ids(thread) if s != spec.id]
         typer.secho(f"Handed off {sent}. {thread.id} stays {thread_status}; still to go: {', '.join(pending)}.",
                     fg=typer.colors.GREEN)
+
+
+@app.command("handoff-targets")
+def handoff_targets(path: Path = PATH_OPT):
+    """List the named handoff targets in .cairn/config.yaml, merged with their integrations, as JSON, for the hand-off skill."""
+    root = path.resolve()
+    conf = _handoff.targets(root)
+    out = {}
+    for name, t in (conf.get("targets") or {}).items():
+        try:
+            out[name] = _handoff.resolve(root, name, t)
+        except _handoff.HandoffError as e:
+            out[name] = {"error": str(e)}
+    typer.echo(json.dumps({"default": conf.get("default"), "targets": out}, indent=1))
+
+
+@app.command("handoff-integrations")
+def handoff_integrations(path: Path = PATH_OPT):
+    """List the handoff integrations a target can name: built in, plus .cairn/integrations/."""
+    for name, i in _handoff.integrations(path.resolve()).items():
+        typer.echo(f"{name:12} {i.get('kind', '?'):9} {i.get('description', '')}")
 
 
 @app.command("jury-draw")

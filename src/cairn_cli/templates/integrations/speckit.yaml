@@ -1,0 +1,10 @@
+# GitHub spec-kit: turn the Cairn Spec into a spec-kit feature spec with /speckit-specify.
+description: "spec-kit: runs speckit-specify on the packaged Spec. Planning and tasks stay with you."
+kind: skill
+skill: speckit-specify
+expects: .specify
+args: >-
+  Build a spec-kit spec from the Cairn Spec at {spec}. Use spec-kit's own template unchanged; set its Input line to
+  "Cairn Spec {spec_id} (revision {revision}, Thread {thread_id})" so the spec can be traced back.
+  Keep its acceptance-criterion ids (AC-NNN), slices, out-of-scope list, error and empty states, and
+  open questions; cite its source link; add no requirements it doesn't contain.

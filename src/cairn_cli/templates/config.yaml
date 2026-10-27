@@ -15,3 +15,41 @@ jury:
     advocate:
     skeptic:
     judge:
+
+handoff:
+  # Where the hand-off skill (and `cairn handoff --target`) sends a Specified Spec. A target either
+  # names an integration, which knows how to deliver to a build process, or spells out a kind itself.
+  #
+  # Integrations (`cairn handoff-integrations` lists them):
+  #   speckit:   runs /speckit-specify on the packaged Spec. Planning and tasks stay with you.
+  #   template:  fills your own spec template and writes it to `out`. Set `template` and `out`.
+  #   Your own:  add .cairn/integrations/<name>.yaml for any other SDD process (see the built-ins).
+  # A target can override any field of its integration, e.g. a different `skill` or `args`.
+  #
+  # Or set a kind directly:
+  #   skill:     runs another skill with `args`, e.g. a team's own build-from-spec skill.
+  #   agent:     hands the package to a subagent with `prompt`.
+  #   script:    `cairn handoff --target` runs the `run` command itself. `run` can also use the
+  #              target's own fields, e.g. {repo}, so a script can push to another SDD repo.
+  #
+  # `run`, `args`, `prompt` and `out` can use {package}, {spec} (the packaged spec.md), {spec_id},
+  # {revision}, {thread_id} and {root}. The handoff is recorded only after delivery succeeds.
+  # Name one as `default:` to skip choosing each time. With no targets, the hand-off skill asks.
+  targets:
+    # speckit:
+    #   integration: speckit
+    # our-template:
+    #   integration: template
+    #   template: docs/templates/feature-spec.md
+    #   out: docs/specs/{spec_id}.md
+    # zip:
+    #   kind: script
+    #   run: "python .cairn/handoff.py --package {package} --to export --where my-team"
+    # build:
+    #   kind: skill
+    #   skill: my-plugin:build-from-spec
+    #   args: "{spec}"
+    # review:
+    #   kind: agent
+    #   agent: general-purpose
+    #   prompt: "Read {spec} and its addendum in {package}, then ..."

@@ -240,3 +240,108 @@ def test_old_single_handoff_record_is_kept(repo):
     thread.write_text(thread.read_text().replace("planned_specs:", "handoff:\n  to: export\n  spec_id: SPEC-000\n  revision: 1\nplanned_specs:"))
     assert run(repo, "SPEC-001", "--to", "in_place").exit_code == 0
     assert [h["spec_id"] for h in frontmatter(thread)["handoffs"]] == ["SPEC-000", "SPEC-001"]
+
+
+def write_targets(repo, targets, default=None):
+    (repo / ".cairn").mkdir(exist_ok=True)
+    (repo / h.CONFIG).write_text(yaml.safe_dump({"handoff": {"default": default, "targets": targets}}))
+
+
+def test_script_target_runs_command_with_placeholders(repo):
+    write_targets(repo, {"zip": {"kind": "script", "run": "echo {spec_id} {thread_id} > out.txt && test -f {spec}"}})
+    r = run(repo, "SPEC-001", "--target", "zip")
+    assert r.exit_code == 0, r.output
+    assert (repo / "out.txt").read_text().strip() == "SPEC-001 THRD-001"
+    rec = frontmatter(repo / "threads/THRD-001.md")["handoffs"][0]
+    assert rec["to"] == "zip" and rec["kind"] == "script"
+
+
+def test_failed_target_script_leaves_thread_specified(repo):
+    write_targets(repo, {"bad": {"kind": "script", "run": "exit 4"}})
+    r = run(repo, "SPEC-001", "--target", "bad")
+    assert r.exit_code == 1 and "code 4" in r.output
+    assert frontmatter(repo / "threads/THRD-001.md")["status"] == "Specified"
+
+
+def test_agent_kind_needs_dry_run_or_delivered(repo):
+    write_targets(repo, {"speckit": {"kind": "speckit"}}, default="speckit")
+    r = run(repo, "SPEC-001", "--target", "speckit")
+    assert r.exit_code == 1 and "--delivered" in r.output
+    assert frontmatter(repo / "threads/THRD-001.md")["status"] == "Specified"
+
+    r = run(repo, "SPEC-001", "--target", "default", "--dry-run")
+    assert r.exit_code == 0 and "Target: speckit (skill)" in r.output
+    assert frontmatter(repo / "threads/THRD-001.md")["status"] == "Specified"
+
+    r = run(repo, "SPEC-001", "--target", "speckit", "--delivered")
+    assert r.exit_code == 0, r.output
+    meta = frontmatter(repo / "threads/THRD-001.md")
+    assert meta["status"] == "Handed off"
+    assert meta["handoffs"][0]["to"] == "speckit" and meta["handoffs"][0]["kind"] == "skill"
+
+
+def test_target_errors(repo):
+    assert "exactly one" in run(repo, "SPEC-001").output
+    assert "exactly one" in run(repo, "SPEC-001", "--to", "in_place", "--target", "x").output
+    assert "goes with --target" in run(repo, "SPEC-001", "--to", "in_place", "--delivered").output
+    assert "no --target given" in run(repo, "SPEC-001", "--target", "default", "--dry-run").output
+    write_targets(repo, {"s": {"kind": "skill"}, "w": {"kind": "weird"}})
+    assert "known: s, w" in run(repo, "SPEC-001", "--target", "nope", "--dry-run").output
+    assert "needs: skill" in run(repo, "SPEC-001", "--target", "s", "--dry-run").output
+    assert "kind 'weird'" in run(repo, "SPEC-001", "--target", "w", "--dry-run").output
+
+
+def test_handoff_targets_lists_config(repo):
+    write_targets(repo, {"speckit": {"kind": "speckit"}}, default="speckit")
+    r = runner.invoke(app, ["handoff-targets", "--path", str(repo)])
+    t = json.loads(r.output)["targets"]["speckit"]
+    assert t["integration"] == "speckit" and t["kind"] == "skill" and t["skill"] == "speckit-specify"
+
+
+def test_fill_keeps_unknown_braces():
+    assert h.fill("a {spec_id} ${HOME} {x}", {"spec_id": "S"}) == "a S ${HOME} {x}"
+
+
+def test_set_keys_replaces_in_place_and_keeps_comment():
+    text = "---\nid: T\nstatus: Specified  # waits on SPEC-002\nhandoffs:\n- a: 1\ntitle: x\n---\nbody"
+    out = h.set_keys(text, {"status": "Specified", "handoffs": [{"a": 1}, {"b": 2}], "new": 1})
+    assert out == ("---\nid: T\nstatus: Specified  # waits on SPEC-002\nhandoffs:\n- a: 1\n- b: 2\n"
+                   "title: x\nnew: 1\n---\nbody")
+
+
+def test_integration_target_merges_and_overrides(repo):
+    write_targets(repo, {"sk": {"integration": "speckit", "skill": "my-specify"}}, default="sk")
+    r = run(repo, "SPEC-001", "--target", "sk", "--dry-run")
+    assert r.exit_code == 0 and "Target: sk (skill)" in r.output
+    assert "expects .specify" in r.output  # not set up in the test repo
+    t = json.loads(CliRunner().invoke(app, ["handoff-targets", "--path", str(repo)]).output)["targets"]["sk"]
+    assert t["skill"] == "my-specify" and "{spec}" in t["args"]
+
+
+def test_template_integration_needs_template_and_out(repo):
+    write_targets(repo, {"t": {"integration": "template"}})
+    assert "needs: template, out" in run(repo, "SPEC-001", "--target", "t", "--dry-run").output
+    write_targets(repo, {"t": {"integration": "template", "template": "tpl.md", "out": "docs/{spec_id}.md"}})
+    assert "doesn't exist" in run(repo, "SPEC-001", "--target", "t", "--dry-run").output
+    (repo / "tpl.md").write_text("# {{title}}\n")
+    r = run(repo, "SPEC-001", "--target", "t", "--dry-run")
+    assert r.exit_code == 0 and "Target: t (template)" in r.output
+
+
+def test_project_integration_overrides_builtin_and_unknown_fails(repo):
+    (repo / ".cairn/integrations").mkdir(parents=True)
+    (repo / ".cairn/integrations/openspec.yaml").write_text("kind: script\nrun: \"true\"\n")
+    write_targets(repo, {"o": {"integration": "openspec"}, "x": {"integration": "nope"}})
+    assert run(repo, "SPEC-001", "--target", "o").exit_code == 0
+    assert "isn't built in" in run(repo, "SPEC-001", "--target", "x", "--dry-run").output
+
+
+def test_script_integration_fills_target_fields(repo):
+    (repo / ".cairn/integrations").mkdir(parents=True)
+    (repo / ".cairn/integrations/push.yaml").write_text(
+        "kind: script\nneeds: [repo]\nrun: \"echo {spec_id} {repo} {template} > sent.txt\"\n")
+    write_targets(repo, {"p": {"integration": "push"}})
+    assert "needs: repo" in run(repo, "SPEC-001", "--target", "p").output
+    write_targets(repo, {"p": {"integration": "push", "repo": "../other", "template": "t.md"}})
+    assert run(repo, "SPEC-001", "--target", "p").exit_code == 0
+    assert (repo / "sent.txt").read_text().split() == ["SPEC-001", "../other", "t.md"]

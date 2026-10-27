@@ -1,0 +1,5 @@
+# Your own spec template: fill a Markdown template from the Cairn Spec and write it to `out`.
+# The target sets `template` (a path in the repo) and `out` (may use {spec_id}, {thread_id}).
+description: "Custom template: fills your template file from the packaged Spec and writes it to `out`."
+kind: template
+needs: [template, out]
