@@ -172,7 +172,7 @@ cairn init --here --status-hook
 
 The hook does nothing on machines where `cairn` isn't installed, so it won't block a teammate's commits.
 
-`cairn check SPEC-001` runs the mechanical half of `check-spec` (required keys, parent Thread, trace refs resolve, quotes appear verbatim, thresholds complete, slices, open questions, trace basis, scope decision recorded) as code. The skill pastes its output into the compile report and does the judgment checks by reading. `--json` and `--markdown` change the output; it exits 1 on any Error.
+`cairn check SPEC-001` runs the mechanical half of `check-spec` (required keys, parent Thread, trace refs resolve, quotes appear verbatim, thresholds complete, slices, open questions, trace basis, scope decision recorded, the jury's Judge actually ran) as code. The skill pastes its output into the compile report and does the judgment checks by reading. `--json` and `--markdown` change the output; it exits 1 on any Error.
 
 When a Spec is ready (`spec_status: specified`, or a Specified Thread for a single Spec), hand it off:
 
@@ -292,7 +292,7 @@ Four skills, run in order, cover the normal track end to end:
 
 **The shortcut**: **`fast-track`** jumps straight from Exploring to a drafted Spec, backfilling Framing and Validating in light form (a short brief, a single-pass critique instead of the full jury) and writing a **Review Brief** — verify-first items, every assumption tagged by origin (`signal`/`overview`/`library`/`inferred`), open questions, and what was skipped. One acknowledgement (`brief_ack`) is the only checkpoint; `check-spec` still enforces everything else.
 
-**The jury**: **`jury-duty`** runs the Advocate/Skeptic/Judge critique that `assess-thread` calls, and a PM can run it alone to pressure-test anything. In Claude Code each seat is its own agent (`jury-advocate`, `jury-skeptic`, `jury-judge`). The Judge runs on Opus, and before each jury `cairn jury-draw` flips a coin to decide whether the Advocate or the Skeptic gets Opus, the other getting Sonnet. That way the stronger model doesn't always argue for the proposal, and the Judge shares a model with each side equally often. The draw is recorded in the verdict. Each juror returns a short, fixed-format result, so the debate doesn't flood the conversation. Other agents play the three seats inline, and the verdict records `jury_mode: inline` so you know the Skeptic shared a model. Pin a seat's model under `jury.models` in `.cairn/config.yaml`, or set `jury.draw: fixed` to turn the coin flip off.
+**The jury**: **`jury-duty`** runs the Advocate/Skeptic/Judge critique that `assess-thread` calls, and a PM can run it alone to pressure-test anything. In Claude Code each seat is its own agent (`jury-advocate`, `jury-skeptic`, `jury-judge`). The Judge runs on Opus, and before each jury `cairn jury-draw` flips a coin to decide whether the Advocate or the Skeptic gets Opus, the other getting Sonnet. That way the stronger model doesn't always argue for the proposal, and the Judge shares a model with each side equally often. The draw is recorded in the verdict. Each juror returns a short, fixed-format result, so the debate doesn't flood the conversation. Other agents play the three seats inline, and the verdict records `jury_mode: inline` so you know the Skeptic shared a model. The transcript and the Judge's verdict are saved to `threads/<id>-verdict.md`, and the Thread's `jury_seats` lists each seat that ran with its model. If the Judge didn't run, the Thread can't move to Validating and `cairn check` fails its Spec, so nobody can write the verdict by hand. Pin a seat's model under `jury.models` in `.cairn/config.yaml`, or set `jury.draw: fixed` to turn the coin flip off.
 
 **The interview**: **`ask-me`** fills in a Thread by asking the PM three questions at a time, multiple choice or free form, aimed at whatever its stage is missing: problem and evidence in Exploring, use cases in Framing, acceptance criteria, thresholds and error states in Validating. Answers go in the Thread's `## Q&A` (`qa-01`, `qa-02`, …) and into `use_cases` and `candidate_criteria`, so `draft-spec` can trace criteria to the PM's own decisions (`basis: decided`). Run it any time; it never moves the Thread on.
 
@@ -356,4 +356,4 @@ Edit skills under `src/cairn_cli/templates/skills/`, never under `.claude/skills
 
 Run the tests with `pip install pytest && pytest tests`.
 
-See the docs above for the full design behind all of this, including the check-spec rule table (C01–C27) and the install/update/packaging model.
+See the docs above for the full design behind all of this, including the check-spec rule table (C01–C28) and the install/update/packaging model.

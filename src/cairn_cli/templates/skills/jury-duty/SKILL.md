@@ -49,6 +49,17 @@ Show the PM the Judge's verdict, not the transcript: the verdict line, the summa
 
 Return to the caller (`assess-thread`) the Judge's YAML as-is, plus `jury_mode: agents | agents (same model) | inline` and the model each seat ran on, with how they were chosen (`jury_models: {advocate, skeptic, judge, draw, seed}`). Recording the draw lets the PM check later whether verdicts follow whichever side drew the stronger model.
 
+Also return the full transcript, each seat's output verbatim under a heading per call (`### Round 1: Advocate`, …, `### Verdict: Judge`), and `jury_seats`: one entry per seat that actually ran, with the model it ran on and how many calls it made:
+
+```yaml
+jury_seats:
+  - {seat: advocate, model: sonnet, calls: 3}
+  - {seat: skeptic, model: opus, calls: 3}
+  - {seat: judge, model: opus, calls: 1}
+```
+
+Inline, write `model: inline` for each seat. List only seats that produced output. If the Judge call failed or was skipped, there is no verdict: say so and stop. Never write the verdict yourself in its place.
+
 ## What you must not do
 
 - Do not write to the Thread, Spec or any file. The caller records the verdict.

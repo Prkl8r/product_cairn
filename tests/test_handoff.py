@@ -16,6 +16,8 @@ stage: Validating
 status: {status}
 owner: pm
 scope_decision: single
+verdict_ref: threads/THRD-001-verdict.md
+jury_seats: [{{seat: advocate, model: sonnet, calls: 3}}, {{seat: skeptic, model: opus, calls: 3}}, {{seat: judge, model: opus, calls: 1}}]
 inbound_refs: ["idea:IDEA-001"]
 outbound_refs:
   - spec:SPEC-001
@@ -62,6 +64,7 @@ def repo(tmp_path):
         (tmp_path / d).mkdir(parents=True)
     (tmp_path / "signals/idea/IDEA-001.md").write_text("---\nsignal_id: IDEA-001\ntype: idea\n---\nAn idea.\n")
     (tmp_path / "threads/THRD-001.md").write_text(THREAD.format(status="Specified"))
+    (tmp_path / "threads/THRD-001-verdict.md").write_text("verdict: proceed\n")
     (tmp_path / "specs/SPEC-001.md").write_text(SPEC)
     (tmp_path / "specs/SPEC-001.compile_report.md").write_text("# Report\n\n## Verdict: **Pass**\n")
     (tmp_path / "design/api.yaml").write_text("openapi: 3.1.0\ninfo: {title: t, version: '1'}\n")

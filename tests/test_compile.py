@@ -14,6 +14,8 @@ stage: Validating
 status: Active
 owner: pm
 scope_decision: single
+verdict_ref: threads/THRD-001-verdict.md
+jury_seats: [{seat: advocate, model: sonnet, calls: 3}, {seat: skeptic, model: opus, calls: 3}, {seat: judge, model: opus, calls: 1}]
 inbound_refs: ["idea:IDEA-001"]
 outbound_refs: ["spec:SPEC-001"]
 ---
@@ -42,6 +44,7 @@ def repo(tmp_path):
     (tmp_path / "signals/idea/IDEA-001.md").write_text("---\nsignal_id: IDEA-001\ntype: idea\n---\nAn idea.\n")
     (tmp_path / "architecture/api/overview.md").write_text("---\nowner: pm\n---\nServes /status.\n")
     (tmp_path / "threads/THRD-001.md").write_text(THREAD)
+    (tmp_path / "threads/THRD-001-verdict.md").write_text("verdict: proceed\n")
     (tmp_path / "charter.yaml").write_text("ui_presence: true\n")
     return tmp_path
 
@@ -188,3 +191,13 @@ def test_single_scope_with_many_slices_warns(repo):
     found = c.check(repo, "SPEC-001")
     assert [f.severity for f in found if f.rule == "C27"] == ["Warn"]
     assert not c.errors(found)
+
+
+def test_judge_seat_and_verdict_file_required(repo):
+    no_judge = THREAD.replace(", {seat: judge, model: opus, calls: 1}", "")
+    (repo / "threads/THRD-001.md").write_text(no_judge)
+    assert rules(repo, spec_meta()) == {("C28", "THRD-001")}
+    (repo / "threads/THRD-001.md").write_text(THREAD)
+    (repo / "threads/THRD-001-verdict.md").unlink()
+    assert rules(repo, spec_meta()) == {("C28", "THRD-001")}
+    assert rules(repo, spec_meta(track="fast")) == set()

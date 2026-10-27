@@ -14,7 +14,7 @@ import yaml
 
 from . import ledger as _ledger
 
-MECHANICAL = ["C01", "C02", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C20", "C21", "C23", "C27"]
+MECHANICAL = ["C01", "C02", "C04", "C05", "C06", "C07", "C08", "C09", "C10", "C20", "C21", "C23", "C27", "C28"]
 REQUIRED_KEYS = {"spec_id": str, "thread_id": str, "sections": dict, "slices": list, "criteria": list}
 SECTIONS = ["problem", "out_of_scope", "error_states", "empty_states", "enablement_deps"]
 VAGUE = ["fast", "intuitive", "user-friendly", "appropriate", "robust", "should"]  # check-spec C08
@@ -83,6 +83,17 @@ def check(root: Path, spec_id: str, docs: dict[str, _ledger.Doc] | None = None) 
         elif scope == "single" and len(meta.get("slices") or []) >= 4:
             warn("C27", thread.id, f"scope_decision is single but {spec_id} has "
                                    f"{len(meta['slices'])} slices; worth asking whether it's several Specs")
+        # C28: on the normal track, the jury's Judge seat ran and its verdict is on file.
+        if meta.get("track", "normal") != "fast":
+            seats = {x.get("seat") for x in thread.meta.get("jury_seats") or [] if isinstance(x, dict)}
+            if "judge" not in seats:
+                err("C28", thread.id, f"{thread.id} has no `judge` in jury_seats; rerun jury-duty, don't write the verdict by hand")
+            missing = [x for x in ("advocate", "skeptic") if x not in seats]
+            if missing and "judge" in seats:
+                warn("C28", thread.id, f"jury_seats has no {', '.join(missing)}")
+            ref = str(thread.meta.get("verdict_ref") or "")
+            if not ref or not (root / ref).is_file():
+                err("C28", thread.id, f"verdict_ref `{ref}` isn't a file in this repo" if ref else "no verdict_ref")
 
     charter = {}
     if (root / "charter.yaml").exists():

@@ -30,6 +30,7 @@ When every edge case is mapped or deferred and the PM accepts the verdict, set `
 4. If an overview a system in `touches` depends on is missing or unverified (`verified: false`), say so as part of the verdict — don't silently assess against unverified material.
 5. **Scope check.** If the Thread now covers two or more outcomes that could each ship on its own and has no `scope_decision`, or has grown since one was recorded, or recorded `deferred`, run the scope check from `shape-thread`'s Scope check section: name the parts and offer the same three choices, defaulting to one Thread that hands off several Specs. Ask the Judge to give a view on scope as part of the verdict when it's `deferred`, and get the PM to resolve `deferred` to `single`, `multi_spec` or `split` before the Thread moves to Validating: draft-spec won't start without it.
 6. Mark everything you write as agent-drafted.
+7. **The Judge must have run.** Save jury-duty's transcript and the Judge's YAML to `threads/<thread_id>-verdict.md` and copy its `jury_seats` onto the Thread. If `jury_seats` has no `judge` entry, the gate stays shut: don't move the Thread to Validating and don't write a verdict yourself. Rerun `jury-duty`. `cairn check` fails a normal-track Spec whose Thread lacks the Judge seat or the verdict file (C28).
 
 ## Output
 
@@ -37,7 +38,8 @@ Append to the Thread file:
 
 ```yaml
 stage: Validating          # only once every edge case is mapped or deferred and the PM accepts
-verdict_ref: <path to the verdict, or inline if short>
+verdict_ref: threads/<thread_id>-verdict.md   # the Judge's YAML plus the transcript jury-duty returned, verbatim
+jury_seats: [...]          # from jury-duty, as returned: advocate, skeptic and judge, each with model and calls
 jury_mode: agents | agents (same model) | inline   # from jury-duty; anything but `agents` means the Advocate and Skeptic shared a model
 jury_models: {advocate: ..., skeptic: ..., judge: ..., draw: coin | fixed | config, seed: ...}   # from jury-duty; omit when inline
 edge_cases:

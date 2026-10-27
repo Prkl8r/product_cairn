@@ -33,7 +33,7 @@ signal_id type source captured_on data_class metric value unit period query comp
 pulled_on tool themes summary title
 thread_id stage status state legacy owner track inbound_refs signal_refs outbound_refs touches bundle bundled_with
 see_thread light_stages skipped_gates review_brief brief_ack agent_drafted shape_decision evidence_strength
-expected_outcome scope_decision planned_specs planned_spec readiness verdict verdict_ref jury_mode jury_models
+expected_outcome scope_decision planned_specs planned_spec readiness verdict verdict_ref jury_mode jury_models jury_seats
 edge_cases candidate_criteria overview_coverage unverified_overviews suggested_reviewers approvals handoff handoffs
 kickbacks kickback_reason kickback_category parked_on pickup_when revisit_date rejected_on reject_category reason
 validated_by accepted_by priority size
