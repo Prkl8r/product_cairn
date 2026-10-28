@@ -249,6 +249,21 @@ def test_last_spec_hands_off_the_thread(repo):
     assert meta["status"] == "Handed off" and len(meta["handoffs"]) == 2
 
 
+def test_spec_sent_earlier_without_spec_status_counts(repo):
+    """A Spec handed off while it was the Thread's only Spec has a handoff record but no handed_off status."""
+    thread, spec = multi_spec(repo)
+    spec.write_text(spec.read_text().replace("spec_status: specified\n", ""))
+    (repo / "specs/SPEC-002.md").write_text(SPEC.replace("spec_id: SPEC-001", "spec_id: SPEC-002\nspec_status: specified"))
+    (repo / "specs/SPEC-002.compile_report.md").write_text("## Verdict: Pass\n")
+    thread.write_text(thread.read_text().replace("    spec_id: null", "    spec_id: SPEC-002")
+                      .replace("  - spec:SPEC-001\n", "  - spec:SPEC-001\n  - spec:SPEC-002\n")
+                      .replace("planned_specs:", "handoffs:\n  - to: speckit\n    kind: speckit\n    spec_id: SPEC-001\n"
+                               "    revision: 2\nplanned_specs:"))
+    r = run(repo, "SPEC-002", "--to", "in_place")
+    assert r.exit_code == 0, r.output
+    assert frontmatter(thread)["status"] == "Handed off"
+
+
 def test_refuses_spec_not_specified(repo):
     multi_spec(repo, spec_status="drafted")
     r = run(repo, "SPEC-001", "--to", "in_place")

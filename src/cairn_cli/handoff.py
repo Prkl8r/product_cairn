@@ -354,7 +354,7 @@ def mark_handed_off(root: Path, thread: _ledger.Doc, spec: _ledger.Doc, to: str,
     keys["handoffs"] = [h for h in old if h.get("spec_id") != spec.id or h.get("revision") != record["revision"]] + [record]
     keys["handoff"] = None
     status = _ledger.stage_status(thread.meta)[1]
-    if all(sid and _sent(root, sid, spec) for sid in thread_spec_ids(thread)):
+    if all(sid and sent_spec(root, thread, sid, spec) for sid in thread_spec_ids(thread)):
         status = "Handed off"
     keys["status"] = status
     text = set_keys(thread.path.read_text(encoding="utf-8"), keys)
@@ -363,8 +363,13 @@ def mark_handed_off(root: Path, thread: _ledger.Doc, spec: _ledger.Doc, to: str,
     return status
 
 
-def _sent(root: Path, spec_id: str, current: _ledger.Doc) -> bool:
+def sent_spec(root: Path, thread: _ledger.Doc, spec_id: str, current: _ledger.Doc) -> bool:
+    """A Spec counts as sent if it's the one going now, its file says handed_off, or the Thread
+    already has a handoff record for it (Specs sent while they were a Thread's only Spec got no spec_status)."""
     if spec_id == current.id:
+        return True
+    old = thread.meta.get("handoffs") or ([thread.meta["handoff"]] if thread.meta.get("handoff") else [])
+    if any(isinstance(h, dict) and h.get("spec_id") == spec_id for h in old):
         return True
     path = root / "specs" / f"{spec_id}.md"
     return path.exists() and _ledger._split(path)[0].get("spec_status") == "handed_off"

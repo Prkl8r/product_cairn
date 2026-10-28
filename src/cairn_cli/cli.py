@@ -664,7 +664,8 @@ def handoff(
     if thread_status == "Handed off":
         typer.secho(f"{thread.id} is Handed off ({sent}).", fg=typer.colors.GREEN)
     else:
-        pending = [s or "(not drafted)" for s in _handoff.thread_spec_ids(thread) if s != spec.id]
+        pending = [s or "(not drafted)" for s in _handoff.thread_spec_ids(thread)
+                   if not (s and _handoff.sent_spec(root, thread, s, spec))]
         typer.secho(f"Handed off {sent}. {thread.id} stays {thread_status}; still to go: {', '.join(pending)}.",
                     fg=typer.colors.GREEN)
 
